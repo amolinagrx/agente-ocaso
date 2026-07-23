@@ -67,6 +67,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _migrar_schema()
         _seed_user(app)
         _auto_seed_if_empty(app)
 
@@ -92,6 +93,38 @@ def _auto_seed_if_empty(app):
             print('Seed data loaded successfully.')
         except Exception as e:
             print(f'Seed error (non-fatal): {e}')
+
+
+def _migrar_schema():
+    """Add missing columns to existing tables without data loss."""
+    import sqlite3
+    from flask import current_app
+
+    db_path = current_app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("PRAGMA table_info(polizas)")
+        cols = {row[1] for row in cursor.fetchall()}
+
+        migrations = [
+            ('numero_cuenta', 'VARCHAR(34)'),
+            ('fecha_baja', 'DATE'),
+        ]
+
+        for col, col_type in migrations:
+            if col not in cols:
+                try:
+                    cursor.execute(f'ALTER TABLE polizas ADD COLUMN {col} {col_type}')
+                    print(f'Migracion: anadida columna {col} a polizas')
+                except Exception as e:
+                    print(f'Migracion polizas.{col}: {e}')
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'Error en migracion (no critico): {e}')
 
 
 if __name__ == '__main__':
