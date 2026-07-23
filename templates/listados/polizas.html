@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Listado de Polizas{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2" style="color:var(--ocaso-blue)"></i>Listado de Polizas</h5>
+    <a href="{{ url_for('listados.index') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+    </a>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-2">
+        <label class="form-label small">Desde</label>
+        <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ fecha_desde }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Hasta</label>
+        <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ fecha_hasta }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Ramo</label>
+        <select name="ramo" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            <option value="auto" {% if ramo=='auto' %}selected{% endif %}>Auto</option>
+            <option value="hogar" {% if ramo=='hogar' %}selected{% endif %}>Hogar</option>
+            <option value="vida" {% if ramo=='vida' %}selected{% endif %}>Vida</option>
+            <option value="decesos" {% if ramo=='decesos' %}selected{% endif %}>Decesos</option>
+            <option value="accidentes" {% if ramo=='accidentes' %}selected{% endif %}>Accidentes</option>
+            <option value="comercio" {% if ramo=='comercio' %}selected{% endif %}>Comercio</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Estado</label>
+        <select name="estado" class="form-select form-select-sm">
+            <option value="todas" {% if estado=='todas' %}selected{% endif %}>Todas</option>
+            <option value="activas" {% if estado=='activas' %}selected{% endif %}>Activas</option>
+            <option value="bajas" {% if estado=='bajas' %}selected{% endif %}>De baja</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Buscar</label>
+        <input type="text" name="buscar" class="form-control form-control-sm" value="{{ buscar }}" placeholder="Cliente o poliza">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">Filtrar</button>
+    </div>
+</form>
+
+<!-- Totals -->
+<div class="row g-2 mb-3">
+    <div class="col-sm-4">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong>{{ totales.count }}</strong> <small class="text-muted">polizas</small>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong>{{ "%.0f"|format(totales.prima_total) }}€</strong> <small class="text-muted">prima total</small>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong>{{ "%.0f"|format(totales.capital_total) }}€</strong> <small class="text-muted">capital total</small>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Cliente</th>
+                <th>Poliza</th>
+                <th>Ramo</th>
+                <th class="hide-mobile">Compania</th>
+                <th>Prima</th>
+                <th class="hide-mobile">F. Efecto</th>
+                <th class="hide-mobile">F. Vencimiento</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p, c in resultados %}
+            <tr>
+                <td><a href="{{ url_for('clientes.ficha', id=c.id) }}" class="text-decoration-none small">{{ c.nombre }}</a></td>
+                <td><code>{{ p.numero_poliza }}</code></td>
+                <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span></td>
+                <td class="hide-mobile">{{ p.compania }}</td>
+                <td><strong>{{ "%.0f"|format(p.prima_anual) }}€</strong></td>
+                <td class="hide-mobile">{{ p.fecha_efecto.strftime('%d/%m/%Y') if p.fecha_efecto else '-' }}</td>
+                <td class="hide-mobile">{{ p.fecha_vencimiento.strftime('%d/%m/%Y') if p.fecha_vencimiento else '-' }}</td>
+                <td>
+                    {% if p.activa %}
+                    <span class="badge bg-success">Activa</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Baja</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="text-center text-muted py-4">Sin resultados con estos filtros</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

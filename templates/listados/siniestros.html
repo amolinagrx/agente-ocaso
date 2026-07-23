@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Listado de Siniestros{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2" style="color:#e0002b"></i>Listado de Siniestros</h5>
+    <a href="{{ url_for('listados.index') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+    </a>
+</div>
+
+<form method="GET" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label small">Estado</label>
+        <select name="estado" class="form-select form-select-sm">
+            <option value="abiertos" {% if estado=='abiertos' %}selected{% endif %}>Abiertos</option>
+            <option value="cerrados" {% if estado=='cerrados' %}selected{% endif %}>Cerrados / Resueltos</option>
+            <option value="todos" {% if estado=='todos' %}selected{% endif %}>Todos</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small">Tipo</label>
+        <select name="tipo" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            <option value="accidente_trafico" {% if tipo=='accidente_trafico' %}selected{% endif %}>Accidente trafico</option>
+            <option value="robo" {% if tipo=='robo' %}selected{% endif %}>Robo</option>
+            <option value="incendio" {% if tipo=='incendio' %}selected{% endif %}>Incendio</option>
+            <option value="danos_agua" {% if tipo=='danos_agua' %}selected{% endif %}>Danos agua</option>
+            <option value="responsabilidad_civil" {% if tipo=='responsabilidad_civil' %}selected{% endif %}>Resp. civil</option>
+            <option value="cristales" {% if tipo=='cristales' %}selected{% endif %}>Cristales</option>
+            <option value="fallecimiento" {% if tipo=='fallecimiento' %}selected{% endif %}>Fallecimiento</option>
+            <option value="otro" {% if tipo=='otro' %}selected{% endif %}>Otro</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small">Buscar</label>
+        <input type="text" name="buscar" class="form-control form-control-sm" value="{{ buscar }}" placeholder="Cliente o expediente">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">Filtrar</button>
+    </div>
+</form>
+
+<div class="row g-2 mb-3">
+    <div class="col-6">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong>{{ totales.count }}</strong>
+            <small class="text-muted d-block">siniestros</small>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong>{{ "%.0f"|format(totales.importe_estimado) }}€</strong>
+            <small class="text-muted d-block">importe estimado total</small>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Expediente</th>
+                <th>Cliente</th>
+                <th class="hide-mobile">Poliza</th>
+                <th>Tipo</th>
+                <th class="hide-mobile">F. Ocurrencia</th>
+                <th>Estado</th>
+                <th class="hide-mobile">Importe est.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s, c, p in resultados %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('siniestros.ficha', id=s.id) }}" class="text-decoration-none">
+                        <code>{{ s.numero_expediente }}</code>
+                    </a>
+                </td>
+                <td><a href="{{ url_for('clientes.ficha', id=c.id) }}" class="text-decoration-none small">{{ c.nombre }}</a></td>
+                <td class="hide-mobile"><code>{{ p.numero_poliza if p else '-' }}</code></td>
+                <td>{{ s.tipo.replace('_',' ').title() }}</td>
+                <td class="hide-mobile">{{ s.fecha_ocurrencia.strftime('%d/%m/%Y') if s.fecha_ocurrencia else '-' }}</td>
+                <td>
+                    <span class="badge bg-{% if s.estado in ('resuelto','cerrado') %}success{% elif s.estado == 'abierto' %}danger{% else %}info{% endif %}">
+                        {{ s.estado.replace('_',' ').title() }}
+                    </span>
+                </td>
+                <td class="hide-mobile">{{ "%.0f"|format(s.importe_estimado or 0) }}€</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted py-4">Sin siniestros con estos filtros</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

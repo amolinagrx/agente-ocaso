@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Listados - Ocaso{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-file-earmark-bar-graph me-2" style="color:var(--ocaso-blue)"></i>Listados</h4>
+
+<p class="text-muted mb-4">Genera listados y resumenes con los filtros que necesites. Todos exportables a PDF.</p>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-primary" style="border-width:2px">
+            <div class="card-body py-3">
+                <h3 class="mb-0" style="color:var(--ocaso-blue)">{{ total_polizas_mes }}</h3>
+                <small class="text-muted">Polizas este mes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-warning" style="border-width:2px">
+            <div class="card-body py-3">
+                <h3 class="mb-0 text-warning">{{ total_recibos_pendientes }}</h3>
+                <small class="text-muted">Recibos pendientes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-danger" style="border-width:2px">
+            <div class="card-body py-3">
+                <h3 class="mb-0 text-danger">{{ total_siniestros_abiertos }}</h3>
+                <small class="text-muted">Siniestros abiertos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-success" style="border-width:2px">
+            <div class="card-body py-3">
+                <h3 class="mb-0 text-success">{{ total_clientes }}</h3>
+                <small class="text-muted">Clientes totales</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report cards -->
+<div class="row g-3">
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('listados.polizas') }}" class="card text-decoration-none h-100 report-card">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-file-earmark-text fs-1 d-block mb-2" style="color:var(--ocaso-blue)"></i>
+                <h6 class="mb-1">Polizas</h6>
+                <small class="text-muted">Filtrar por fecha, ramo, estado</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('listados.recibos') }}" class="card text-decoration-none h-100 report-card">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-receipt fs-1 d-block mb-2" style="color:#198754"></i>
+                <h6 class="mb-1">Recibos</h6>
+                <small class="text-muted">Por estado, importes, fechas</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('listados.produccion') }}" class="card text-decoration-none h-100 report-card">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-graph-up fs-1 d-block mb-2" style="color:#ffc107"></i>
+                <h6 class="mb-1">Produccion</h6>
+                <small class="text-muted">Por ramo y mes</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="{{ url_for('listados.siniestros') }}" class="card text-decoration-none h-100 report-card">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-exclamation-triangle fs-1 d-block mb-2" style="color:#e0002b"></i>
+                <h6 class="mb-1">Siniestros</h6>
+                <small class="text-muted">Abiertos, cerrados, por tipo</small>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+.report-card {
+    transition: all 0.2s;
+    border: 2px solid var(--ocaso-gray-200);
+}
+.report-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: var(--ocaso-blue);
+}
+</style>
+
+{% endblock %}

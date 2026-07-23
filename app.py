@@ -41,6 +41,7 @@ def create_app():
     from routes.dashboard import dashboard_bp
     from routes.comunicaciones import comunicaciones_bp
     from routes.whatsapp import whatsapp_bp
+    from routes.listados import listados_bp
     from routes.asistente import asistente_bp
     from routes.ajustes import ajustes_bp
     from routes.api import api_bp
@@ -54,6 +55,7 @@ def create_app():
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(comunicaciones_bp, url_prefix='/comunicaciones')
     app.register_blueprint(whatsapp_bp, url_prefix='/whatsapp')
+    app.register_blueprint(listados_bp, url_prefix='/listados')
     app.register_blueprint(asistente_bp, url_prefix='/asistente')
     app.register_blueprint(ajustes_bp, url_prefix='/ajustes')
     app.register_blueprint(api_bp, url_prefix='/api')
