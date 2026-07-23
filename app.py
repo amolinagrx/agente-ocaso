@@ -37,7 +37,6 @@ def create_app():
     from routes.clientes import clientes_bp
     from routes.renovaciones import renovaciones_bp
     from routes.siniestros import siniestros_bp
-    from routes.calculadora import calculadora_bp
     from routes.dashboard import dashboard_bp
     from routes.comunicaciones import comunicaciones_bp
     from routes.whatsapp import whatsapp_bp
@@ -51,7 +50,6 @@ def create_app():
     app.register_blueprint(clientes_bp, url_prefix='/clientes')
     app.register_blueprint(renovaciones_bp, url_prefix='/renovaciones')
     app.register_blueprint(siniestros_bp, url_prefix='/siniestros')
-    app.register_blueprint(calculadora_bp, url_prefix='/calculadora')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(comunicaciones_bp, url_prefix='/comunicaciones')
     app.register_blueprint(whatsapp_bp, url_prefix='/whatsapp')

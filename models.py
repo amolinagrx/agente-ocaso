@@ -187,17 +187,6 @@ class PlantillaComunicacion(db.Model):
     contenido = db.Column(db.Text, nullable=False)
 
 
-class TarifaCalculadora(db.Model):
-    __tablename__ = 'tarifas_calculadora'
-    id = db.Column(db.Integer, primary_key=True)
-    ramo = db.Column(db.String(50), nullable=False)
-    tramo = db.Column(db.String(200), nullable=False)
-    prima_min = db.Column(db.Float, default=0)
-    prima_max = db.Column(db.Float, default=0)
-    prima_base = db.Column(db.Float, default=0)
-    factor = db.Column(db.Float, default=1.0)
-
-
 class Configuracion(db.Model):
     __tablename__ = 'configuracion'
     id = db.Column(db.Integer, primary_key=True)

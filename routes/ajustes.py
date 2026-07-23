@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
-from models import db, Configuracion, TarifaCalculadora, DocumentoConocimiento, ChunkConocimiento, MensajeAsistente
+from models import db, Configuracion, DocumentoConocimiento, ChunkConocimiento, MensajeAsistente
 from datetime import datetime
 
 ajustes_bp = Blueprint('ajustes', __name__)
@@ -33,28 +33,12 @@ def index():
             else:
                 flash('La API Key no puede estar vacia', 'warning')
 
-        elif seccion == 'tarifa':
-            tarifa = TarifaCalculadora(
-                ramo=request.form.get('ramo'),
-                tramo=request.form.get('tramo'),
-                prima_min=float(request.form.get('prima_min', 0)),
-                prima_max=float(request.form.get('prima_max', 0)),
-                prima_base=float(request.form.get('prima_base', 0)),
-                factor=float(request.form.get('factor', 1.0))
-            )
-            db.session.add(tarifa)
-            db.session.commit()
-            flash('Tarifa anadida', 'success')
-
         return redirect(url_for('ajustes.index'))
 
     # Load current config
     config = {}
     for c in Configuracion.query.all():
         config[c.clave] = c.valor
-
-    # Load tariffs
-    tarifas = TarifaCalculadora.query.order_by(TarifaCalculadora.ramo, TarifaCalculadora.tramo).all()
 
     # AI stats
     docs_count = DocumentoConocimiento.query.count()
@@ -66,23 +50,12 @@ def index():
 
     return render_template('ajustes/index.html',
                            config=config,
-                           tarifas=tarifas,
                            docs_count=docs_count,
                            chunks_count=chunks_count,
                            mensajes_count=mensajes_count,
                            api_key_configured=api_key_configured,
                            key_from_env=key_from_env,
                            key_from_db=key_from_db)
-
-
-@ajustes_bp.route('/tarifa/<int:id>/eliminar', methods=['POST'])
-@login_required
-def eliminar_tarifa(id):
-    tarifa = TarifaCalculadora.query.get_or_404(id)
-    db.session.delete(tarifa)
-    db.session.commit()
-    flash('Tarifa eliminada', 'success')
-    return redirect(url_for('ajustes.index'))
 
 
 def _guardar_config(clave, valor):

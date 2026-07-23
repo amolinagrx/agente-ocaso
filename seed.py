@@ -5,7 +5,7 @@ Seed script: generates realistic demo data for Ocaso Gestion.
 
 import random
 from datetime import date, datetime, timedelta
-from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, DocumentoSiniestro, TarifaCalculadora, Configuracion, HistorialContacto, DocumentoCliente
+from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, DocumentoSiniestro, Configuracion, HistorialContacto, DocumentoCliente
 
 NOMBRES = [
     "Antonio Garcia Lopez", "Maria Rodriguez Sanchez", "Jose Martinez Fernandez",
@@ -83,7 +83,6 @@ def run_seed():
     HistorialContacto.query.delete()
     DocumentoCliente.query.delete()
     Cliente.query.delete()
-    TarifaCalculadora.query.delete()
     Configuracion.query.delete()
     db.session.commit()
 
@@ -94,23 +93,8 @@ def run_seed():
     db.session.add(Configuracion(clave='oficina_telefono', valor='958 123 456'))
     db.session.add(Configuracion(clave='oficina_email', valor='armilla@ocaso.es'))
 
-    # Tariffs
-    tariffs = [
-        TarifaCalculadora(ramo='auto', tramo='Basico', prima_base=280, factor=1.0),
-        TarifaCalculadora(ramo='auto', tramo='Medio', prima_base=450, factor=1.0),
-        TarifaCalculadora(ramo='auto', tramo='Premium', prima_base=750, factor=1.0),
-        TarifaCalculadora(ramo='hogar', tramo='Piso', prima_base=120, factor=1.0),
-        TarifaCalculadora(ramo='hogar', tramo='Unifamiliar', prima_base=200, factor=1.0),
-        TarifaCalculadora(ramo='vida', tramo='Basico', prima_base=150, factor=1.0),
-        TarifaCalculadora(ramo='decesos', tramo='Familiar', prima_base=80, factor=1.0),
-        TarifaCalculadora(ramo='accidentes', tramo='Individual', prima_base=90, factor=1.0),
-        TarifaCalculadora(ramo='comercio', tramo='Pequeño', prima_base=350, factor=1.0),
-    ]
-    for t in tariffs:
-        db.session.add(t)
-
     db.session.commit()
-    print("Configuracion y tarifas creadas.")
+    print("Configuracion creada.")
 
     clientes = []
     for i in range(50):
