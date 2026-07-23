@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Comunicaciones - Ocaso{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-chat-dots me-2" style="color:var(--ocaso-blue)"></i>Plantillas de Comunicación</h4>
+
+<!-- Tabs for types -->
+<ul class="nav nav-tabs mb-3" id="comTabs">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#whatsapp">WhatsApp</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#email">Email</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sms">SMS</button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    {% for tipo in ['whatsapp', 'email', 'sms'] %}
+    <div class="tab-pane fade {% if tipo == 'whatsapp' %}show active{% endif %}" id="{{ tipo }}">
+        <div class="row g-3">
+            {% for p in plantillas if p.tipo == tipo %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>{{ p.nombre }}</strong>
+                        {% if tipo == 'whatsapp' %}
+                        <i class="bi bi-whatsapp text-success"></i>
+                        {% elif tipo == 'email' %}
+                        <i class="bi bi-envelope text-primary"></i>
+                        {% else %}
+                        <i class="bi bi-chat-text text-secondary"></i>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <pre class="small text-muted mb-0" style="white-space:pre-wrap;max-height:150px;overflow-y:auto">{{ p.contenido[:200] }}{% if p.contenido|length > 200 %}...{% endif %}</pre>
+                    </div>
+                    <div class="card-footer d-flex gap-2">
+                        <a href="{{ url_for('comunicaciones.usar_plantilla', id=p.id) }}" class="btn btn-sm btn-danger flex-grow-1" style="background:var(--ocaso-blue)">
+                            <i class="bi bi-send me-1"></i> Usar
+                        </a>
+                        <form method="POST" action="{{ url_for('comunicaciones.eliminar_plantilla', id=p.id) }}" class="d-inline">
+                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar plantilla?')"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Add new card -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-dashed">
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#nuevaPlantillaModal" onclick="document.getElementById('plantillaTipo').value='{{ tipo }}'">
+                            <i class="bi bi-plus-lg me-1"></i> Nueva plantilla
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal nueva plantilla -->
+<div class="modal fade" id="nuevaPlantillaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{{ url_for('comunicaciones.nueva_plantilla') }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva plantilla</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" name="nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipo" class="form-select" id="plantillaTipo">
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="email">Email</option>
+                                <option value="sms">SMS</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12" id="asuntoGroup" style="display:none">
+                            <label class="form-label">Asunto</label>
+                            <input type="text" name="asunto" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Contenido</label>
+                            <textarea name="contenido" class="form-control" rows="6" required></textarea>
+                            <div class="form-text">
+                                Variables disponibles: <code>{nombre}</code> <code>{poliza}</code> <code>{importe}</code> <code>{fecha}</code> <code>{enlace}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger" style="background:var(--ocaso-blue)">Crear plantilla</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('plantillaTipo').addEventListener('change', function() {
+    document.getElementById('asuntoGroup').style.display = this.value === 'email' ? 'block' : 'none';
+});
+</script>
+
+<style>
+.border-dashed { border: 2px dashed #dee2e6 !important; }
+</style>
+
+{% endblock %}

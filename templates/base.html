@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#003396">
+    <meta name="msapplication-TileColor" content="#003396">
+    <title>{% block title %}Ocaso Gestion{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"></script>
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar backdrop (mobile) -->
+    <div id="sidebar-backdrop"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar bg-white border-end" id="sidebar-wrapper">
+        <div class="sidebar-heading text-center py-3 border-bottom">
+            <h5 class="mb-0 fw-bold">OCASO</h5>
+            <small class="text-muted">Armilla</small>
+        </div>
+        <div class="list-group list-group-flush mt-2">
+            <a href="{{ url_for('dashboard.index') }}" class="list-group-item list-group-item-action" data-nav="dashboard">
+                <i class="bi bi-speedometer2 me-2"></i> <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="{{ url_for('recibos.index') }}" class="list-group-item list-group-item-action" data-nav="recibos">
+                <i class="bi bi-receipt me-2"></i> <span class="nav-label">Recibos</span>
+            </a>
+            <a href="{{ url_for('clientes.index') }}" class="list-group-item list-group-item-action" data-nav="clientes">
+                <i class="bi bi-people me-2"></i> <span class="nav-label">Clientes</span>
+            </a>
+            <a href="{{ url_for('renovaciones.index') }}" class="list-group-item list-group-item-action" data-nav="renovaciones">
+                <i class="bi bi-calendar-check me-2"></i> <span class="nav-label">Renovaciones</span>
+            </a>
+            <a href="{{ url_for('siniestros.index') }}" class="list-group-item list-group-item-action" data-nav="siniestros">
+                <i class="bi bi-exclamation-triangle me-2"></i> <span class="nav-label">Siniestros</span>
+            </a>
+            <a href="{{ url_for('calculadora.index') }}" class="list-group-item list-group-item-action" data-nav="calculadora">
+                <i class="bi bi-calculator me-2"></i> <span class="nav-label">Calculadora</span>
+            </a>
+            <a href="{{ url_for('comunicaciones.index') }}" class="list-group-item list-group-item-action" data-nav="comunicaciones">
+                <i class="bi bi-chat-dots me-2"></i> <span class="nav-label">Comunicaciones</span>
+            </a>
+            <a href="{{ url_for('whatsapp.index') }}" class="list-group-item list-group-item-action" data-nav="whatsapp">
+                <i class="bi bi-whatsapp me-2"></i> <span class="nav-label">WhatsApp</span>
+            </a>
+            <a href="{{ url_for('asistente.index') }}" class="list-group-item list-group-item-action" data-nav="asistente">
+                <i class="bi bi-robot me-2"></i> <span class="nav-label">Asistente IA</span>
+            </a>
+            <a href="{{ url_for('ajustes.index') }}" class="list-group-item list-group-item-action" data-nav="ajustes">
+                <i class="bi bi-sliders2 me-2"></i> <span class="nav-label">Ajustes</span>
+            </a>
+        </div>
+        <div class="mt-auto p-3 border-top position-absolute bottom-0 w-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ current_user.username }}</small>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page content -->
+    <div id="page-content-wrapper">
+        <!-- Top bar -->
+        <nav class="navbar navbar-top border-bottom px-2 py-2">
+            <button class="btn btn-outline-secondary btn-sm d-lg-none me-2" id="sidebarToggle" aria-label="Menu">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="flex-grow-1 position-relative" style="min-width:0">
+                <input type="search"
+                       id="buscadorUniversal"
+                       class="form-control"
+                       placeholder="Buscar cliente, DNI, poliza..."
+                       autocomplete="off"
+                       hx-get="{{ url_for('api.buscar') }}"
+                       hx-trigger="keyup changed delay:300ms"
+                       hx-target="#resultadosBusqueda"
+                       hx-indicator="#searchSpinner">
+                <span id="searchSpinner" class="htmx-indicator position-absolute end-0 top-50 translate-middle-y me-2">
+                    <span class="spinner-border spinner-border-sm text-muted"></span>
+                </span>
+                <div id="resultadosBusqueda" class="position-absolute bg-white border rounded shadow mt-1 start-0 end-0" style="max-height:400px;overflow-y:auto;display:none"></div>
+            </div>
+            <div class="form-check form-switch ms-2 ms-lg-3 d-none d-lg-flex">
+                <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                <label class="form-check-label" for="darkModeToggle"><i class="bi bi-moon"></i></label>
+            </div>
+        </nav>
+
+        <!-- Flash messages -->
+        <div class="px-3 pt-2" id="flashContainer">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show py-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Main content -->
+        <div class="px-3 py-2">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bottom navigation (mobile) -->
+    <nav id="bottomNav">
+        <a href="{{ url_for('dashboard.index') }}" class="nav-item" data-nav="dashboard">
+            <i class="bi bi-speedometer2"></i>Inicio
+        </a>
+        <a href="{{ url_for('recibos.index') }}" class="nav-item" data-nav="recibos">
+            <i class="bi bi-receipt"></i>Recibos
+        </a>
+        <a href="{{ url_for('whatsapp.index') }}" class="nav-item" data-nav="whatsapp">
+            <i class="bi bi-whatsapp"></i>WhatsApp
+        </a>
+        <a href="{{ url_for('clientes.index') }}" class="nav-item" data-nav="clientes">
+            <i class="bi bi-people"></i>Clientes
+        </a>
+        <a href="{{ url_for('ajustes.index') }}" class="nav-item" data-nav="ajustes">
+            <i class="bi bi-sliders2"></i>Ajustes
+        </a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        (function() {
+            const sidebar = document.getElementById('sidebar-wrapper');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const darkToggle = document.getElementById('darkModeToggle');
+            const buscador = document.getElementById('buscadorUniversal');
+            const resultados = document.getElementById('resultadosBusqueda');
+
+            function openSidebar() {
+                sidebar.classList.remove('collapsed');
+                backdrop.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('collapsed');
+                backdrop.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (sidebar.classList.contains('collapsed')) {
+                    openSidebar();
+                } else {
+                    closeSidebar();
+                }
+            });
+
+            backdrop.addEventListener('click', closeSidebar);
+
+            // Close sidebar when clicking a nav item on mobile
+            sidebar.querySelectorAll('.list-group-item').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 992) {
+                        closeSidebar();
+                    }
+                });
+            });
+
+            // Dark mode toggle
+            if (darkToggle) {
+                darkToggle.addEventListener('change', function() {
+                    document.documentElement.setAttribute('data-bs-theme',
+                        this.checked ? 'dark' : 'light');
+                    localStorage.setItem('ocaso-theme', this.checked ? 'dark' : 'light');
+                });
+
+                // Restore saved theme
+                if (localStorage.getItem('ocaso-theme') === 'dark') {
+                    darkToggle.checked = true;
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                }
+            }
+
+            // Search handler
+            buscador.addEventListener('htmx:afterRequest', function(evt) {
+                const data = JSON.parse(evt.detail.xhr.responseText);
+                if (data && data.length > 0) {
+                    let html = '';
+                    data.forEach(function(item) {
+                        html += '<a href="' + item.url + '" class="d-block px-3 py-2 border-bottom text-decoration-none text-reset search-result-item">' +
+                            '<div class="d-flex justify-content-between align-items-center">' +
+                                '<strong>' + (item.nombre || item.numero) + '</strong>' +
+                                '<small class="text-muted text-capitalize">' + item.type + '</small>' +
+                            '</div>' +
+                            '<small class="text-muted">' +
+                                (item.dni ? 'DNI: ' + item.dni + ' ' : '') +
+                                (item.telefono ? 'Tel: ' + item.telefono + ' ' : '') +
+                                (item.polizas_activas !== undefined ? item.polizas_activas + ' polizas' : '') +
+                                (item.alerta ? ' <span class="badge bg-danger">&#9888;</span>' : '') +
+                            '</small>' +
+                        '</a>';
+                    });
+                    resultados.innerHTML = html;
+                    resultados.style.display = 'block';
+                } else {
+                    resultados.innerHTML = '<div class="px-3 py-2 text-muted small">Sin resultados</div>';
+                    resultados.style.display = 'block';
+                }
+            });
+
+            // Close search on outside click/tap
+            document.addEventListener('click', function(e) {
+                if (!buscador.contains(e.target) && !resultados.contains(e.target)) {
+                    resultados.style.display = 'none';
+                }
+            });
+
+            // Active nav highlighting
+            var path = window.location.pathname;
+            document.querySelectorAll('[data-nav]').forEach(function(el) {
+                var nav = el.getAttribute('data-nav');
+                if (path.indexOf('/' + nav) === 0 || (nav === 'dashboard' && (path === '/' || path === '/dashboard/'))) {
+                    el.classList.add('active');
+                }
+            });
+
+            // Touch: close sidebar on swipe right to left
+            var touchStartX = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+            }, { passive: true });
+
+            document.addEventListener('touchend', function(e) {
+                var diff = touchStartX - e.changedTouches[0].clientX;
+                if (diff > 80 && !sidebar.classList.contains('collapsed')) {
+                    closeSidebar();
+                }
+            });
+
+            // Resize handler
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    backdrop.style.display = 'none';
+                    document.body.style.overflow = '';
+                    sidebar.classList.remove('collapsed');
+                } else {
+                    sidebar.classList.add('collapsed');
+                }
+            });
+        })();
+    </script>
+    {% else %}
+    {% block auth_content %}{% endblock %}
+    {% endif %}
+</body>
+</html>

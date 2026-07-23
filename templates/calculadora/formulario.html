@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Calculadora - {{ ramo.title() }}{% endblock %}
+{% block content %}
+
+{% set ramos_names = {'auto': 'Auto', 'hogar': 'Hogar', 'vida': 'Vida', 'decesos': 'Decesos', 'accidentes': 'Accidentes', 'comercio': 'Comercio'} %}
+
+<h4 class="mb-3"><i class="bi bi-calculator me-2" style="color:var(--ocaso-blue)"></i>Calcular {{ ramos_names.get(ramo, ramo.title()) }}</h4>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('calculadora.calcular') }}">
+                    <input type="hidden" name="ramo" value="{{ ramo }}">
+
+                    <h6 class="mb-3 text-muted">Datos del cliente</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" name="cliente_nombre" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">DNI</label>
+                            <input type="text" name="cliente_dni" class="form-control">
+                        </div>
+                    </div>
+
+                    {% if ramo == 'auto' %}
+                    <h6 class="mb-3 text-muted">Datos del vehículo</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Marca</label>
+                            <input type="text" name="marca" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Modelo</label>
+                            <input type="text" name="modelo" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Año</label>
+                            <input type="number" name="anio" class="form-control" value="2023">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de cobertura</label>
+                            <select name="tipo_cobertura" class="form-select">
+                                <option value="terceros">Terceros</option>
+                                <option value="terceros_ampliado">Terceros Ampliado</option>
+                                <option value="todo_riesgo">Todo Riesgo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Capitales (RC + defensa)</label>
+                            <input type="number" name="capitales" class="form-control" value="50000" step="10000">
+                        </div>
+                    </div>
+
+                    {% elif ramo == 'hogar' %}
+                    <h6 class="mb-3 text-muted">Datos de la vivienda</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo de vivienda</label>
+                            <select name="tipo_vivienda" class="form-select">
+                                <option value="piso">Piso</option>
+                                <option value="adosado">Adosado</option>
+                                <option value="unifamiliar">Unifamiliar</option>
+                                <option value="atico">Ático</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Metros</label>
+                            <input type="number" name="metros" class="form-control" value="80">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Capital continente (€)</label>
+                            <input type="number" name="continente" class="form-control" value="120000" step="10000">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Capital contenido (€)</label>
+                            <input type="number" name="contenido" class="form-control" value="30000" step="5000">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Coberturas adicionales</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="coberturas" value="rc" id="cb1">
+                                    <label class="form-check-label" for="cb1">RC ampliada</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="coberturas" value="juridica" id="cb2">
+                                    <label class="form-check-label" for="cb2">Defensa jurídica</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="coberturas" value="accidentes" id="cb3">
+                                    <label class="form-check-label" for="cb3">Accidentes</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- Genérico para otros ramos -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Capital asegurado (€)</label>
+                            <input type="number" name="capital_asegurado" class="form-control" value="50000" step="10000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Observaciones</label>
+                            <input type="text" name="observaciones" class="form-control" placeholder="Opcional">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-danger mt-4" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-calculator me-1"></i> Calcular Prima
+                    </button>
+                    <a href="{{ url_for('calculadora.index') }}" class="btn btn-outline-secondary mt-4 ms-2">Volver</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

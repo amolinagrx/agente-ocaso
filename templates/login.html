@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="text-center bg-white p-4 p-md-5 rounded-4 shadow">
+            <div class="mb-4">
+                <div style="background:var(--ocaso-blue,#003396);color:white;width:72px;height:72px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold">O</div>
+            </div>
+            <h4 class="mb-1 fw-bold" style="color:var(--ocaso-blue,#003396)">Ocaso Seguros</h4>
+            <p class="text-muted mb-4">Oficina Armilla</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <form method="POST" autocomplete="off">
+                <div class="mb-3 text-start">
+                    <label class="form-label">Usuario</label>
+                    <input type="text" name="username" class="form-control" required autofocus autocomplete="username">
+                </div>
+                <div class="mb-3 text-start">
+                    <label class="form-label">Contrasena</label>
+                    <input type="password" name="password" class="form-control" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-danger w-100 py-2" style="background-color:var(--ocaso-blue,#003396)">
+                    Acceder
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

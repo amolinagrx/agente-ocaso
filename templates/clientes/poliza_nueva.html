@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Nueva Póliza - {{ cliente.nombre }}{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-file-earmark-plus me-2" style="color:var(--ocaso-blue)"></i>Nueva Póliza para {{ cliente.nombre }}</h4>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <h6 class="mb-3">Datos básicos</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nº Póliza *</label>
+                            <input type="text" name="numero_poliza" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Compañía</label>
+                            <select name="compania" class="form-select">
+                                <option value="Ocaso">Ocaso</option>
+                                <option value="Otra">Otra</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ramo *</label>
+                            <select name="ramo" class="form-select" required onchange="toggleRamoFields(this.value)">
+                                <option value="">Seleccionar...</option>
+                                <option value="auto">Auto</option>
+                                <option value="hogar">Hogar</option>
+                                <option value="vida">Vida</option>
+                                <option value="decesos">Decesos</option>
+                                <option value="accidentes">Accidentes</option>
+                                <option value="comercio">Comercio</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Descripción</label>
+                            <input type="text" name="descripcion" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Capital asegurado</label>
+                            <input type="number" name="capital_asegurado" class="form-control" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Prima anual *</label>
+                            <input type="number" name="prima_anual" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha efecto *</label>
+                            <input type="date" name="fecha_efecto" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha vencimiento *</label>
+                            <input type="date" name="fecha_vencimiento" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Auto fields -->
+                    <div id="autoFields" class="mt-3" style="display:none">
+                        <h6 class="mb-2">Datos del vehículo</h6>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Marca</label>
+                                <input type="text" name="marca" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Modelo</label>
+                                <input type="text" name="modelo" class="form-control">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Año</label>
+                                <input type="number" name="anio" class="form-control">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Matrícula</label>
+                                <input type="text" name="matricula" class="form-control">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Cobertura</label>
+                                <select name="tipo_cobertura" class="form-select">
+                                    <option value="">--</option>
+                                    <option value="terceros">Terceros</option>
+                                    <option value="terceros_ampliado">Terceros Ampliado</option>
+                                    <option value="todo_riesgo">Todo Riesgo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hogar fields -->
+                    <div id="hogarFields" class="mt-3" style="display:none">
+                        <h6 class="mb-2">Datos de la vivienda</h6>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Tipo vivienda</label>
+                                <select name="tipo_vivienda" class="form-select">
+                                    <option value="">--</option>
+                                    <option value="piso">Piso</option>
+                                    <option value="adosado">Adosado</option>
+                                    <option value="unifamiliar">Unifamiliar</option>
+                                    <option value="atico">Ático</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Metros</label>
+                                <input type="number" name="metros" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Continente (€)</label>
+                                <input type="number" name="continente" class="form-control" step="0.01">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Contenido (€)</label>
+                                <input type="number" name="contenido" class="form-control" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger mt-3" style="background:var(--ocaso-blue)">Crear Póliza</button>
+                    <a href="{{ url_for('clientes.ficha', id=cliente.id) }}" class="btn btn-outline-secondary mt-3 ms-2">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleRamoFields(ramo) {
+    document.getElementById('autoFields').style.display = ramo === 'auto' ? 'block' : 'none';
+    document.getElementById('hogarFields').style.display = ramo === 'hogar' ? 'block' : 'none';
+}
+</script>
+
+{% endblock %}

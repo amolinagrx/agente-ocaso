@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+{% block title %}Ficha de {{ cliente.nombre }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h4 class="mb-0">
+            {{ cliente.nombre }}
+            {% if cliente.alerta_devoluciones %}
+            <span class="badge bg-danger" title="Tiene 2 o más devoluciones">⚠ Alertas</span>
+            {% endif %}
+        </h4>
+        <p class="text-muted mb-0">
+            {% if cliente.dni %}DNI: {{ cliente.dni }} | {% endif %}
+            {% if cliente.telefono %}Tel: {{ cliente.telefono }} | {% endif %}
+            {% if cliente.email %}{{ cliente.email }}{% endif %}
+        </p>
+        {% if cliente.direccion %}<p class="text-muted small mb-0">{{ cliente.direccion }}</p>{% endif %}
+    </div>
+    <div>
+        {% if cliente.telefono %}
+        <a href="{{ url_for('whatsapp.cliente_chat', id=cliente.id) }}"
+           class="btn btn-sm btn-success me-1" target="_blank" rel="noopener" title="Enviar WhatsApp">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+        </a>
+        {% endif %}
+        <a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="clienteTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#polizas">Pólizas ({{ polizas|length }})</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recibos">Recibos</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#siniestros">Siniestros ({{ siniestros|length }})</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#contacto">Historial Contacto</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#documentos">Documentos</button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Pólizas -->
+    <div class="tab-pane fade show active" id="polizas">
+        <div class="d-flex justify-content-between mb-2">
+            <h6 class="mb-0">Pólizas activas</h6>
+            <a href="{{ url_for('clientes.nueva_poliza', id=cliente.id) }}" class="btn btn-sm btn-danger" style="background:var(--ocaso-blue)">
+                <i class="bi bi-plus"></i> Nueva Póliza
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ramo</th>
+                        <th>Nº Póliza</th>
+                        <th>Capital</th>
+                        <th>Prima Anual</th>
+                        <th>F. Efecto</th>
+                        <th>F. Vencimiento</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in polizas %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span></td>
+                        <td><code>{{ p.numero_poliza }}</code></td>
+                        <td class="hide-mobile">{{ "%.0f"|format(p.capital_asegurado) }}€</td>
+                        <td><strong>{{ "%.2f"|format(p.prima_anual) }}€</strong></td>
+                        <td class="hide-mobile">{{ p.fecha_efecto.strftime('%d/%m/%Y') if p.fecha_efecto else '-' }}</td>
+                        <td class="hide-mobile">{{ p.fecha_vencimiento.strftime('%d/%m/%Y') if p.fecha_vencimiento else '-' }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        onclick="editarPoliza({{ p.id }}, '{{ p.numero_poliza }}', '{{ p.ramo }}', '{{ p.compania }}', '{{ p.descripcion or '' }}', {{ p.capital_asegurado }}, {{ p.prima_anual }}, '{{ p.fecha_efecto }}', '{{ p.fecha_vencimiento }}', {{ 'true' if p.activa else 'false' }}, '{{ p.marca or '' }}', '{{ p.modelo or '' }}', {{ p.anio or 0 }}, '{{ p.matricula or '' }}', '{{ p.tipo_cobertura or '' }}', '{{ p.tipo_vivienda or '' }}', {{ p.metros or 0 }}, {{ p.continente or 0 }}, {{ p.contenido or 0 }})"
+                                        title="Editar poliza">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                {% if p.activa %}
+                                <form method="POST" action="{{ url_for('clientes.dar_baja_poliza', id=cliente.id, poliza_id=p.id) }}" class="d-inline">
+                                    <button class="btn btn-outline-warning btn-sm"
+                                            onclick="return confirm('¿Dar de baja la poliza {{ p.numero_poliza }}?')"
+                                            title="Dar de baja">
+                                        <i class="bi bi-archive"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-muted text-center py-3">No hay pólizas registradas</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recibos -->
+    <div class="tab-pane fade" id="recibos">
+        <div class="d-flex justify-content-between mb-2">
+            <h6 class="mb-0">Historial de recibos</h6>
+            <button class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)" data-bs-toggle="modal" data-bs-target="#nuevoReciboModal">
+                <i class="bi bi-plus"></i> Nuevo Recibo
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Póliza</th>
+                        <th>Concepto</th>
+                        <th>Importe</th>
+                        <th>Estado</th>
+                        <th>Gestión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in recibos %}
+                    <tr>
+                        <td>{{ r.fecha_emision.strftime('%d/%m/%Y') if r.fecha_emision else '-' }}</td>
+                        <td><code>{{ r.numero_poliza or '-' }}</code></td>
+                        <td>{{ r.concepto or '-' }}</td>
+                        <td>{{ "%.2f"|format(r.importe) }}€</td>
+                        <td>
+                            {% if r.estado == 'cobrado' %}
+                            <span class="badge bg-success">Cobrado</span>
+                            {% elif r.estado == 'devuelto' %}
+                            <span class="badge bg-danger">Devuelto</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.estado_gestion %}
+                            <span class="badge bg-light text-dark">{{ r.estado_gestion.replace('_',' ').title() }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-muted text-center py-3">No hay recibos</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Siniestros -->
+    <div class="tab-pane fade" id="siniestros">
+        <div class="d-flex justify-content-between mb-2">
+            <h6 class="mb-0">Siniestros</h6>
+            <button class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)" data-bs-toggle="modal" data-bs-target="#nuevoSiniestroModal">
+                <i class="bi bi-plus"></i> Nuevo Siniestro
+            </button>
+        </div>
+        <table class="table table-sm table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Expediente</th>
+                    <th>Póliza</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in siniestros %}
+                <tr>
+                    <td><code>{{ s.numero_expediente }}</code></td>
+                    <td>{{ s.poliza.numero_poliza if s.poliza else '-' }}</td>
+                    <td>{{ s.tipo.title() }}</td>
+                    <td>{{ s.fecha_ocurrencia.strftime('%d/%m/%Y') if s.fecha_ocurrencia else '-' }}</td>
+                    <td><span class="badge bg-{% if s.estado in ('resuelto','cerrado') %}success{% elif s.estado == 'abierto' %}danger{% else %}info{% endif %}">{{ s.estado.replace('_',' ').title() }}</span></td>
+                    <td>
+                        <a href="{{ url_for('siniestros.ficha', id=s.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-muted text-center py-3">No hay siniestros</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Historial Contacto -->
+    <div class="tab-pane fade" id="contacto">
+        <button class="btn btn-sm btn-outline-secondary mb-2" data-bs-toggle="modal" data-bs-target="#nuevoContactoModal">
+            <i class="bi bi-plus"></i> Registrar contacto
+        </button>
+        <div class="list-group list-group-flush">
+            {% for co in contactos %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">{{ co.fecha.strftime('%d/%m/%Y %H:%M') }}</small>
+                    <span class="badge bg-light text-dark">{{ (co.tipo or '').title() }}</span>
+                </div>
+                <p class="mb-0 small">{{ co.notas }}</p>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Sin historial de contacto</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Documentos -->
+    <div class="tab-pane fade" id="documentos">
+        <form method="POST" action="{{ url_for('clientes.subir_documento', id=cliente.id) }}" enctype="multipart/form-data" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <select name="tipo" class="form-select form-select-sm">
+                    <option value="poliza">Póliza</option>
+                    <option value="dni">DNI</option>
+                    <option value="certificado">Certificado</option>
+                    <option value="escaneo">Escaneo</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <input type="file" name="documento" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-danger w-100" style="background:var(--ocaso-blue)">Subir</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead class="table-light">
+                    <tr><th>Documento</th><th>Tipo</th><th>Fecha</th></tr>
+                </thead>
+                <tbody>
+                    {% for d in documentos %}
+                    <tr>
+                        <td>{{ d.nombre }}</td>
+                        <td><span class="badge bg-light text-dark">{{ d.tipo }}</span></td>
+                        <td>{{ d.uploaded_at.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-muted text-center">No hay documentos</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Contacto -->
+<div class="modal fade" id="nuevoContactoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('clientes.agregar_contacto', id=cliente.id) }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar contacto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select name="tipo" class="form-select">
+                            <option value="llamada">Llamada</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="email">Email</option>
+                            <option value="visita">Visita</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notas</label>
+                        <textarea name="notas" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger" style="background:var(--ocaso-blue)">Guardar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Poliza -->
+<div class="modal fade" id="editarPolizaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" id="editarPolizaForm" action="">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar poliza</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small">Nº Poliza</label>
+                            <input type="text" name="numero_poliza" id="epNumero" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Ramo</label>
+                            <select name="ramo" id="epRamo" class="form-select form-select-sm" onchange="toggleEditRamo()">
+                                <option value="auto">Auto</option><option value="hogar">Hogar</option>
+                                <option value="vida">Vida</option><option value="decesos">Decesos</option>
+                                <option value="accidentes">Accidentes</option><option value="comercio">Comercio</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Compania</label>
+                            <select name="compania" id="epCompania" class="form-select form-select-sm">
+                                <option value="Ocaso">Ocaso</option><option value="Otra">Otra</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small">Descripcion</label>
+                            <input type="text" name="descripcion" id="epDesc" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Capital</label>
+                            <input type="number" name="capital_asegurado" id="epCapital" class="form-control form-control-sm" step="0.01">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Prima anual</label>
+                            <input type="number" name="prima_anual" id="epPrima" class="form-control form-control-sm" step="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Activa</label>
+                            <select name="activa" id="epActiva" class="form-select form-select-sm">
+                                <option value="true">Si</option><option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">F. Efecto</label>
+                            <input type="date" name="fecha_efecto" id="epFechaEf" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">F. Vencimiento</label>
+                            <input type="date" name="fecha_vencimiento" id="epFechaVenc" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <!-- Auto fields -->
+                    <div id="editAutoFields" class="row g-3 mt-2" style="display:none">
+                        <div class="col-md-3"><label class="form-label small">Marca</label><input type="text" name="marca" id="epMarca" class="form-control form-control-sm"></div>
+                        <div class="col-md-3"><label class="form-label small">Modelo</label><input type="text" name="modelo" id="epModelo" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><label class="form-label small">Anio</label><input type="number" name="anio" id="epAnio" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><label class="form-label small">Matricula</label><input type="text" name="matricula" id="epMatricula" class="form-control form-control-sm"></div>
+                        <div class="col-md-2"><label class="form-label small">Cobertura</label><select name="tipo_cobertura" id="epCobertura" class="form-select form-select-sm"><option value="">--</option><option value="terceros">Terceros</option><option value="terceros_ampliado">Ampliado</option><option value="todo_riesgo">Todo Riesgo</option></select></div>
+                    </div>
+                    <!-- Hogar fields -->
+                    <div id="editHogarFields" class="row g-3 mt-2" style="display:none">
+                        <div class="col-md-3"><label class="form-label small">Tipo vivienda</label><select name="tipo_vivienda" id="epTipoViv" class="form-select form-select-sm"><option value="">--</option><option value="piso">Piso</option><option value="adosado">Adosado</option><option value="unifamiliar">Unifamiliar</option><option value="atico">Atico</option></select></div>
+                        <div class="col-md-2"><label class="form-label small">Metros</label><input type="number" name="metros" id="epMetros" class="form-control form-control-sm"></div>
+                        <div class="col-md-3"><label class="form-label small">Continente (€)</label><input type="number" name="continente" id="epContinente" class="form-control form-control-sm" step="0.01"></div>
+                        <div class="col-md-3"><label class="form-label small">Contenido (€)</label><input type="number" name="contenido" id="epContenido" class="form-control form-control-sm" step="0.01"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">Guardar cambios</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Nuevo Recibo -->
+<div class="modal fade" id="nuevoReciboModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('clientes.nuevo_recibo', id=cliente.id) }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Recibo - {{ cliente.nombre }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Poliza</label>
+                            <select name="poliza_id" class="form-select form-select-sm">
+                                <option value="">Sin poliza</option>
+                                {% for p in polizas %}
+                                <option value="{{ p.id }}">{{ p.numero_poliza }} ({{ p.ramo }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Importe (€) *</label>
+                            <input type="number" name="importe" class="form-control form-control-sm" step="0.01" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small">Concepto</label>
+                            <input type="text" name="concepto" class="form-control form-control-sm" placeholder="Ej: Prima Auto enero 2025">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">F. Emision</label>
+                            <input type="date" name="fecha_emision" class="form-control form-control-sm" value="{{ today }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">F. Cargo</label>
+                            <input type="date" name="fecha_cargo" class="form-control form-control-sm" value="{{ today }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Estado</label>
+                            <select name="estado" class="form-select form-select-sm">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="cobrado">Cobrado</option>
+                                <option value="devuelto">Devuelto</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Notas</label>
+                            <textarea name="notas" class="form-control form-control-sm" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">Crear Recibo</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Nuevo Siniestro -->
+<div class="modal fade" id="nuevoSiniestroModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{{ url_for('clientes.nuevo_siniestro', id=cliente.id) }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Siniestro - {{ cliente.nombre }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small">Nº Expediente *</label>
+                            <input type="text" name="numero_expediente" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Tipo *</label>
+                            <select name="tipo" class="form-select form-select-sm" required>
+                                <option value="">--</option>
+                                <option value="accidente_trafico">Accidente trafico</option>
+                                <option value="robo">Robo</option>
+                                <option value="incendio">Incendio</option>
+                                <option value="danos_agua">Danos por agua</option>
+                                <option value="responsabilidad_civil">Responsabilidad civil</option>
+                                <option value="cristales">Cristales</option>
+                                <option value="fallecimiento">Fallecimiento</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Importe estimado</label>
+                            <input type="number" name="importe_estimado" class="form-control form-control-sm" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Poliza</label>
+                            <select name="poliza_id" class="form-select form-select-sm">
+                                <option value="">Sin poliza</option>
+                                {% for p in polizas %}
+                                <option value="{{ p.id }}">{{ p.numero_poliza }} ({{ p.ramo }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">F. Ocurrencia</label>
+                            <input type="date" name="fecha_ocurrencia" class="form-control form-control-sm" value="{{ today }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">F. Apertura</label>
+                            <input type="date" name="fecha_apertura" class="form-control form-control-sm" value="{{ today }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Descripcion</label>
+                            <textarea name="descripcion" class="form-control form-control-sm" rows="2"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Notas iniciales</label>
+                            <textarea name="notas_iniciales" class="form-control form-control-sm" rows="2">Apertura de siniestro</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">Crear Siniestro</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf, fechaVenc, activa, marca, modelo, anio, matricula, cobertura, tipoViv, metros, continente, contenido) {
+    var form = document.getElementById('editarPolizaForm');
+    form.action = '/clientes/{{ cliente.id }}/poliza/' + id + '/editar';
+
+    document.getElementById('epNumero').value = numero;
+    document.getElementById('epRamo').value = ramo;
+    document.getElementById('epCompania').value = compania;
+    document.getElementById('epDesc').value = desc;
+    document.getElementById('epCapital').value = capital;
+    document.getElementById('epPrima').value = prima;
+    document.getElementById('epFechaEf').value = fechaEf;
+    document.getElementById('epFechaVenc').value = fechaVenc;
+    document.getElementById('epActiva').value = activa ? 'true' : 'false';
+
+    document.getElementById('epMarca').value = marca;
+    document.getElementById('epModelo').value = modelo;
+    document.getElementById('epAnio').value = anio;
+    document.getElementById('epMatricula').value = matricula;
+    document.getElementById('epCobertura').value = cobertura;
+    document.getElementById('epTipoViv').value = tipoViv;
+    document.getElementById('epMetros').value = metros;
+    document.getElementById('epContinente').value = continente;
+    document.getElementById('epContenido').value = contenido;
+
+    toggleEditRamo();
+
+    new bootstrap.Modal(document.getElementById('editarPolizaModal')).show();
+}
+
+function toggleEditRamo() {
+    var ramo = document.getElementById('epRamo').value;
+    document.getElementById('editAutoFields').style.display = ramo === 'auto' ? 'flex' : 'none';
+    document.getElementById('editHogarFields').style.display = ramo === 'hogar' ? 'flex' : 'none';
+}
+</script>
+
+{% endblock %}

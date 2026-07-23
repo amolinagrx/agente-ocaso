@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Cliente{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-person-plus me-2" style="color:var(--ocaso-blue)"></i>Nuevo Cliente</h4>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre completo *</label>
+                            <input type="text" name="nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">DNI/NIF *</label>
+                            <input type="text" name="dni" class="form-control">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" name="direccion" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Notas</label>
+                            <textarea name="notas" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-danger mt-3" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-check-lg me-1"></i> Crear Cliente
+                    </button>
+                    <a href="{{ url_for('clientes.index') }}" class="btn btn-outline-secondary mt-3 ms-2">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

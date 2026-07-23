@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h4 class="mb-0"><i class="bi bi-whatsapp me-2" style="color:#25D366"></i>WhatsApp</h4>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('whatsapp.whatsapp_web_embebido') }}" class="btn btn-sm btn-success">
+            <i class="bi bi-window me-1"></i> WhatsApp Web
+        </a>
+        <a href="{{ url_for('whatsapp.historial') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-clock-history me-1"></i> Historial
+        </a>
+    </div>
+</div>
+
+<!-- WhatsApp Web button (prominent) -->
+<div class="card mb-3 border-success" style="border-width:2px">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h6 class="mb-1"><i class="bi bi-whatsapp text-success me-1"></i> WhatsApp Web integrado</h6>
+                <p class="text-muted small mb-0">Usa WhatsApp directamente desde la aplicacion. Escanea el QR una vez y manten la sesion activa.</p>
+            </div>
+            <a href="{{ url_for('whatsapp.whatsapp_web_embebido') }}" class="btn btn-success">
+                <i class="bi bi-window me-1"></i> Abrir WhatsApp Web
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row g-2 mb-3 align-items-end">
+    <div class="col-md-4">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchClients" class="form-control"
+                   placeholder="Buscar por nombre, DNI o telefono..."
+                   value="{{ buscar }}" autocomplete="off">
+        </div>
+    </div>
+    <div class="col-md-auto">
+        <div class="btn-group btn-group-sm" id="filterBtns">
+            <a href="?filtro=todos{% if buscar %}&buscar={{buscar}}{% endif %}"
+               class="btn btn-outline-secondary {% if filtro == 'todos' or not filtro %}active{% endif %}">
+                <i class="bi bi-people me-1"></i>Todos
+            </a>
+            <a href="?filtro=con_telefono{% if buscar %}&buscar={{buscar}}{% endif %}"
+               class="btn btn-outline-secondary {% if filtro == 'con_telefono' %}active{% endif %}">
+                <i class="bi bi-telephone me-1"></i>Con tlf
+            </a>
+            <a href="?filtro=con_alerta{% if buscar %}&buscar={{buscar}}{% endif %}"
+               class="btn btn-outline-secondary {% if filtro == 'con_alerta' %}active{% endif %}">
+                <i class="bi bi-exclamation-triangle me-1"></i>Alertas
+            </a>
+            <a href="?filtro=no_contactados{% if buscar %}&buscar={{buscar}}{% endif %}"
+               class="btn btn-outline-secondary {% if filtro == 'no_contactados' %}active{% endif %}">
+                <i class="bi bi-chat-dots me-1"></i>No contactados
+            </a>
+            <a href="?filtro=contactados{% if buscar %}&buscar={{buscar}}{% endif %}"
+               class="btn btn-outline-secondary {% if filtro == 'contactados' %}active{% endif %}">
+                <i class="bi bi-check2-circle me-1"></i>Contactados
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Client grid -->
+<div class="row g-3">
+    {% for c in clientes %}
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+        <div class="card h-100 client-card">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="flex-grow-1" style="min-width:0">
+                        <h6 class="mb-0 text-truncate">
+                            <a href="{{ url_for('clientes.ficha', id=c.id) }}"
+                               class="text-decoration-none text-reset">
+                                {{ c.nombre }}
+                            </a>
+                            {% if c.alerta_devoluciones %}
+                            <span class="badge bg-danger ms-1" title="Tiene devoluciones">!</span>
+                            {% endif %}
+                        </h6>
+                        <small class="text-muted d-block text-truncate">
+                            {% if c.dni %}{{ c.dni }} · {% endif %}
+                            {{ c.telefono or 'Sin telefono' }}
+                        </small>
+                    </div>
+                    {% if c.telefono %}
+                    <span class="badge bg-success ms-2" style="flex-shrink:0">
+                        <i class="bi bi-whatsapp"></i>
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Quick info -->
+                <div class="small text-muted mb-2">
+                    {% set polizas_count = c.polizas_activas|length %}
+                    {{ polizas_count }} poliza{{ 's' if polizas_count != 1 }}
+                    {% set devueltas = c.devoluciones_count %}
+                    {% if devueltas > 0 %}
+                    · <span class="text-danger">{{ devueltas }} dev.</span>
+                    {% endif %}
+                </div>
+
+                {% if c.telefono %}
+                <div class="d-flex gap-1 flex-wrap">
+                    <!-- Quick send -->
+                    <a href="{{ url_for('whatsapp.cliente_chat', id=c.id) }}"
+                       class="btn btn-sm btn-success"
+                       target="_blank" rel="noopener">
+                        <i class="bi bi-whatsapp me-1"></i> Chatear
+                    </a>
+                    <!-- Preview with templates -->
+                    <button class="btn btn-sm btn-outline-success"
+                            onclick="openPreview({{ c.id }})">
+                        <i class="bi bi-file-text"></i>
+                    </button>
+                    <!-- Copy phone -->
+                    <button class="btn btn-sm btn-outline-secondary"
+                            onclick="copyPhone('{{ c.telefono }}', this)">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </div>
+                {% else %}
+                <a href="{{ url_for('clientes.editar', id=c.id) }}"
+                   class="btn btn-sm btn-outline-warning w-100">
+                    <i class="bi bi-pencil me-1"></i> Anadir telefono
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-whatsapp fs-1 d-block mb-3 text-success"></i>
+        <p>No se encontraron clientes con los filtros actuales.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav class="mt-3">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.prev_num }}&filtro={{ filtro }}&buscar={{ buscar }}">&laquo;</a>
+        </li>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&filtro={{ filtro }}&buscar={{ buscar }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.next_num }}&filtro={{ filtro }}&buscar={{ buscar }}">&raquo;</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Template Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewTitle">
+                    <i class="bi bi-whatsapp text-success me-1"></i> Enviar WhatsApp
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewContent">
+                <div class="text-center py-4">
+                    <span class="spinner-border"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.client-card {
+    transition: all 0.2s;
+    cursor: default;
+}
+.client-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+/* Responsive filter buttons */
+@media (max-width: 767.98px) {
+    #filterBtns {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    #filterBtns .btn {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+}
+</style>
+
+<script>
+// Search with debounce
+document.getElementById('searchClients').addEventListener('input', function() {
+    let q = this.value;
+    clearTimeout(this._debounce);
+    this._debounce = setTimeout(function() {
+        let url = new URL(window.location);
+        url.searchParams.set('buscar', q);
+        url.searchParams.set('page', '1');
+        window.location = url.toString();
+    }, 300);
+});
+
+function openPreview(clienteId) {
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    document.getElementById('previewContent').innerHTML =
+        '<div class="text-center py-4"><span class="spinner-border"></span></div>';
+    modal.show();
+
+    fetch('/whatsapp/vista-previa/' + clienteId)
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('previewContent').innerHTML = html;
+        });
+}
+
+function copyPhone(phone, btn) {
+    navigator.clipboard.writeText(phone).then(function() {
+        const icon = btn.querySelector('i');
+        icon.className = 'bi bi-check2 text-success';
+        setTimeout(function() {
+            icon.className = 'bi bi-copy';
+        }, 1500);
+    });
+}
+</script>
+
+{% endblock %}

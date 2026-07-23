@@ -1,0 +1,41 @@
+<div class="mb-3">
+    <p class="mb-1"><strong>Cliente:</strong> {{ cliente.nombre }}</p>
+    <p class="mb-1 text-muted small">{{ cliente.telefono }}</p>
+</div>
+
+{% if plantillas %}
+<h6 class="mb-2">Usar plantilla rapida:</h6>
+<div class="d-grid gap-2">
+    {% for p in plantillas %}
+    <a href="{{ url_for('whatsapp.cliente_chat', id=cliente.id, plantilla=p.id) }}"
+       class="btn btn-outline-success btn-sm text-start"
+       target="_blank" rel="noopener">
+        <div class="d-flex justify-content-between">
+            <span>{{ p.nombre }}</span>
+            <i class="bi bi-whatsapp"></i>
+        </div>
+        <small class="text-muted d-block text-truncate">{{ p.contenido[:100] }}...</small>
+    </a>
+    {% endfor %}
+</div>
+
+<hr>
+
+<form method="GET" action="{{ url_for('whatsapp.cliente_chat', id=cliente.id) }}" target="_blank" rel="noopener">
+    <h6 class="mb-2">O escribe un mensaje:</h6>
+    <textarea name="mensaje" class="form-control form-control-sm mb-2" rows="4"
+              placeholder="Escribe tu mensaje aqui...">Hola {{ cliente.nombre.split()[0] }}, te escribo de la oficina Ocaso en Armilla.</textarea>
+    <button type="submit" class="btn btn-success btn-sm w-100">
+        <i class="bi bi-whatsapp me-1"></i> Abrir WhatsApp
+    </button>
+</form>
+{% else %}
+<form method="GET" action="{{ url_for('whatsapp.cliente_chat', id=cliente.id) }}" target="_blank" rel="noopener">
+    <h6 class="mb-2">Escribe tu mensaje:</h6>
+    <textarea name="mensaje" class="form-control form-control-sm mb-2" rows="4"
+              placeholder="Escribe tu mensaje aqui...">Hola {{ cliente.nombre.split()[0] }}, te escribo de la oficina Ocaso en Armilla.</textarea>
+    <button type="submit" class="btn btn-success btn-sm w-100">
+        <i class="bi bi-whatsapp me-1"></i> Abrir WhatsApp
+    </button>
+</form>
+{% endif %}

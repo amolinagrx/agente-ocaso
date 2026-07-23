@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Renovaciones - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-calendar-check me-2" style="color:var(--ocaso-blue)"></i>Agenda de Renovaciones</h4>
+    <a href="{{ url_for('renovaciones.exportar_pdf', estado=(estado or ''), ramo=(ramo or '')) }}" class="btn btn-sm btn-danger" style="background:var(--ocaso-blue)">
+        <i class="bi bi-file-pdf me-1"></i> Exportar PDF
+    </a>
+</div>
+
+<!-- Counters -->
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body text-center py-2">
+                <h2 class="text-danger mb-0">{{ cont_vencer_30 }}</h2>
+                <small class="text-muted">Vencen en ≤30 días</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center py-2">
+                <h2 class="text-warning mb-0">{{ cont_pendientes }}</h2>
+                <small class="text-muted">Pendientes de contactar</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center py-2">
+                <h2 class="text-success mb-0">{{ cont_confirmados }}</h2>
+                <small class="text-muted">Confirmados</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-secondary">
+            <div class="card-body text-center py-2">
+                <h2 class="text-secondary mb-0">{{ resultados|length }}</h2>
+                <small class="text-muted">Total próximos 90 días</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-2">
+        <label class="form-label small">Estado</label>
+        <select name="estado" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            {% for k, v in estados.items() %}
+            <option value="{{ k }}" {% if estado == k %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Ramo</label>
+        <select name="ramo" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            <option value="auto" {% if ramo == 'auto' %}selected{% endif %}>Auto</option>
+            <option value="hogar" {% if ramo == 'hogar' %}selected{% endif %}>Hogar</option>
+            <option value="vida" {% if ramo == 'vida' %}selected{% endif %}>Vida</option>
+            <option value="decesos" {% if ramo == 'decesos' %}selected{% endif %}>Decesos</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small">Buscar</label>
+        <input type="text" name="buscar" class="form-control form-control-sm" value="{{ buscar or '' }}" placeholder="Cliente o póliza">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-danger w-100" style="background:var(--ocaso-blue)">Filtrar</button>
+    </div>
+</form>
+
+<!-- Table -->
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Cliente</th>
+                <th>Póliza</th>
+                <th>Ramo</th>
+                <th class="hide-mobile">Vencimiento</th>
+                <th>Dias</th>
+                <th class="hide-mobile">Prima</th>
+                <th>Estado</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r, p, c in resultados %}
+            {% set dias = (r.fecha_vencimiento - hoy).days if r.fecha_vencimiento else 0 %}
+            {% set color_class = 'text-success' if dias > 60 else ('text-warning' if dias > 30 else ('text-danger' if dias >= 0 else 'text-secondary')) %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('clientes.ficha', id=c.id) }}" class="text-decoration-none">
+                        {{ c.nombre }}
+                    </a>
+                </td>
+                <td><code>{{ p.numero_poliza }}</code></td>
+                <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span></td>
+                <td class="hide-mobile">{{ r.fecha_vencimiento.strftime('%d/%m/%Y') }}</td>
+                <td class="{{ color_class }} fw-bold">
+                    {% if dias < 0 %}
+                    Vencida
+                    {% else %}
+                    {{ dias }} días
+                    {% endif %}
+                </td>
+                <td class="hide-mobile"><strong>{{ "%.2f"|format(r.prima) }}€</strong></td>
+                <td>
+                    <span class="badge bg-{% if r.estado == 'confirmado' %}success{% elif r.estado == 'no_contactado' %}warning{% else %}info{% endif %}">
+                        {{ estados.get(r.estado, r.estado) }}
+                    </span>
+                </td>
+                <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#estadoModal{{ r.id }}" title="Contactado"
+                                onclick="setEstado('contactado')">
+                            <i class="bi bi-telephone"></i>
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#estadoModal{{ r.id }}" title="Presupuesto enviado"
+                                onclick="setEstado('presupuesto_enviado')">
+                            <i class="bi bi-envelope"></i>
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#estadoModal{{ r.id }}" title="Confirmado"
+                                onclick="setEstado('confirmado')">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Modal cambio estado -->
+                    <div class="modal fade" id="estadoModal{{ r.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <form method="POST" action="{{ url_for('renovaciones.cambiar_estado', id=r.id) }}">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Actualizar estado - {{ c.nombre }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Póliza: <strong>{{ p.numero_poliza }}</strong> ({{ p.ramo.title() }})</p>
+                                        <input type="hidden" name="estado" id="estadoInput{{ r.id }}" value="">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nota (opcional)</label>
+                                            <textarea name="notas" class="form-control" rows="2"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-danger" style="background:var(--ocaso-blue)">Guardar</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="text-center text-muted py-4">No hay renovaciones próximas</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function setEstado(estado) {
+    // This will be called from buttons to pre-set the hidden field
+    // The modal shows on button click via data-bs-target
+    setTimeout(() => {
+        document.querySelectorAll('.modal.show input[name="estado"]').forEach(el => {
+            if (!el.value) el.value = estado;
+        });
+    }, 50);
+}
+// Set estado on each modal trigger button
+document.querySelectorAll('[data-bs-target^="#estadoModal"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const modalId = this.getAttribute('data-bs-target');
+        const estado = this.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || '';
+        setTimeout(() => {
+            const input = document.querySelector(`${modalId} input[name="estado"]`);
+            if (input) input.value = estado;
+        }, 50);
+    });
+});
+</script>
+
+{% endblock %}

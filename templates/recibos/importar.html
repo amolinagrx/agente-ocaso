@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Importar Recibos{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-upload me-2" style="color:var(--ocaso-blue)"></i>Importar Recibos</h4>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Archivo CSV o Excel</label>
+                        <input type="file" name="archivo" class="form-control" accept=".csv,.xlsx,.xls" required>
+                        <div class="form-text">Formatos aceptados: CSV, Excel (.xlsx, .xls)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Modo de importación</label>
+                        <select name="mapeo" class="form-select" onchange="toggleManualMap(this.value)">
+                            <option value="auto">Automático (detectar columnas)</option>
+                            <option value="manual">Manual (mapear columnas)</option>
+                        </select>
+                    </div>
+
+                    <div id="manualMap" style="display:none">
+                        <h6 class="mb-2">Mapeo de columnas</h6>
+                        <p class="text-muted small">Indica el nombre exacto de cada columna en tu archivo</p>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small">Columna Cliente</label>
+                                <input type="text" name="col_cliente" class="form-control form-control-sm" placeholder="ej: NOMBRE">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Columna DNI</label>
+                                <input type="text" name="col_dni" class="form-control form-control-sm" placeholder="ej: DNI">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Columna Póliza</label>
+                                <input type="text" name="col_poliza" class="form-control form-control-sm" placeholder="ej: POLIZA">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Columna Concepto</label>
+                                <input type="text" name="col_concepto" class="form-control form-control-sm" placeholder="ej: CONCEPTO">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Columna Importe</label>
+                                <input type="text" name="col_importe" class="form-control form-control-sm" placeholder="ej: IMPORTE">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Columna Fecha</label>
+                                <input type="text" name="col_fecha" class="form-control form-control-sm" placeholder="ej: FECHA">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Columna Estado</label>
+                                <input type="text" name="col_estado" class="form-control form-control-sm" placeholder="ej: ESTADO">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger mt-3" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-upload me-1"></i> Importar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <strong>Formato esperado</strong>
+            </div>
+            <div class="card-body small">
+                <p class="mb-1"><strong>Modo automático</strong> detecta columnas con estos nombres:</p>
+                <ul class="list-unstyled">
+                    <li><code>cliente, nombre</code> → Cliente</li>
+                    <li><code>dni, nif</code> → DNI</li>
+                    <li><code>poliza, póliza</code> → Nº Póliza</li>
+                    <li><code>concepto, descripcion</code> → Concepto</li>
+                    <li><code>importe, prima, total</code> → Importe</li>
+                    <li><code>fecha</code> → Fecha</li>
+                    <li><code>estado</code> → Estado</li>
+                </ul>
+                <hr>
+                <p class="mb-0"><strong>Estados válidos:</strong><br>
+                <code>cobrado</code>, <code>devuelto</code>, <code>pendiente</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleManualMap(val) {
+    document.getElementById('manualMap').style.display = val === 'manual' ? 'block' : 'none';
+}
+</script>
+
+{% endblock %}

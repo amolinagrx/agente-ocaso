@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}Asistente IA - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0"><i class="bi bi-robot me-2" style="color:var(--ocaso-blue)"></i>Asistente IA</h5>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('asistente.configuracion') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-gear me-1"></i> Config
+        </a>
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="bi bi-upload me-1"></i> Subir docs
+        </button>
+        <form method="POST" action="{{ url_for('asistente.limpiar_chat') }}" class="d-inline">
+            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Limpiar conversacion?')">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3" style="height:calc(100vh - 180px)">
+    <!-- Chat panel -->
+    <div class="col-md-8 d-flex flex-column">
+        <div class="card flex-grow-1 d-flex flex-column">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <span class="small"><i class="bi bi-chat-dots me-1"></i> Conversacion</span>
+                <span class="small text-muted" id="contextoInfo"></span>
+            </div>
+            <div class="card-body overflow-auto p-3" id="chatMessages" style="flex:1">
+                {% if mensajes %}
+                {% for m in mensajes %}
+                <div class="d-flex mb-3 {% if m.rol == 'user' %}justify-content-end{% endif %}">
+                    <div class="chat-bubble {% if m.rol == 'user' %}chat-user{% else %}chat-assistant{% endif %}">
+                        <div class="small mb-1">
+                            <strong>{% if m.rol == 'user' %}Tu{% else %}Asistente Ocaso{% endif %}</strong>
+                            <span class="text-muted ms-2" style="font-size:0.7rem">{{ m.created_at.strftime('%H:%M') }}</span>
+                        </div>
+                        <div class="chat-content">{{ m.contenido | replace('\n', '<br>') | safe }}</div>
+                        {% if m.contexto_usado and m.rol == 'assistant' %}
+                        <div class="small text-muted mt-1" style="font-size:0.7rem">
+                            <i class="bi bi-info-circle"></i> {{ m.contexto_usado }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-robot fs-1 d-block mb-3"></i>
+                    <p>Preguntame sobre productos de seguros, clientes,<br>polizas o cualquier duda de la oficina.</p>
+                    <p class="small">Ej: "¿Que coberturas tiene el seguro de hogar?"<br>
+                    "¿Cuantas devoluciones tiene Antonio Garcia?"</p>
+                </div>
+                {% endif %}
+                <div id="typingIndicator" class="d-none text-muted small">
+                    <span class="spinner-border spinner-border-sm me-2"></span> Pensando...
+                </div>
+            </div>
+            <div class="card-footer p-2">
+                <form id="chatForm" class="d-flex gap-2">
+                    <textarea id="chatInput" class="form-control" rows="2"
+                              placeholder="Escribe tu pregunta... (Shift+Enter para nueva linea)"
+                              style="resize:none;font-size:16px"
+                              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensaje()}"></textarea>
+                    <button type="button" class="btn btn-primary px-4" onclick="enviarMensaje()"
+                            style="background:var(--ocaso-blue);border-color:var(--ocaso-blue)">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Docs panel -->
+    <div class="col-md-4 d-none d-md-block">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <span class="small"><i class="bi bi-file-text me-1"></i> Documentacion ({{ documentos|length }})</span>
+            </div>
+            <div class="card-body overflow-auto p-2">
+                {% if documentos %}
+                <div class="list-group list-group-flush">
+                    {% for d in documentos %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-2">
+                        <div class="small">
+                            <strong>{{ d.nombre }}</strong>
+                            <div class="text-muted" style="font-size:0.7rem">
+                                {{ d.tipo.upper() }} · {{ d.num_chunks }} fragmentos
+                                · {{ d.created_at.strftime('%d/%m/%Y') }}
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ url_for('asistente.eliminar_documento', id=d.id) }}" class="d-inline">
+                            <button class="btn btn-sm text-muted" title="Eliminar"><i class="bi bi-x-lg"></i></button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-cloud-upload fs-3 d-block mb-2"></i>
+                    <p class="small">Sube PDFs o Markdown con informacion<br>de productos de Ocaso.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('asistente.subir_documento') }}" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Subir documentacion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Archivo PDF o Markdown</label>
+                        <input type="file" name="documento" class="form-control"
+                               accept=".pdf,.md,.txt" required>
+                        <div class="form-text mt-2">
+                            <strong>Que subir:</strong> PDFs con informacion de productos Ocaso (hogar, auto, decesos, vida...),
+                            archivos .md con guias, tarifas, o cualquier documentacion interna relevante.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-upload me-1"></i> Subir y procesar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.chat-user {
+    background: var(--ocaso-blue);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+.chat-user .text-muted,
+.chat-user strong { color: rgba(255,255,255,0.8) !important; }
+.chat-assistant {
+    background: var(--ocaso-gray-100);
+    color: var(--ocaso-gray-900);
+    border-bottom-left-radius: 4px;
+}
+[data-bs-theme="dark"] .chat-assistant {
+    background: #1a365d;
+    color: #e0e6ed;
+}
+.chat-content p:last-child { margin-bottom: 0; }
+.chat-content ul, .chat-content ol { margin-bottom: 0; padding-left: 20px; }
+
+@media (max-width: 767.98px) {
+    .chat-bubble { max-width: 95%; }
+    #chatMessages { padding: 8px !important; }
+    .card-header, .card-footer { padding: 6px !important; }
+}
+</style>
+
+<script>
+function scrollToBottom() {
+    var el = document.getElementById('chatMessages');
+    el.scrollTop = el.scrollHeight;
+}
+
+function enviarMensaje() {
+    var input = document.getElementById('chatInput');
+    var msg = input.value.trim();
+    if (!msg) return;
+
+    input.value = '';
+    input.disabled = true;
+
+    // Add user bubble
+    var container = document.getElementById('chatMessages');
+    var userBubble = document.createElement('div');
+    userBubble.className = 'd-flex justify-content-end mb-3';
+    userBubble.innerHTML = '<div class="chat-bubble chat-user">' +
+        '<div class="small mb-1"><strong>Tu</strong></div>' +
+        '<div>' + msg.replace(/\n/g, '<br>') + '</div></div>';
+    container.appendChild(userBubble);
+
+    // Show typing
+    document.getElementById('typingIndicator').classList.remove('d-none');
+    scrollToBottom();
+
+    // Send to server
+    var formData = new FormData();
+    formData.append('mensaje', msg);
+
+    fetch('{{ url_for("asistente.chat") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('typingIndicator').classList.add('d-none');
+
+        var assistantBubble = document.createElement('div');
+        assistantBubble.className = 'd-flex mb-3';
+        var ctxHtml = data.contexto ? '<div class="small text-muted mt-1" style="font-size:0.7rem"><i class="bi bi-info-circle"></i> ' + data.contexto + '</div>' : '';
+        assistantBubble.innerHTML = '<div class="chat-bubble chat-assistant">' +
+            '<div class="small mb-1"><strong>Asistente Ocaso</strong></div>' +
+            '<div class="chat-content">' + (data.respuesta || '').replace(/\n/g, '<br>') + '</div>' +
+            ctxHtml + '</div>';
+        container.appendChild(assistantBubble);
+        scrollToBottom();
+        input.disabled = false;
+        input.focus();
+    })
+    .catch(err => {
+        document.getElementById('typingIndicator').classList.add('d-none');
+        input.disabled = false;
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    scrollToBottom();
+    document.getElementById('chatInput').focus();
+});
+</script>
+
+{% endblock %}

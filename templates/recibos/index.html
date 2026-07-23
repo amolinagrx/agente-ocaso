@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Recibos - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h4 class="mb-0"><i class="bi bi-receipt me-2" style="color:var(--ocaso-blue)"></i>Recibos y Cobros</h4>
+    <div>
+        <a href="{{ url_for('recibos.importar') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-upload me-1"></i> Importar
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-2">
+        <label class="form-label small">Estado</label>
+        <select name="estado" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            <option value="cobrado" {% if estado == 'cobrado' %}selected{% endif %}>Cobrado</option>
+            <option value="devuelto" {% if estado == 'devuelto' %}selected{% endif %}>Devuelto</option>
+            <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Compañía</label>
+        <select name="compania" class="form-select form-select-sm">
+            <option value="">Todas</option>
+            <option value="Ocaso" {% if compania == 'Ocaso' %}selected{% endif %}>Ocaso</option>
+            <option value="Otra" {% if compania == 'Otra' %}selected{% endif %}>Otra</option>
+        </select>
+    </div>
+    <div class="col-md-1">
+        <label class="form-label small">Mes</label>
+        <select name="mes" class="form-select form-select-sm">
+            <option value="">--</option>
+            {% for m in range(1,13) %}
+            <option value="{{ m }}" {% if mes == m|string %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-1">
+        <label class="form-label small">Año</label>
+        <select name="anio" class="form-select form-select-sm">
+            <option value="">--</option>
+            {% for y in range(2023, 2027) %}
+            <option value="{{ y }}" {% if anio == y|string %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small">Buscar</label>
+        <input type="text" name="buscar" class="form-control form-control-sm" value="{{ buscar or '' }}" placeholder="Cliente, póliza...">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-danger w-100" style="background:var(--ocaso-blue)">Filtrar</button>
+    </div>
+    <div class="col-md-1">
+        <a href="{{ url_for('recibos.index') }}" class="btn btn-sm btn-outline-secondary w-100">Limpiar</a>
+    </div>
+</form>
+
+<!-- Table -->
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th><a href="?sort=cliente_id&order={% if sort=='cliente_id' and order=='asc' %}desc{% else %}asc{% endif %}{% if buscar %}&buscar={{buscar}}{% endif %}" class="text-decoration-none text-dark">Cliente</a></th>
+                <th>Póliza</th>
+                <th class="hide-mobile">Concepto</th>
+                <th><a href="?sort=importe&order={% if sort=='importe' and order=='asc' %}desc{% else %}asc{% endif %}{% if buscar %}&buscar={{buscar}}{% endif %}" class="text-decoration-none text-dark">Importe</a></th>
+                <th class="hide-mobile">F. Emision</th>
+                <th class="hide-mobile">F. Cargo</th>
+                <th>Estado</th>
+                <th>Gestión</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in recibos %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('clientes.ficha', id=r.cliente_id) }}" class="text-decoration-none">
+                        {{ r.cliente.nombre }}
+                        {% if r.cliente.alerta_devoluciones %}
+                        <span class="badge bg-danger" title="Tiene devoluciones">⚠</span>
+                        {% endif %}
+                    </a>
+                </td>
+                <td><code>{{ r.numero_poliza or '-' }}</code></td>
+                <td class="hide-mobile">{{ r.concepto or '-' }}</td>
+                <td><strong>{{ "%.2f"|format(r.importe) }}€</strong></td>
+                <td class="hide-mobile">{{ r.fecha_emision.strftime('%d/%m/%Y') if r.fecha_emision else '-' }}</td>
+                <td class="hide-mobile">{{ r.fecha_cargo.strftime('%d/%m/%Y') if r.fecha_cargo else '-' }}</td>
+                <td>
+                    {% if r.estado == 'cobrado' %}
+                    <span class="badge bg-success">Cobrado</span>
+                    {% elif r.estado == 'devuelto' %}
+                    <span class="badge bg-danger">Devuelto</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if r.estado_gestion %}
+                    <span class="badge bg-secondary">
+                        {{ r.estado_gestion.replace('_',' ').title() }}
+                    </span>
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#gestionModal{{ r.id }}" title="Gestionar">
+                            <i class="bi bi-gear"></i>
+                        </button>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-success btn-sm dropdown-toggle" data-bs-toggle="dropdown"
+                                    title="Cambiar estado">
+                                <i class="bi bi-check2-circle"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <form method="POST" action="{{ url_for('recibos.cambiar_estado', id=r.id) }}">
+                                        <input type="hidden" name="estado" value="cobrado">
+                                        <button class="dropdown-item text-success">Cobrado</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="POST" action="{{ url_for('recibos.cambiar_estado', id=r.id) }}">
+                                        <input type="hidden" name="estado" value="devuelto">
+                                        <button class="dropdown-item text-danger">Devuelto</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="POST" action="{{ url_for('recibos.cambiar_estado', id=r.id) }}">
+                                        <input type="hidden" name="estado" value="pendiente">
+                                        <button class="dropdown-item text-warning">Pendiente</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Gestión Modal -->
+                    <div class="modal fade" id="gestionModal{{ r.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="POST" action="{{ url_for('recibos.gestionar', id=r.id) }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Gestionar recibo #{{ r.id }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="text-muted">
+                                            Cliente: <strong>{{ r.cliente.nombre }}</strong><br>
+                                            Importe: <strong>{{ "%.2f"|format(r.importe) }}€</strong><br>
+                                            Estado actual: <strong>{{ r.estado }}</strong>
+                                        </p>
+                                        <div class="mb-3">
+                                            <label class="form-label">Estado de gestión</label>
+                                            <select name="estado_gestion" class="form-select">
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="contactado" {% if r.estado_gestion == 'contactado' %}selected{% endif %}>Contactado</option>
+                                                <option value="transferencia" {% if r.estado_gestion == 'transferencia' %}selected{% endif %}>Pagado por transferencia</option>
+                                                <option value="anulado" {% if r.estado_gestion == 'anulado' %}selected{% endif %}>Anulado</option>
+                                                <option value="pendiente_revision" {% if r.estado_gestion == 'pendiente_revision' %}selected{% endif %}>Pendiente de revisión</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Notas</label>
+                                            <textarea name="notas" class="form-control" rows="3">{{ r.notas or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-danger" style="background:var(--ocaso-blue)">Guardar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="text-center text-muted py-4">No hay recibos que mostrar</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.prev_num }}{% if estado %}&estado={{ estado }}{% endif %}{% if buscar %}&buscar={{ buscar }}{% endif %}">&laquo;</a>
+        </li>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}{% if estado %}&estado={{ estado }}{% endif %}{% if buscar %}&buscar={{ buscar }}{% endif %}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.next_num }}{% if estado %}&estado={{ estado }}{% endif %}{% if buscar %}&buscar={{ buscar }}{% endif %}">&raquo;</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

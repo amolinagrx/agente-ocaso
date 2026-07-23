@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}Ajustes - Ocaso{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-sliders2 me-2" style="color:var(--ocaso-blue)"></i>Ajustes</h4>
+
+<div class="row g-3">
+    <!-- General Settings -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-building me-2"></i>Datos de la oficina</div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="seccion" value="general">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Nombre oficina</label>
+                            <input type="text" name="oficina_nombre" class="form-control form-control-sm"
+                                   value="{{ config.get('oficina_nombre', 'Ocaso Armilla') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Email</label>
+                            <input type="email" name="oficina_email" class="form-control form-control-sm"
+                                   value="{{ config.get('oficina_email', '') }}">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small">Direccion</label>
+                            <input type="text" name="oficina_direccion" class="form-control form-control-sm"
+                                   value="{{ config.get('oficina_direccion', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Telefono</label>
+                            <input type="text" name="oficina_telefono" class="form-control form-control-sm"
+                                   value="{{ config.get('oficina_telefono', '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">
+                                <i class="bi bi-whatsapp text-success"></i> WhatsApp empresa
+                            </label>
+                            <input type="text" name="whatsapp_empresa" class="form-control form-control-sm"
+                                   value="{{ config.get('whatsapp_empresa', '') }}"
+                                   placeholder="34XXXXXXXXX">
+                            <div class="form-text">Telefono de WhatsApp de la oficina (con prefijo 34).</div>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-2">Objetivos y alertas</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Objetivo mensual (€)</label>
+                            <input type="number" name="objetivo_mensual" class="form-control form-control-sm"
+                                   value="{{ config.get('objetivo_mensual', '15000') }}" step="1000">
+                            <div class="form-text">Se usa en el dashboard para calcular % de cumplimiento.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Alerta siniestros (dias sin act.)</label>
+                            <input type="number" name="dias_alerta_siniestro" class="form-control form-control-sm"
+                                   value="{{ config.get('dias_alerta_siniestro', '15') }}" min="1" max="90">
+                            <div class="form-text">Marca en rojo siniestros sin actualizar pasado este plazo.</div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-check-lg me-1"></i> Guardar cambios
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Keys -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-key me-2"></i>APIs y servicios</div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="seccion" value="api">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <strong>Deepseek API Key</strong>
+                            {% if api_key_configured %}
+                            <span class="badge bg-success ms-2">Configurada</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark ms-2">No configurada</span>
+                            {% endif %}
+                        </label>
+                        <div class="input-group">
+                            <input type="password" name="deepseek_api_key" class="form-control form-control-sm"
+                                   value="{{ config.get('deepseek_api_key', '') }}"
+                                   placeholder="sk-..." id="apiKeyInput">
+                            <button class="btn btn-outline-secondary btn-sm" type="button"
+                                    onclick="toggleApiKey()">
+                                <i class="bi bi-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            {% if key_from_env %}
+                            <span class="text-success"><i class="bi bi-check-circle"></i> Definida por variable de entorno (DEEPSEEK_API_KEY)</span>
+                            {% elif key_from_db %}
+                            <span class="text-muted">Guardada en base de datos. Se usa como fallback si no hay variable de entorno.</span>
+                            {% else %}
+                            Obten tu clave en <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a>.
+                            Sin ella, el Asistente IA no funcionara.
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-check-lg me-1"></i> Guardar API Key
+                    </button>
+                </form>
+
+                <hr class="my-3">
+
+                <h6 class="mb-2">Estadisticas del Asistente IA</h6>
+                <div class="row text-center g-2">
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h5 class="mb-0">{{ docs_count }}</h5>
+                            <small class="text-muted">Docs subidos</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h5 class="mb-0">{{ chunks_count }}</h5>
+                            <small class="text-muted">Fragmentos</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h5 class="mb-0">{{ mensajes_count }}</h5>
+                            <small class="text-muted">Mensajes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortcuts -->
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-link-45deg me-2"></i>Accesos rapidos</div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('asistente.index') }}" class="btn btn-outline-secondary btn-sm text-start">
+                        <i class="bi bi-robot me-2"></i> Asistente IA (chat y documentos)
+                    </a>
+                    <a href="#tarifasSection" class="btn btn-outline-secondary btn-sm text-start">
+                        <i class="bi bi-calculator me-2"></i> Gestion de tarifas (calculadora)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tariffs section -->
+    <div class="col-12" id="tarifasSection">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calculator me-2"></i>Tarifas de la calculadora</span>
+                <button class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)"
+                        data-bs-toggle="modal" data-bs-target="#nuevaTarifaModal">
+                    <i class="bi bi-plus-lg"></i> Anadir tarifa
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Ramo</th><th>Tramo</th><th>Min (€)</th><th>Max (€)</th>
+                            <th>Base (€)</th><th>Factor</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tarifas %}
+                        <tr>
+                            <td><span class="badge bg-light text-dark">{{ t.ramo.title() }}</span></td>
+                            <td>{{ t.tramo }}</td>
+                            <td>{{ "%.0f"|format(t.prima_min) }}€</td>
+                            <td>{{ "%.0f"|format(t.prima_max) }}€</td>
+                            <td><strong>{{ "%.0f"|format(t.prima_base) }}€</strong></td>
+                            <td>{{ t.factor }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('ajustes.eliminar_tarifa', id=t.id) }}" class="d-inline">
+                                    <button class="btn btn-sm text-danger" title="Eliminar"
+                                            onclick="return confirm('¿Eliminar tarifa?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">
+                                No hay tarifas. Anade algunas para que la calculadora funcione.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nueva tarifa modal -->
+<div class="modal fade" id="nuevaTarifaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST">
+            <input type="hidden" name="seccion" value="tarifa">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva tarifa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label small">Ramo</label>
+                            <select name="ramo" class="form-select form-select-sm" required>
+                                <option value="auto">Auto</option>
+                                <option value="hogar">Hogar</option>
+                                <option value="vida">Vida</option>
+                                <option value="decesos">Decesos</option>
+                                <option value="accidentes">Accidentes</option>
+                                <option value="comercio">Comercio</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Tramo</label>
+                            <input type="text" name="tramo" class="form-control form-control-sm" required
+                                   placeholder="Basico, Medio, Premium...">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Prima minima (€)</label>
+                            <input type="number" name="prima_min" class="form-control form-control-sm" value="0" step="1">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Prima maxima (€)</label>
+                            <input type="number" name="prima_max" class="form-control form-control-sm" value="1000" step="1">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Prima base (€) *</label>
+                            <input type="number" name="prima_base" class="form-control form-control-sm" value="300" step="1" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small">Factor *</label>
+                            <input type="number" name="factor" class="form-control form-control-sm" value="1.0" step="0.1" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">
+                        Anadir tarifa
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleApiKey() {
+    var input = document.getElementById('apiKeyInput');
+    var icon = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
+
+{% endblock %}

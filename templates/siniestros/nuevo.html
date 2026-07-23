@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Siniestro{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-exclamation-triangle me-2" style="color:var(--ocaso-blue)"></i>Nuevo Siniestro</h4>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Cliente *</label>
+                            <select name="cliente_id" class="form-select" required onchange="cargarPolizas(this.value)">
+                                <option value="">Seleccionar cliente...</option>
+                                {% for cl in clientes %}
+                                <option value="{{ cl.id }}">{{ cl.nombre }} ({{ cl.dni or '' }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Póliza</label>
+                            <select name="poliza_id" class="form-select" id="polizaSelect">
+                                <option value="">Seleccionar póliza...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nº Expediente *</label>
+                            <input type="text" name="numero_expediente" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo de siniestro *</label>
+                            <select name="tipo" class="form-select" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="accidente_trafico">Accidente de tráfico</option>
+                                <option value="robo">Robo</option>
+                                <option value="incendio">Incendio</option>
+                                <option value="danos_agua">Daños por agua</option>
+                                <option value="responsabilidad_civil">Responsabilidad civil</option>
+                                <option value="cristales">Rotura de cristales</option>
+                                <option value="defensa_juridica">Defensa jurídica</option>
+                                <option value="fallecimiento">Fallecimiento</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Importe estimado</label>
+                            <input type="number" name="importe_estimado" class="form-control" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha ocurrencia *</label>
+                            <input type="date" name="fecha_ocurrencia" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha apertura</label>
+                            <input type="date" name="fecha_apertura" class="form-control" value="{{ today }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Notas iniciales</label>
+                            <textarea name="notas_iniciales" class="form-control" rows="2">Apertura de siniestro</textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-danger mt-3" style="background:var(--ocaso-blue)">Registrar Siniestro</button>
+                    <a href="{{ url_for('siniestros.index') }}" class="btn btn-outline-secondary mt-3 ms-2">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cargarPolizas(clienteId) {
+    if (!clienteId) return;
+    fetch('/api/polizas-cliente/' + clienteId)
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById('polizaSelect');
+            select.innerHTML = '<option value="">Seleccionar póliza...</option>';
+            data.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.numero_poliza} (${p.ramo})</option>`;
+            });
+        });
+}
+</script>
+
+{% endblock %}

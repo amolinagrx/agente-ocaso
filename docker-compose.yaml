@@ -1,0 +1,17 @@
+services:
+  ocaso:
+    build: .
+    container_name: ocaso-gestion
+    ports:
+      - "5050:5050"
+    volumes:
+      - ocaso_data:/data
+    environment:
+      - OCASO_USER=${OCASO_USER:-admin}
+      - OCASO_PASS=${OCASO_PASS:-ocaso2025}
+      - SECRET_KEY=${SECRET_KEY:-ocaso-secret-key-2025}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+    restart: unless-stopped
+
+volumes:
+  ocaso_data:

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Config - Asistente IA{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-gear me-2" style="color:var(--ocaso-blue)"></i>Configuracion del Asistente IA</h4>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><strong>API Deepseek</strong></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="me-2">Estado:</span>
+                    {% if key_configured %}
+                    <span class="badge bg-success">API Key configurada</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">API Key no configurada</span>
+                    {% endif %}
+                </div>
+                <p class="small text-muted">
+                    La API Key se configura mediante la variable de entorno <code>DEEPSEEK_API_KEY</code>.
+                </p>
+                <p class="small text-muted">
+                    Añadela en tu <code>docker-compose.yaml</code> o al iniciar el contenedor:
+                </p>
+                <pre class="bg-light p-3 rounded small">environment:
+  - DEEPSEEK_API_KEY=sk-tu-clave-aqui</pre>
+                <p class="small text-muted">
+                    Obten tu API key en: <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><strong>Estadisticas</strong></div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3 class="mb-0">{{ docs_count }}</h3>
+                        <small class="text-muted">Documentos</small>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="mb-0">{{ chunks_count }}</h3>
+                        <small class="text-muted">Fragmentos</small>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="mb-0">{{ mensajes_count }}</h3>
+                        <small class="text-muted">Mensajes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><strong>Como funciona</strong></div>
+            <div class="card-body small">
+                <ol class="mb-0">
+                    <li class="mb-2"><strong>Sube documentacion</strong> de productos Ocaso (PDFs, Markdown, texto). El sistema extrae el texto, lo divide en fragmentos y genera embeddings vectoriales.</li>
+                    <li class="mb-2"><strong>Haz preguntas</strong> sobre los productos. El asistente busca automaticamente los fragmentos mas relevantes y los usa como contexto.</li>
+                    <li class="mb-2"><strong>Datos de plataforma</strong>: si preguntas por un cliente concreto (nombre o DNI), el asistente accede a sus polizas, recibos y siniestros en tiempo real.</li>
+                    <li><strong>Privacidad</strong>: toda la informacion se procesa via API de Deepseek. No se comparte con terceros. Solo el equipo de la oficina tiene acceso.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 text-end">
+        <a href="{{ url_for('asistente.index') }}" class="btn btn-primary" style="background:var(--ocaso-blue)">
+            <i class="bi bi-arrow-left me-1"></i> Volver al chat
+        </a>
+    </div>
+</div>
+
+{% endblock %}

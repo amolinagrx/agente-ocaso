@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Clientes - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-people me-2" style="color:var(--ocaso-blue)"></i>Clientes</h4>
+    <a href="{{ url_for('clientes.nuevo') }}" class="btn btn-danger btn-sm" style="background:var(--ocaso-blue)">
+        <i class="bi bi-plus-lg me-1"></i> Nuevo Cliente
+    </a>
+</div>
+
+<form method="GET" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="text" name="buscar" class="form-control form-control-sm" value="{{ buscar }}" placeholder="Buscar por nombre, DNI, teléfono...">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-danger w-100" style="background:var(--ocaso-blue)">Buscar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Cliente</th>
+                <th class="hide-mobile">DNI</th>
+                <th>Telefono</th>
+                <th class="hide-mobile">Email</th>
+                <th>Polizas</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in clientes %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('clientes.ficha', id=c.id) }}" class="text-decoration-none fw-semibold">
+                        {{ c.nombre }}
+                        {% if c.alerta_devoluciones %}
+                        <span class="badge bg-danger" title="Tiene recibos devueltos">⚠</span>
+                        {% endif %}
+                    </a>
+                </td>
+                <td class="hide-mobile">{{ c.dni or '-' }}</td>
+                <td>{{ c.telefono or '-' }}</td>
+                <td class="hide-mobile">{{ c.email or '-' }}</td>
+                <td>{{ c.polizas.filter(c.polizas[0].activa == True).count() if c.polizas.first() else 0 }}</td>
+                <td class="text-end">
+                    <a href="{{ url_for('clientes.ficha', id=c.id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No hay clientes registrados</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.prev_num }}&buscar={{ buscar }}">&laquo;</a>
+        </li>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="?page={{ p }}&buscar={{ buscar }}">{{ p }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ pagination.next_num }}&buscar={{ buscar }}">&raquo;</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

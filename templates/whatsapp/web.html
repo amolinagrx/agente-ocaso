@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp Web - Ocaso{% endblock %}
+{% block content %}
+
+<style>
+    .wa-container {
+        display: flex;
+        height: calc(100vh - 140px);
+        gap: 0;
+    }
+
+    .wa-sidebar-panel {
+        width: 360px;
+        border-right: 1px solid var(--ocaso-gray-200);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        background: var(--ocaso-white);
+    }
+
+    .wa-sidebar-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--ocaso-gray-200);
+        background: var(--ocaso-gray-50);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .wa-sidebar-search {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--ocaso-gray-200);
+    }
+
+    .wa-sidebar-search input {
+        font-size: 14px;
+        border-radius: 20px;
+    }
+
+    .wa-contact-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .wa-contact-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--ocaso-gray-100);
+        cursor: pointer;
+        transition: background 0.15s;
+        gap: 10px;
+    }
+
+    .wa-contact-item:hover {
+        background: var(--ocaso-blue-050);
+    }
+
+    .wa-contact-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--ocaso-gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--ocaso-blue);
+        flex-shrink: 0;
+    }
+
+    .wa-contact-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .wa-contact-name {
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .wa-contact-phone {
+        font-size: 12px;
+        color: var(--ocaso-gray-500);
+    }
+
+    .wa-contact-cta {
+        flex-shrink: 0;
+    }
+
+    .wa-main-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #efeae2;
+        min-width: 0;
+    }
+
+    .wa-main-card {
+        text-align: center;
+        max-width: 400px;
+        padding: 40px;
+    }
+
+    .wa-main-card i.whatsapp-logo {
+        font-size: 64px;
+        color: #25D366;
+    }
+
+    [data-bs-theme="dark"] .wa-sidebar-panel {
+        background: #0a1929;
+        border-color: #1e3a5f;
+    }
+
+    [data-bs-theme="dark"] .wa-sidebar-header {
+        background: #0a1929;
+        border-color: #1e3a5f;
+    }
+
+    [data-bs-theme="dark"] .wa-contact-item {
+        border-color: #1e3a5f;
+    }
+
+    [data-bs-theme="dark"] .wa-contact-item:hover {
+        background: #1a365d;
+    }
+
+    [data-bs-theme="dark"] .wa-main-panel {
+        background: #0d1117;
+    }
+
+    [data-bs-theme="dark"] .wa-main-card {
+        color: #e0e6ed;
+    }
+
+    @media (max-width: 767.98px) {
+        .wa-container {
+            height: calc(100vh - 200px);
+            flex-direction: column;
+        }
+
+        .wa-sidebar-panel {
+            width: 100%;
+            max-height: 45%;
+            border-right: none;
+            border-bottom: 1px solid var(--ocaso-gray-200);
+        }
+
+        .wa-main-panel {
+            flex: 1;
+            min-height: 200px;
+        }
+
+        .wa-main-card { padding: 20px; }
+        .wa-main-card i.whatsapp-logo { font-size: 40px; }
+    }
+</style>
+
+<div class="wa-container">
+    <!-- Contact panel -->
+    <div class="wa-sidebar-panel">
+        <div class="wa-sidebar-header">
+            <strong><i class="bi bi-people me-1"></i> Contactos</strong>
+            <small class="text-muted">{{ clientes|length }} clientes</small>
+        </div>
+        <div class="wa-sidebar-search">
+            <input type="text" class="form-control form-control-sm"
+                   placeholder="Buscar cliente..." id="contactSearch"
+                   oninput="filterContacts(this.value)" autocomplete="off">
+        </div>
+        <div class="wa-contact-list" id="contactList">
+            {% for c in clientes %}
+            <div class="wa-contact-item"
+                 data-search="{{ c.nombre.lower() }} {{ c.telefono or '' }} {{ c.dni or '' }}"
+                 onclick="chatWith('{{ c.telefono.replace(' ', '').replace('+', '') }}', '{{ c.nombre.split()[0] }}', {{ c.id }})">
+                <div class="wa-contact-avatar">{{ c.nombre[0].upper() }}</div>
+                <div class="wa-contact-info">
+                    <div class="wa-contact-name">
+                        {{ c.nombre }}
+                        {% if c.alerta_devoluciones %}
+                        <span class="badge bg-danger ms-1" style="font-size:9px">!</span>
+                        {% endif %}
+                    </div>
+                    <div class="wa-contact-phone">{{ c.telefono }}</div>
+                </div>
+                <div class="wa-contact-cta">
+                    <button class="btn btn-sm btn-success px-2 py-0"
+                            onclick="event.stopPropagation(); chatWith('{{ c.telefono.replace(' ', '').replace('+', '') }}', '{{ c.nombre.split()[0] }}', {{ c.id }})">
+                        <i class="bi bi-whatsapp"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main panel -->
+    <div class="wa-main-panel">
+        <div class="wa-main-card">
+            <i class="bi bi-whatsapp whatsapp-logo d-block mb-3"></i>
+            <h5 class="mb-3">WhatsApp Web</h5>
+            <p class="text-muted mb-3">
+                Abre WhatsApp Web en otra ventana y manten la sesion activa
+                mientras gestionas los clientes desde aqui.
+            </p>
+            <a href="https://web.whatsapp.com" target="_blank" rel="noopener"
+               class="btn btn-success btn-lg w-100 mb-3">
+                <i class="bi bi-whatsapp me-2"></i> Abrir WhatsApp Web
+            </a>
+            <p class="text-muted small mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Al hacer clic en un cliente de la izquierda, se abrira un chat
+                directo en WhatsApp Web o en tu app de escritorio.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterContacts(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('.wa-contact-item').forEach(function(el) {
+        el.style.display = el.getAttribute('data-search').includes(q) ? '' : 'none';
+    });
+}
+
+function chatWith(phone, name, clienteId) {
+    if (!phone) return;
+    var clean = phone.replace(/[\s\+]/g, '');
+    if (!clean.startsWith('34') && clean.length === 9) {
+        clean = '34' + clean;
+    }
+    var msg = 'Hola ' + name + ', te escribo de la oficina Ocaso en Armilla.';
+    var url = 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg);
+
+    // Track the message
+    fetch('/whatsapp/enviar-mensaje', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'cliente_id=' + clienteId + '&mensaje=' + encodeURIComponent(msg)
+    });
+
+    window.open(url, '_blank', 'noopener');
+}
+
+// Focus search on load
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('contactSearch').focus();
+});
+</script>
+
+{% endblock %}
