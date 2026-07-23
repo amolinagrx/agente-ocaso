@@ -113,7 +113,8 @@ def nueva_poliza(id):
             continente=float(request.form.get('continente', 0) or 0),
             contenido=float(request.form.get('contenido', 0) or 0),
             numero_cuenta=request.form.get('numero_cuenta', ''),
-            unidades=request.form.get('unidades', 1, type=int) or 1
+            unidades=request.form.get('unidades', 1, type=int) or 1,
+            detalles=request.form.get('detalles', '')
         )
         db.session.add(poliza)
         db.session.commit()
@@ -175,6 +176,7 @@ def editar_poliza(id, poliza_id):
     poliza.fecha_vencimiento = _parse_date(request.form.get('fecha_vencimiento')) or poliza.fecha_vencimiento
     poliza.numero_cuenta = request.form.get('numero_cuenta', poliza.numero_cuenta)
     poliza.unidades = request.form.get('unidades', 1, type=int) or 1
+    poliza.detalles = request.form.get('detalles', poliza.detalles)
     poliza.activa = request.form.get('activa', 'true') == 'true'
 
     if poliza.ramo == 'auto':

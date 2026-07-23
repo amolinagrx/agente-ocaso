@@ -87,7 +87,7 @@
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
                                 <button class="btn btn-outline-secondary btn-sm"
-                                        onclick="editarPoliza({{ p.id }}, '{{ p.numero_poliza }}', '{{ p.ramo }}', '{{ p.compania }}', '{{ p.descripcion or '' }}', {{ p.capital_asegurado }}, {{ p.prima_anual }}, '{{ p.fecha_efecto }}', '{{ p.fecha_vencimiento }}', {{ 'true' if p.activa else 'false' }}, '{{ p.marca or '' }}', '{{ p.modelo or '' }}', {{ p.anio or 0 }}, '{{ p.matricula or '' }}', '{{ p.tipo_cobertura or '' }}', '{{ p.tipo_vivienda or '' }}', {{ p.metros or 0 }}, {{ p.continente or 0 }}, {{ p.contenido or 0 }}, '{{ p.numero_cuenta or '' }}', {{ p.unidades or 1 }})"
+                                        onclick="editarPoliza({{ p.id }}, '{{ p.numero_poliza }}', '{{ p.ramo }}', '{{ p.compania }}', '{{ p.descripcion or '' }}', {{ p.capital_asegurado }}, {{ p.prima_anual }}, '{{ p.fecha_efecto }}', '{{ p.fecha_vencimiento }}', {{ 'true' if p.activa else 'false' }}, '{{ p.marca or '' }}', '{{ p.modelo or '' }}', {{ p.anio or 0 }}, '{{ p.matricula or '' }}', '{{ p.tipo_cobertura or '' }}', '{{ p.tipo_vivienda or '' }}', {{ p.metros or 0 }}, {{ p.continente or 0 }}, {{ p.contenido or 0 }}, '{{ p.numero_cuenta or '' }}', {{ p.unidades or 1 }}, '{{ p.detalles or '' }}')"
                                         title="Editar poliza">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -358,6 +358,13 @@
                             <input type="date" name="fecha_vencimiento" id="epFechaVenc" class="form-control form-control-sm">
                         </div>
                     </div>
+                    <!-- Otros detalles -->
+                    <div class="row g-3 mt-2">
+                        <div class="col-12">
+                            <label class="form-label small">Otros detalles</label>
+                            <textarea name="detalles" id="epDetalles" class="form-control form-control-sm" rows="2" placeholder="Informacion adicional..."></textarea>
+                        </div>
+                    </div>
                     <!-- Auto fields -->
                     <div id="editAutoFields" class="row g-3 mt-2" style="display:none">
                         <div class="col-md-3"><label class="form-label small">Marca</label><input type="text" name="marca" id="epMarca" class="form-control form-control-sm"></div>
@@ -509,7 +516,7 @@
 </div>
 
 <script>
-function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf, fechaVenc, activa, marca, modelo, anio, matricula, cobertura, tipoViv, metros, continente, contenido, numeroCuenta, unidades) {
+function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf, fechaVenc, activa, marca, modelo, anio, matricula, cobertura, tipoViv, metros, continente, contenido, numeroCuenta, unidades, detalles) {
     var form = document.getElementById('editarPolizaForm');
     form.action = '/clientes/{{ cliente.id }}/poliza/' + id + '/editar';
 
@@ -524,6 +531,7 @@ function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf,
     document.getElementById('epActiva').value = activa ? 'true' : 'false';
     document.getElementById('epNumeroCuenta').value = numeroCuenta || '';
     document.getElementById('epUnidades').value = unidades || 1;
+    document.getElementById('epDetalles').value = detalles || '';
 
     document.getElementById('epMarca').value = marca;
     document.getElementById('epModelo').value = modelo;
