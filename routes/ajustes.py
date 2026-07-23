@@ -137,16 +137,28 @@ def reset_all():
         return redirect(url_for('ajustes.index'))
 
     try:
-        # Drop all tables and recreate
-        db.drop_all()
-        db.create_all()
-
-        # Re-seed user
-        from models import User
-        db.session.add(User(username='admin', password='ocaso2025'))
+        # Delete business data but keep users table
+        from models import (Comunicacion, MensajeAsistente, DocumentoConocimiento,
+                            ChunkConocimiento, Siniestro, HitoSiniestro, DocumentoSiniestro,
+                            Renovacion, Recibo, Poliza, HistorialContacto, DocumentoCliente,
+                            Cliente, Configuracion)
+        Comunicacion.query.delete()
+        MensajeAsistente.query.delete()
+        ChunkConocimiento.query.delete()
+        DocumentoConocimiento.query.delete()
+        DocumentoSiniestro.query.delete()
+        HitoSiniestro.query.delete()
+        Siniestro.query.delete()
+        Renovacion.query.delete()
+        Recibo.query.delete()
+        Poliza.query.delete()
+        HistorialContacto.query.delete()
+        DocumentoCliente.query.delete()
+        Cliente.query.delete()
+        Configuracion.query.delete()
         db.session.commit()
 
-        flash('Todos los datos han sido eliminados. La aplicacion esta limpia.', 'success')
+        flash('Todos los datos han sido eliminados. Los usuarios se conservan.', 'success')
     except Exception as e:
         flash(f'Error al resetear: {e}', 'danger')
 
