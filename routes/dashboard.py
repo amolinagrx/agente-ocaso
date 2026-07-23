@@ -25,11 +25,18 @@ def index():
     devueltos = sum(r.importe for r in recibos_mes if r.estado == 'devuelto')
     num_devueltos = len([r for r in recibos_mes if r.estado == 'devuelto'])
 
-    # Polizas nuevas del mes
-    polizas_nuevas_mes = Poliza.query.filter(
+    # Polizas nuevas del mes - Ocaso (suma de unidades) vs Otras
+    polizas_ocaso_mes = db.session.query(db.func.coalesce(db.func.sum(Poliza.unidades), 0)).filter(
         Poliza.fecha_efecto >= inicio_mes,
-        Poliza.fecha_efecto <= fin_mes
-    ).count()
+        Poliza.fecha_efecto <= fin_mes,
+        Poliza.compania == 'Ocaso'
+    ).scalar() or 0
+
+    polizas_otras_mes = db.session.query(db.func.count(Poliza.id)).filter(
+        Poliza.fecha_efecto >= inicio_mes,
+        Poliza.fecha_efecto <= fin_mes,
+        Poliza.compania != 'Ocaso'
+    ).scalar() or 0
 
     # Asegurados (clientes unicos con al menos una poliza activa)
     asegurados = db.session.query(db.func.count(db.distinct(Poliza.cliente_id))).filter(
@@ -83,7 +90,8 @@ def index():
                            num_recibos_cobrados=num_recibos_cobrados,
                            devueltos=round(devueltos, 2),
                            num_devueltos=num_devueltos,
-                           polizas_nuevas_mes=polizas_nuevas_mes,
+                           polizas_ocaso_mes=polizas_ocaso_mes,
+                           polizas_otras_mes=polizas_otras_mes,
                            asegurados=asegurados,
                            polizas_activas=polizas_activas,
                            total_clientes=total_clientes,

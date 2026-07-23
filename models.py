@@ -100,6 +100,7 @@ class Poliza(db.Model):
     activa = db.Column(db.Boolean, default=True)
     fecha_baja = db.Column(db.Date)
     numero_cuenta = db.Column(db.String(34))
+    unidades = db.Column(db.Integer, default=1)
 
     # Vehicle-specific fields
     marca = db.Column(db.String(50))

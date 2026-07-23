@@ -75,7 +75,9 @@
                 <tbody>
                     {% for p in polizas %}
                     <tr>
-                        <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span></td>
+                        <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span>
+                            {% if p.unidades and p.unidades > 1 %}<small class="ms-1 text-muted">x{{ p.unidades }}</small>{% endif %}
+                        </td>
                         <td><code>{{ p.numero_poliza }}</code></td>
                         <td class="hide-mobile">{{ "%.0f"|format(p.capital_asegurado) }}€</td>
                         <td><strong>{{ "%.2f"|format(p.prima_anual) }}€</strong></td>
@@ -85,7 +87,7 @@
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
                                 <button class="btn btn-outline-secondary btn-sm"
-                                        onclick="editarPoliza({{ p.id }}, '{{ p.numero_poliza }}', '{{ p.ramo }}', '{{ p.compania }}', '{{ p.descripcion or '' }}', {{ p.capital_asegurado }}, {{ p.prima_anual }}, '{{ p.fecha_efecto }}', '{{ p.fecha_vencimiento }}', {{ 'true' if p.activa else 'false' }}, '{{ p.marca or '' }}', '{{ p.modelo or '' }}', {{ p.anio or 0 }}, '{{ p.matricula or '' }}', '{{ p.tipo_cobertura or '' }}', '{{ p.tipo_vivienda or '' }}', {{ p.metros or 0 }}, {{ p.continente or 0 }}, {{ p.contenido or 0 }}, '{{ p.numero_cuenta or '' }}')"
+                                        onclick="editarPoliza({{ p.id }}, '{{ p.numero_poliza }}', '{{ p.ramo }}', '{{ p.compania }}', '{{ p.descripcion or '' }}', {{ p.capital_asegurado }}, {{ p.prima_anual }}, '{{ p.fecha_efecto }}', '{{ p.fecha_vencimiento }}', {{ 'true' if p.activa else 'false' }}, '{{ p.marca or '' }}', '{{ p.modelo or '' }}', {{ p.anio or 0 }}, '{{ p.matricula or '' }}', '{{ p.tipo_cobertura or '' }}', '{{ p.tipo_vivienda or '' }}', {{ p.metros or 0 }}, {{ p.continente or 0 }}, {{ p.contenido or 0 }}, '{{ p.numero_cuenta or '' }}', {{ p.unidades or 1 }})"
                                         title="Editar poliza">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -327,6 +329,10 @@
                             <label class="form-label small">Descripcion</label>
                             <input type="text" name="descripcion" id="epDesc" class="form-control form-control-sm">
                         </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Unidades</label>
+                            <input type="number" name="unidades" id="epUnidades" class="form-control form-control-sm" value="1" min="1">
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label small">Capital</label>
                             <input type="number" name="capital_asegurado" id="epCapital" class="form-control form-control-sm" step="0.01">
@@ -505,7 +511,7 @@
 </div>
 
 <script>
-function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf, fechaVenc, activa, marca, modelo, anio, matricula, cobertura, tipoViv, metros, continente, contenido, numeroCuenta) {
+function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf, fechaVenc, activa, marca, modelo, anio, matricula, cobertura, tipoViv, metros, continente, contenido, numeroCuenta, unidades) {
     var form = document.getElementById('editarPolizaForm');
     form.action = '/clientes/{{ cliente.id }}/poliza/' + id + '/editar';
 
@@ -519,6 +525,7 @@ function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf,
     document.getElementById('epFechaVenc').value = fechaVenc;
     document.getElementById('epActiva').value = activa ? 'true' : 'false';
     document.getElementById('epNumeroCuenta').value = numeroCuenta || '';
+    document.getElementById('epUnidades').value = unidades || 1;
 
     document.getElementById('epMarca').value = marca;
     document.getElementById('epModelo').value = modelo;

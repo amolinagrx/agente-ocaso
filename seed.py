@@ -141,7 +141,8 @@ def run_seed():
                 fecha_efecto=fecha_efecto,
                 fecha_vencimiento=fecha_venc,
                 activa=(fecha_venc > date.today() or random.random() > 0.15),
-                numero_cuenta=f"ES{random.randint(10,99)} {random.randint(1000,9999)} {random.randint(1000,9999)} {random.randint(10,99)} {random.randint(1000000000, 9999999999)}" if random.random() > 0.3 else ''
+                numero_cuenta=f"ES{random.randint(10,99)} {random.randint(1000,9999)} {random.randint(1000,9999)} {random.randint(10,99)} {random.randint(1000000000, 9999999999)}" if random.random() > 0.3 else '',
+                unidades=random.choice([1, 1, 1, 1, 2, 3]) if random.random() > 0.3 else 1
             )
 
             if ramo == 'auto':

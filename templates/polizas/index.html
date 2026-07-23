@@ -111,7 +111,9 @@
                     </a>
                 </td>
                 <td><code>{{ p.numero_poliza }}</code></td>
-                <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span></td>
+                <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span>
+                    {% if p.unidades and p.unidades > 1 %}<small class="ms-1 text-muted">x{{ p.unidades }}</small>{% endif %}
+                </td>
                 <td class="hide-mobile">{{ p.compania }}</td>
                 <td><strong>{{ "%.0f"|format(p.prima_anual) }}€</strong></td>
                 <td class="hide-mobile">{{ "%.0f"|format(p.capital_asegurado) }}€</td>

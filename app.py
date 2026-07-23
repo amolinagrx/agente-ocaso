@@ -111,6 +111,7 @@ def _migrar_schema():
         migrations = [
             ('numero_cuenta', 'VARCHAR(34)'),
             ('fecha_baja', 'DATE'),
+            ('unidades', 'INTEGER DEFAULT 1'),
         ]
 
         for col, col_type in migrations:
