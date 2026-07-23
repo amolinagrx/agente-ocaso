@@ -6,45 +6,35 @@
 
 <!-- KPIs -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card border-success">
-            <div class="card-body">
-                <small class="text-muted">Primas nuevas</small>
+    <div class="col-6 col-md-3">
+        <div class="card border-success h-100">
+            <div class="card-body text-center">
+                <h3 class="text-success mb-0">{{ polizas_nuevas_mes }}</h3>
+                <small class="text-muted">Polizas este mes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-primary h-100">
+            <div class="card-body text-center">
+                <h3 class="text-primary mb-0">{{ asegurados }}</h3>
+                <small class="text-muted">Asegurados activos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-success h-100">
+            <div class="card-body text-center">
                 <h3 class="text-success mb-0">{{ "%.0f"|format(primas_nuevas) }}€</h3>
-                <small>{{ num_nuevas }} recibos</small>
+                <small class="text-muted">Cobrado este mes</small>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-danger">
-            <div class="card-body">
-                <small class="text-muted">Devueltos</small>
+    <div class="col-6 col-md-3">
+        <div class="card border-danger h-100">
+            <div class="card-body text-center">
                 <h3 class="text-danger mb-0">{{ "%.0f"|format(devueltos) }}€</h3>
-                <small>{{ num_devueltos }} recibos</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-info">
-            <div class="card-body">
-                <small class="text-muted">Objetivo mensual</small>
-                <h3 class="text-info mb-0">{{ "%.0f"|format(objetivo) }}€</h3>
-                <div class="progress mt-1" style="height:6px">
-                    <div class="progress-bar bg-info" style="width:{% if cumplimiento > 100 %}100{% else %}{{ cumplimiento }}{% endif %}%"></div>
-                </div>
-                <small>{{ cumplimiento }}% cumplido</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-secondary">
-            <div class="card-body">
-                <small class="text-muted">Resumen</small>
-                <div class="row text-center mt-2">
-                    <div class="col-4"><h5 class="mb-0">{{ polizas_activas }}</h5><small>pólizas</small></div>
-                    <div class="col-4"><h5 class="mb-0">{{ total_clientes }}</h5><small>clientes</small></div>
-                    <div class="col-4"><h5 class="mb-0">{{ polizas_nuevas_mes }}</h5><small>nuevas</small></div>
-                </div>
+                <small class="text-muted">Devuelto ({{ num_devueltos }} recibos)</small>
             </div>
         </div>
     </div>
@@ -68,11 +58,11 @@
             <div class="card-body">
                 <table class="table table-sm">
                     <tbody>
-                        {% for ramo, total in ramos_data %}
-                        <tr>
-                            <td>{{ ramo.title() }}</td>
-                            <td class="text-end fw-bold">{{ "%.0f"|format(total) }}€</td>
-                        </tr>
+                {% for ramo, cantidad, total in ramos_data %}
+                <tr>
+                    <td><span class="badge bg-secondary">{{ ramo.title() }}</span></td>
+                    <td class="text-end"><strong>{{ "%.0f"|format(total) }}€</strong></td>
+                </tr>
                         {% else %}
                         <tr><td colspan="2" class="text-muted text-center">Sin datos</td></tr>
                         {% endfor %}
@@ -109,23 +99,24 @@ new Chart(ctx, {
     data: {
         labels: [{% for d in monthly_data %}'{{ d.label }}'{% if not loop.last %},{% endif %}{% endfor %}],
         datasets: [{
-            label: 'Cobrados',
+            label: 'Polizas nuevas',
+            data: [{% for d in monthly_data %}{{ d.nuevas }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'var(--ocaso-blue)',
+            yAxisID: 'y'
+        }, {
+            label: 'Cobrado (€)',
             data: [{% for d in monthly_data %}{{ d.cobrados }}{% if not loop.last %},{% endif %}{% endfor %}],
-            backgroundColor: '#198754'
-        }, {
-            label: 'Devueltos',
-            data: [{% for d in monthly_data %}{{ d.devueltos }}{% if not loop.last %},{% endif %}{% endfor %}],
-            backgroundColor: '#e0002b'
-        }, {
-            label: 'Pendientes',
-            data: [{% for d in monthly_data %}{{ d.pendientes }}{% if not loop.last %},{% endif %}{% endfor %}],
-            backgroundColor: '#ffc107'
+            backgroundColor: '#25D366',
+            yAxisID: 'y1'
         }]
     },
     options: {
         responsive: true,
         plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: true } }
+        scales: {
+            y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Polizas' }, ticks: { stepSize: 1 } },
+            y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Euros' }, grid: { drawOnChartArea: false } }
+        }
     }
 });
 </script>
