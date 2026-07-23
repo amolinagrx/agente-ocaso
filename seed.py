@@ -5,7 +5,7 @@ Seed script: generates realistic demo data for Ocaso Gestion.
 
 import random
 from datetime import date, datetime, timedelta
-from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, DocumentoSiniestro, Configuracion, HistorialContacto, DocumentoCliente
+from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, DocumentoSiniestro, Configuracion, HistorialContacto, DocumentoCliente, COMPANIAS_ESPANA
 
 NOMBRES = [
     "Antonio Garcia Lopez", "Maria Rodriguez Sanchez", "Jose Martinez Fernandez",
@@ -135,13 +135,14 @@ def run_seed():
                 cliente_id=cliente.id,
                 numero_poliza=f"OC-{ramo[:2].upper()}-{100000 + len(polizas):06d}",
                 ramo=ramo,
-                compania=random.choice(["Ocaso", "Ocaso", "Ocaso", "Ocaso", "Otra"]),
+                compania=random.choice(['Ocaso'] * 5 + [c for c in COMPANIAS_ESPANA if c != 'Ocaso']),
                 descripcion=f"Seguro de {ramo}" if ramo != 'auto' else f"Vehiculo {random.choice(MARCAS_AUTO)} {random.choice(MODELOS_AUTO)}",
                 capital_asegurado=random.randint(10000, 200000),
                 prima_anual=prima_base,
                 fecha_efecto=fecha_efecto,
                 fecha_vencimiento=fecha_venc,
-                activa=(fecha_venc > date.today() or random.random() > 0.15)
+                activa=(fecha_venc > date.today() or random.random() > 0.15),
+                numero_cuenta=f"ES{random.randint(10,99)} {random.randint(1000,9999)} {random.randint(1000,9999)} {random.randint(10,99)} {random.randint(1000000000, 9999999999)}" if random.random() > 0.3 else ''
             )
 
             if ramo == 'auto':

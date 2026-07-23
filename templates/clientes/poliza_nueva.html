@@ -16,10 +16,11 @@
                             <input type="text" name="numero_poliza" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Compañía</label>
+                            <label class="form-label">Compania</label>
                             <select name="compania" class="form-select">
-                                <option value="Ocaso">Ocaso</option>
-                                <option value="Otra">Otra</option>
+                                {% for comp in companias %}
+                                <option value="{{ comp }}" {% if comp == 'Ocaso' %}selected{% endif %}>{{ comp }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -45,6 +46,10 @@
                         <div class="col-md-4">
                             <label class="form-label">Prima anual *</label>
                             <input type="number" name="prima_anual" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nº Cuenta (IBAN)</label>
+                            <input type="text" name="numero_cuenta" class="form-control" placeholder="ES00 0000 0000 00 0000000000">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Fecha efecto *</label>

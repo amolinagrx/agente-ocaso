@@ -68,6 +68,7 @@
                         <th>Prima Anual</th>
                         <th>F. Efecto</th>
                         <th>F. Vencimiento</th>
+                        <th>Nº Cuenta</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -80,10 +81,11 @@
                         <td><strong>{{ "%.2f"|format(p.prima_anual) }}€</strong></td>
                         <td class="hide-mobile">{{ p.fecha_efecto.strftime('%d/%m/%Y') if p.fecha_efecto else '-' }}</td>
                         <td class="hide-mobile">{{ p.fecha_vencimiento.strftime('%d/%m/%Y') if p.fecha_vencimiento else '-' }}</td>
+                        <td class="hide-mobile"><code class="small">{{ p.numero_cuenta or '-' }}</code></td>
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
                                 <button class="btn btn-outline-secondary btn-sm"
-                                        onclick="editarPoliza({{ p.id }}, '{{ p.numero_poliza }}', '{{ p.ramo }}', '{{ p.compania }}', '{{ p.descripcion or '' }}', {{ p.capital_asegurado }}, {{ p.prima_anual }}, '{{ p.fecha_efecto }}', '{{ p.fecha_vencimiento }}', {{ 'true' if p.activa else 'false' }}, '{{ p.marca or '' }}', '{{ p.modelo or '' }}', {{ p.anio or 0 }}, '{{ p.matricula or '' }}', '{{ p.tipo_cobertura or '' }}', '{{ p.tipo_vivienda or '' }}', {{ p.metros or 0 }}, {{ p.continente or 0 }}, {{ p.contenido or 0 }})"
+                                        onclick="editarPoliza({{ p.id }}, '{{ p.numero_poliza }}', '{{ p.ramo }}', '{{ p.compania }}', '{{ p.descripcion or '' }}', {{ p.capital_asegurado }}, {{ p.prima_anual }}, '{{ p.fecha_efecto }}', '{{ p.fecha_vencimiento }}', {{ 'true' if p.activa else 'false' }}, '{{ p.marca or '' }}', '{{ p.modelo or '' }}', {{ p.anio or 0 }}, '{{ p.matricula or '' }}', '{{ p.tipo_cobertura or '' }}', '{{ p.tipo_vivienda or '' }}', {{ p.metros or 0 }}, {{ p.continente or 0 }}, {{ p.contenido or 0 }}, '{{ p.numero_cuenta or '' }}')"
                                         title="Editar poliza">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -100,7 +102,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="7" class="text-muted text-center py-3">No hay pólizas registradas</td></tr>
+                    <tr><td colspan="8" class="text-muted text-center py-3">No hay polizas registradas</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -316,7 +318,9 @@
                         <div class="col-md-4">
                             <label class="form-label small">Compania</label>
                             <select name="compania" id="epCompania" class="form-select form-select-sm">
-                                <option value="Ocaso">Ocaso</option><option value="Otra">Otra</option>
+                                {% for comp in companias %}
+                                <option value="{{ comp }}">{{ comp }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-12">
@@ -336,6 +340,10 @@
                             <select name="activa" id="epActiva" class="form-select form-select-sm">
                                 <option value="true">Si</option><option value="false">No</option>
                             </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Nº Cuenta (IBAN)</label>
+                            <input type="text" name="numero_cuenta" id="epNumeroCuenta" class="form-control form-control-sm" placeholder="ES00 0000 0000 00 0000000000">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small">F. Efecto</label>
@@ -497,7 +505,7 @@
 </div>
 
 <script>
-function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf, fechaVenc, activa, marca, modelo, anio, matricula, cobertura, tipoViv, metros, continente, contenido) {
+function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf, fechaVenc, activa, marca, modelo, anio, matricula, cobertura, tipoViv, metros, continente, contenido, numeroCuenta) {
     var form = document.getElementById('editarPolizaForm');
     form.action = '/clientes/{{ cliente.id }}/poliza/' + id + '/editar';
 
@@ -510,6 +518,7 @@ function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf,
     document.getElementById('epFechaEf').value = fechaEf;
     document.getElementById('epFechaVenc').value = fechaVenc;
     document.getElementById('epActiva').value = activa ? 'true' : 'false';
+    document.getElementById('epNumeroCuenta').value = numeroCuenta || '';
 
     document.getElementById('epMarca').value = marca;
     document.getElementById('epModelo').value = modelo;

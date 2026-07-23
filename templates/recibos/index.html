@@ -24,11 +24,12 @@
     </div>
     <div class="col-md-2">
         <label class="form-label small">Compañía</label>
-        <select name="compania" class="form-select form-select-sm">
-            <option value="">Todas</option>
-            <option value="Ocaso" {% if compania == 'Ocaso' %}selected{% endif %}>Ocaso</option>
-            <option value="Otra" {% if compania == 'Otra' %}selected{% endif %}>Otra</option>
-        </select>
+                <select name="compania" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    {% for comp in companias %}
+                    <option value="{{ comp }}" {% if compania==comp %}selected{% endif %}>{{ comp }}</option>
+                    {% endfor %}
+                </select>
     </div>
     <div class="col-md-1">
         <label class="form-label small">Mes</label>

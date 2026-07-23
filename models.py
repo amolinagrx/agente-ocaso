@@ -4,6 +4,50 @@ from datetime import datetime, date
 
 db = SQLAlchemy()
 
+COMPANIAS_ESPANA = [
+    'Ocaso',
+    'Mapfre',
+    'Mutua Madrilena',
+    'Allianz',
+    'AXA',
+    'Generali',
+    'Zurich',
+    'Santalucia',
+    'Catalana Occidente',
+    'Pelayo',
+    'Reale',
+    'Helvetia',
+    'FIATC',
+    'Linea Directa',
+    'Verti',
+    'Qualitas Auto',
+    'Liberty',
+    'Caser',
+    'Asisa',
+    'Adeslas',
+    'Sanitas',
+    'DKV',
+    'Asemfa',
+    'MGS',
+    'Prevision Medica',
+    'Aegon',
+    'MetLife',
+    'Vidacaixa',
+    'Ibercaja',
+    'Unicorp Vida',
+    'Asefa',
+    'Plus Ultra',
+    'Mussap',
+    'SegurCaixa',
+    'RGA',
+    'Bansabadell',
+    'Bilbao',
+    'Lagun Aro',
+    'Previsora General',
+    'Premaat',
+    'Otra',
+]
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -55,6 +99,7 @@ class Poliza(db.Model):
     fecha_vencimiento = db.Column(db.Date, nullable=False)
     activa = db.Column(db.Boolean, default=True)
     fecha_baja = db.Column(db.Date)
+    numero_cuenta = db.Column(db.String(34))
 
     # Vehicle-specific fields
     marca = db.Column(db.String(50))

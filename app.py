@@ -7,6 +7,11 @@ from models import db, User
 def create_app():
     app = Flask(__name__)
 
+    @app.context_processor
+    def inject_globals():
+        from models import COMPANIAS_ESPANA
+        return {'companias': COMPANIAS_ESPANA, 'today': __import__('datetime').date.today()}
+
     @app.route('/')
     def root():
         from flask import redirect, url_for

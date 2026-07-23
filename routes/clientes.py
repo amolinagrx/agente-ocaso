@@ -111,7 +111,8 @@ def nueva_poliza(id):
             tipo_vivienda=request.form.get('tipo_vivienda'),
             metros=request.form.get('metros', type=int),
             continente=float(request.form.get('continente', 0) or 0),
-            contenido=float(request.form.get('contenido', 0) or 0)
+            contenido=float(request.form.get('contenido', 0) or 0),
+            numero_cuenta=request.form.get('numero_cuenta', '')
         )
         db.session.add(poliza)
         db.session.commit()
@@ -171,6 +172,7 @@ def editar_poliza(id, poliza_id):
     poliza.prima_anual = float(request.form.get('prima_anual', poliza.prima_anual or 0))
     poliza.fecha_efecto = _parse_date(request.form.get('fecha_efecto')) or poliza.fecha_efecto
     poliza.fecha_vencimiento = _parse_date(request.form.get('fecha_vencimiento')) or poliza.fecha_vencimiento
+    poliza.numero_cuenta = request.form.get('numero_cuenta', poliza.numero_cuenta)
     poliza.activa = request.form.get('activa', 'true') == 'true'
 
     if poliza.ramo == 'auto':

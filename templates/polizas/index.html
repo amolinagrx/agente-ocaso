@@ -66,11 +66,12 @@
     </div>
     <div class="col-md-2">
         <label class="form-label small">Compania</label>
-        <select name="compania" class="form-select form-select-sm">
-            <option value="">Todas</option>
-            <option value="Ocaso" {% if compania=='Ocaso' %}selected{% endif %}>Ocaso</option>
-            <option value="Otra" {% if compania=='Otra' %}selected{% endif %}>Otra</option>
-        </select>
+                <select name="compania" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    {% for comp in companias %}
+                    <option value="{{ comp }}" {% if compania==comp %}selected{% endif %}>{{ comp }}</option>
+                    {% endfor %}
+                </select>
     </div>
     <div class="col-md-2">
         <label class="form-label small">Buscar</label>
@@ -92,6 +93,7 @@
                 <th><a href="?sort=prima&order={% if sort=='prima' and order=='asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-reset">Prima</a></th>
                 <th class="hide-mobile">Capital</th>
                 <th class="hide-mobile">F. Efecto</th>
+                <th class="hide-mobile">Nº Cuenta</th>
                 <th><a href="?sort=vencimiento&order={% if sort=='vencimiento' and order=='asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-reset">Vencimiento</a></th>
                 <th>Estado</th>
             </tr>
@@ -114,6 +116,7 @@
                 <td><strong>{{ "%.0f"|format(p.prima_anual) }}€</strong></td>
                 <td class="hide-mobile">{{ "%.0f"|format(p.capital_asegurado) }}€</td>
                 <td class="hide-mobile">{{ p.fecha_efecto.strftime('%d/%m/%Y') if p.fecha_efecto else '-' }}</td>
+                <td class="hide-mobile"><code class="small">{{ p.numero_cuenta or '-' }}</code></td>
                 <td>
                     {{ p.fecha_vencimiento.strftime('%d/%m/%Y') if p.fecha_vencimiento else '-' }}
                     {% if p.activa and dias <= 30 and dias >= 0 %}
@@ -131,7 +134,7 @@
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="9" class="text-center text-muted py-4">Sin polizas con estos filtros</td></tr>
+            <tr><td colspan="10" class="text-center text-muted py-4">Sin polizas con estos filtros</td></tr>
             {% endfor %}
         </tbody>
     </table>
