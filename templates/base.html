@@ -25,42 +25,66 @@
             <small class="text-muted">Armilla</small>
         </div>
         <div class="list-group list-group-flush mt-2">
+            {% if current_user.tiene_permiso('dashboard') %}
             <a href="{{ url_for('dashboard.index') }}" class="list-group-item list-group-item-action" data-nav="dashboard">
                 <i class="bi bi-speedometer2 me-2"></i> <span class="nav-label">Dashboard</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('recibos') %}
             <a href="{{ url_for('recibos.index') }}" class="list-group-item list-group-item-action" data-nav="recibos">
                 <i class="bi bi-receipt me-2"></i> <span class="nav-label">Recibos</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('clientes') %}
             <a href="{{ url_for('clientes.index') }}" class="list-group-item list-group-item-action" data-nav="clientes">
                 <i class="bi bi-people me-2"></i> <span class="nav-label">Clientes</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('polizas') %}
             <a href="{{ url_for('polizas.index') }}" class="list-group-item list-group-item-action" data-nav="polizas">
                 <i class="bi bi-file-earmark-text me-2"></i> <span class="nav-label">Polizas</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('renovaciones') %}
             <a href="{{ url_for('renovaciones.index') }}" class="list-group-item list-group-item-action" data-nav="renovaciones">
                 <i class="bi bi-calendar-check me-2"></i> <span class="nav-label">Renovaciones</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('listados') %}
             <a href="{{ url_for('listados.index') }}" class="list-group-item list-group-item-action" data-nav="listados">
                 <i class="bi bi-file-earmark-bar-graph me-2"></i> <span class="nav-label">Listados</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('siniestros') %}
             <a href="{{ url_for('siniestros.index') }}" class="list-group-item list-group-item-action" data-nav="siniestros">
                 <i class="bi bi-exclamation-triangle me-2"></i> <span class="nav-label">Siniestros</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('comunicaciones') %}
             <a href="{{ url_for('comunicaciones.index') }}" class="list-group-item list-group-item-action" data-nav="comunicaciones">
                 <i class="bi bi-chat-dots me-2"></i> <span class="nav-label">Comunicaciones</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('whatsapp') %}
             <a href="{{ url_for('whatsapp.index') }}" class="list-group-item list-group-item-action" data-nav="whatsapp">
                 <i class="bi bi-whatsapp me-2"></i> <span class="nav-label">WhatsApp</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('asistente') %}
             <a href="{{ url_for('asistente.index') }}" class="list-group-item list-group-item-action" data-nav="asistente">
                 <i class="bi bi-robot me-2"></i> <span class="nav-label">Asistente IA</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('ajustes') %}
             <a href="{{ url_for('ajustes.index') }}" class="list-group-item list-group-item-action" data-nav="ajustes">
                 <i class="bi bi-sliders2 me-2"></i> <span class="nav-label">Ajustes</span>
             </a>
+            {% endif %}
+            {% if current_user.tiene_permiso('usuarios') %}
             <a href="{{ url_for('usuarios.index') }}" class="list-group-item list-group-item-action" data-nav="usuarios">
                 <i class="bi bi-people-gear me-2"></i> <span class="nav-label">Usuarios</span>
             </a>
+            {% endif %}
         </div>
         <div class="mt-auto p-3 border-top position-absolute bottom-0 w-100">
             <div class="d-flex justify-content-between align-items-center">
@@ -122,21 +146,31 @@
 
     <!-- Bottom navigation (mobile) -->
     <nav id="bottomNav">
+        {% if current_user.tiene_permiso('dashboard') %}
         <a href="{{ url_for('dashboard.index') }}" class="nav-item" data-nav="dashboard">
             <i class="bi bi-speedometer2"></i>Inicio
         </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('recibos') %}
         <a href="{{ url_for('recibos.index') }}" class="nav-item" data-nav="recibos">
             <i class="bi bi-receipt"></i>Recibos
         </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('clientes') %}
         <a href="{{ url_for('clientes.index') }}" class="nav-item" data-nav="clientes">
             <i class="bi bi-people"></i>Clientes
         </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('polizas') %}
         <a href="{{ url_for('polizas.index') }}" class="nav-item" data-nav="polizas">
             <i class="bi bi-file-earmark-text"></i>Polizas
         </a>
-        <a href="{{ url_for('ajustes.index') }}" class="nav-item" data-nav="ajustes">
-            <i class="bi bi-sliders2"></i>Ajustes
+        {% endif %}
+        {% if current_user.tiene_permiso('whatsapp') %}
+        <a href="{{ url_for('whatsapp.index') }}" class="nav-item" data-nav="whatsapp">
+            <i class="bi bi-whatsapp"></i>WhatsApp
         </a>
+        {% endif %}
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
