@@ -34,6 +34,9 @@
             <a href="{{ url_for('clientes.index') }}" class="list-group-item list-group-item-action" data-nav="clientes">
                 <i class="bi bi-people me-2"></i> <span class="nav-label">Clientes</span>
             </a>
+            <a href="{{ url_for('polizas.index') }}" class="list-group-item list-group-item-action" data-nav="polizas">
+                <i class="bi bi-file-earmark-text me-2"></i> <span class="nav-label">Polizas</span>
+            </a>
             <a href="{{ url_for('renovaciones.index') }}" class="list-group-item list-group-item-action" data-nav="renovaciones">
                 <i class="bi bi-calendar-check me-2"></i> <span class="nav-label">Renovaciones</span>
             </a>
@@ -122,11 +125,11 @@
         <a href="{{ url_for('recibos.index') }}" class="nav-item" data-nav="recibos">
             <i class="bi bi-receipt"></i>Recibos
         </a>
-        <a href="{{ url_for('whatsapp.index') }}" class="nav-item" data-nav="whatsapp">
-            <i class="bi bi-whatsapp"></i>WhatsApp
-        </a>
         <a href="{{ url_for('clientes.index') }}" class="nav-item" data-nav="clientes">
             <i class="bi bi-people"></i>Clientes
+        </a>
+        <a href="{{ url_for('polizas.index') }}" class="nav-item" data-nav="polizas">
+            <i class="bi bi-file-earmark-text"></i>Polizas
         </a>
         <a href="{{ url_for('ajustes.index') }}" class="nav-item" data-nav="ajustes">
             <i class="bi bi-sliders2"></i>Ajustes

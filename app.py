@@ -35,6 +35,7 @@ def create_app():
     from routes.auth import auth_bp
     from routes.recibos import recibos_bp
     from routes.clientes import clientes_bp
+    from routes.polizas import polizas_bp
     from routes.renovaciones import renovaciones_bp
     from routes.siniestros import siniestros_bp
     from routes.dashboard import dashboard_bp
@@ -48,6 +49,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(recibos_bp, url_prefix='/recibos')
     app.register_blueprint(clientes_bp, url_prefix='/clientes')
+    app.register_blueprint(polizas_bp, url_prefix='/polizas')
     app.register_blueprint(renovaciones_bp, url_prefix='/renovaciones')
     app.register_blueprint(siniestros_bp, url_prefix='/siniestros')
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')

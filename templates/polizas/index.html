@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Polizas - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-text me-2" style="color:var(--ocaso-blue)"></i>Polizas</h4>
+    <div>
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i> Imprimir
+        </button>
+    </div>
+</div>
+
+<!-- Totals -->
+<div class="row g-2 mb-3">
+    <div class="col-4 col-sm-3">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong class="text-success">{{ totales.activas }}</strong>
+            <small class="text-muted d-block">activas</small>
+        </div>
+    </div>
+    <div class="col-4 col-sm-3">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong class="text-secondary">{{ totales.bajas }}</strong>
+            <small class="text-muted d-block">de baja</small>
+        </div>
+    </div>
+    <div class="col-4 col-sm-6">
+        <div class="border rounded p-2 text-center bg-light">
+            <strong class="text-primary">{{ "%.0f"|format(totales.prima_total) }}€</strong>
+            <small class="text-muted d-block">prima total activa</small>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-2">
+        <label class="form-label small">Ramo</label>
+        <select name="ramo" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            <option value="auto" {% if ramo=='auto' %}selected{% endif %}>Auto</option>
+            <option value="hogar" {% if ramo=='hogar' %}selected{% endif %}>Hogar</option>
+            <option value="vida" {% if ramo=='vida' %}selected{% endif %}>Vida</option>
+            <option value="decesos" {% if ramo=='decesos' %}selected{% endif %}>Decesos</option>
+            <option value="accidentes" {% if ramo=='accidentes' %}selected{% endif %}>Accidentes</option>
+            <option value="comercio" {% if ramo=='comercio' %}selected{% endif %}>Comercio</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Estado</label>
+        <select name="estado" class="form-select form-select-sm">
+            <option value="todas" {% if estado=='todas' %}selected{% endif %}>Todas</option>
+            <option value="activas" {% if estado=='activas' %}selected{% endif %}>Activas</option>
+            <option value="bajas" {% if estado=='bajas' %}selected{% endif %}>De baja</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Vencimiento</label>
+        <select name="vencimiento" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            <option value="30dias" {% if vencimiento=='30dias' %}selected{% endif %}>Prox. 30 dias</option>
+            <option value="60dias" {% if vencimiento=='60dias' %}selected{% endif %}>Prox. 60 dias</option>
+            <option value="vencidas" {% if vencimiento=='vencidas' %}selected{% endif %}>Vencidas</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Compania</label>
+        <select name="compania" class="form-select form-select-sm">
+            <option value="">Todas</option>
+            <option value="Ocaso" {% if compania=='Ocaso' %}selected{% endif %}>Ocaso</option>
+            <option value="Otra" {% if compania=='Otra' %}selected{% endif %}>Otra</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Buscar</label>
+        <input type="text" name="buscar" class="form-control form-control-sm" value="{{ buscar }}" placeholder="Cliente, poliza, matricula">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">Filtrar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead class="table-light">
+            <tr>
+                <th><a href="?sort=cliente&order={% if sort=='cliente' and order=='asc' %}desc{% else %}asc{% endif %}{% if ramo %}&ramo={{ramo}}{% endif %}" class="text-decoration-none text-reset">Cliente</a></th>
+                <th>Poliza</th>
+                <th><a href="?sort=ramo&order={% if sort=='ramo' and order=='asc' %}desc{% else %}asc{% endif %}{% if ramo %}&ramo={{ramo}}{% endif %}" class="text-decoration-none text-reset">Ramo</a></th>
+                <th class="hide-mobile">Compania</th>
+                <th><a href="?sort=prima&order={% if sort=='prima' and order=='asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-reset">Prima</a></th>
+                <th class="hide-mobile">Capital</th>
+                <th class="hide-mobile">F. Efecto</th>
+                <th><a href="?sort=vencimiento&order={% if sort=='vencimiento' and order=='asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-reset">Vencimiento</a></th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p, c in resultados %}
+            {% set dias = (p.fecha_vencimiento - today).days if p.fecha_vencimiento else 999 %}
+            <tr class="{% if p.activa and dias <= 30 and dias >= 0 %}table-warning{% elif p.activa and dias < 0 %}table-danger{% endif %}">
+                <td>
+                    <a href="{{ url_for('clientes.ficha', id=c.id) }}" class="text-decoration-none small">
+                        {{ c.nombre }}
+                        {% if c.alerta_devoluciones %}
+                        <span class="badge bg-danger ms-1" style="font-size:9px">!</span>
+                        {% endif %}
+                    </a>
+                </td>
+                <td><code>{{ p.numero_poliza }}</code></td>
+                <td><span class="badge bg-secondary">{{ p.ramo.title() }}</span></td>
+                <td class="hide-mobile">{{ p.compania }}</td>
+                <td><strong>{{ "%.0f"|format(p.prima_anual) }}€</strong></td>
+                <td class="hide-mobile">{{ "%.0f"|format(p.capital_asegurado) }}€</td>
+                <td class="hide-mobile">{{ p.fecha_efecto.strftime('%d/%m/%Y') if p.fecha_efecto else '-' }}</td>
+                <td>
+                    {{ p.fecha_vencimiento.strftime('%d/%m/%Y') if p.fecha_vencimiento else '-' }}
+                    {% if p.activa and dias <= 30 and dias >= 0 %}
+                    <small class="text-warning d-block">¡{{ dias }} dias!</small>
+                    {% elif p.activa and dias < 0 %}
+                    <small class="text-danger d-block">vencida</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if p.activa %}
+                    <span class="badge bg-success">Activa</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Baja</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="text-center text-muted py-4">Sin polizas con estos filtros</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if pagination.pages > 1 %}
+<nav><ul class="pagination justify-content-center">
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="?page={{ pagination.prev_num }}&ramo={{ ramo }}&estado={{ estado }}&buscar={{ buscar }}">&laquo;</a>
+    </li>
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+        <a class="page-link" href="?page={{ p }}&ramo={{ ramo }}&estado={{ estado }}&buscar={{ buscar }}">{{ p }}</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled"><span class="page-link">...</span></li>
+    {% endif %}
+    {% endfor %}
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="?page={{ pagination.next_num }}&ramo={{ ramo }}&estado={{ estado }}&buscar={{ buscar }}">&raquo;</a>
+    </li>
+</ul></nav>
+{% endif %}
+
+{% endblock %}
