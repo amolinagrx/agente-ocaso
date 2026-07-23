@@ -87,7 +87,6 @@ def run_seed():
     db.session.commit()
 
     # Config
-    db.session.add(Configuracion(clave='objetivo_mensual', valor='15000'))
     db.session.add(Configuracion(clave='oficina_nombre', valor='Ocaso Armilla'))
     db.session.add(Configuracion(clave='oficina_direccion', valor='C/ Real 12, 18100 Armilla (Granada)'))
     db.session.add(Configuracion(clave='oficina_telefono', valor='958 123 456'))

@@ -14,7 +14,6 @@ def index():
         seccion = request.form.get('seccion', '')
 
         if seccion == 'general':
-            _guardar_config('objetivo_mensual', request.form.get('objetivo_mensual', '15000'))
             _guardar_config('oficina_nombre', request.form.get('oficina_nombre', ''))
             _guardar_config('oficina_direccion', request.form.get('oficina_direccion', ''))
             _guardar_config('oficina_telefono', request.form.get('oficina_telefono', ''))

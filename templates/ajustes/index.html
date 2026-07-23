@@ -44,14 +44,8 @@
                         </div>
                     </div>
 
-                    <h6 class="mt-4 mb-2">Objetivos y alertas</h6>
+                    <h6 class="mt-4 mb-2">Alertas</h6>
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small">Objetivo mensual (€)</label>
-                            <input type="number" name="objetivo_mensual" class="form-control form-control-sm"
-                                   value="{{ config.get('objetivo_mensual', '15000') }}" step="1000">
-                            <div class="form-text">Se usa en el dashboard para calcular % de cumplimiento.</div>
-                        </div>
                         <div class="col-md-6">
                             <label class="form-label small">Alerta siniestros (dias sin act.)</label>
                             <input type="number" name="dias_alerta_siniestro" class="form-control form-control-sm"
