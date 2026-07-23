@@ -92,3 +92,90 @@ def _guardar_config(clave, valor):
     else:
         if valor:
             db.session.add(Configuracion(clave=clave, valor=valor.strip()))
+
+
+@ajustes_bp.route('/exportar-backup')
+@login_required
+def exportar_backup():
+    """Download the SQLite database as backup."""
+    import shutil
+    import tempfile
+    from flask import send_file, current_app
+
+    db_path = current_app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+    if not os.path.exists(db_path):
+        flash('No se encuentra la base de datos', 'danger')
+        return redirect(url_for('ajustes.index'))
+
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+    shutil.copy2(db_path, tmp.name)
+    tmp.close()
+
+    from datetime import date
+    filename = f'ocaso_backup_{date.today().strftime("%Y%m%d")}.db'
+
+    return send_file(tmp.name, as_attachment=True, download_name=filename,
+                     mimetype='application/octet-stream')
+
+
+@ajustes_bp.route('/importar-backup', methods=['POST'])
+@login_required
+def importar_backup():
+    """Restore database from uploaded backup file."""
+    from flask import current_app
+    import shutil
+
+    file = request.files.get('backup_file')
+    if not file or not file.filename.endswith('.db'):
+        flash('Selecciona un archivo .db valido', 'danger')
+        return redirect(url_for('ajustes.index'))
+
+    db_path = current_app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+    backup_path = db_path + '.backup_previo'
+
+    # Backup current DB just in case
+    if os.path.exists(db_path):
+        shutil.copy2(db_path, backup_path)
+
+    try:
+        file.save(db_path)
+        flash('Backup restaurado correctamente. La aplicacion se reiniciara al recargar.', 'success')
+    except Exception as e:
+        # Restore previous DB if import fails
+        if os.path.exists(backup_path):
+            shutil.copy2(backup_path, db_path)
+        flash(f'Error al restaurar: {e}', 'danger')
+
+    return redirect(url_for('ajustes.index'))
+
+
+@ajustes_bp.route('/reset-all', methods=['POST'])
+@login_required
+def reset_all():
+    """Delete all data after confirming security code."""
+    codigo = request.form.get('codigo_seguridad', '')
+    confirmacion = request.form.get('confirmacion', '')
+
+    if codigo != 'rudtb8vx':
+        flash('Codigo de seguridad incorrecto', 'danger')
+        return redirect(url_for('ajustes.index'))
+
+    if confirmacion != 'BORRAR TODO':
+        flash('Debes escribir "BORRAR TODO" para confirmar', 'danger')
+        return redirect(url_for('ajustes.index'))
+
+    try:
+        # Drop all tables and recreate
+        db.drop_all()
+        db.create_all()
+
+        # Re-seed user
+        from models import User
+        db.session.add(User(username='admin', password='ocaso2025'))
+        db.session.commit()
+
+        flash('Todos los datos han sido eliminados. La aplicacion esta limpia.', 'success')
+    except Exception as e:
+        flash(f'Error al resetear: {e}', 'danger')
+
+    return redirect(url_for('ajustes.index'))

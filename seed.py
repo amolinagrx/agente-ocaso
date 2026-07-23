@@ -5,7 +5,7 @@ Seed script: generates realistic demo data for Ocaso Gestion.
 
 import random
 from datetime import date, datetime, timedelta
-from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, TarifaCalculadora, Configuracion
+from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, DocumentoSiniestro, TarifaCalculadora, Configuracion, HistorialContacto, DocumentoCliente
 
 NOMBRES = [
     "Antonio Garcia Lopez", "Maria Rodriguez Sanchez", "Jose Martinez Fernandez",
@@ -73,8 +73,19 @@ ESTADOS_SINIESTRO = [
 
 def run_seed():
     print("Borrando datos existentes...")
-    db.drop_all()
-    db.create_all()
+    from models import Comunicacion, MensajeAsistente
+    Comunicacion.query.delete()
+    MensajeAsistente.query.delete()
+    Siniestro.query.delete()
+    Renovacion.query.delete()
+    Recibo.query.delete()
+    Poliza.query.delete()
+    HistorialContacto.query.delete()
+    DocumentoCliente.query.delete()
+    Cliente.query.delete()
+    TarifaCalculadora.query.delete()
+    Configuracion.query.delete()
+    db.session.commit()
 
     # Config
     db.session.add(Configuracion(clave='objetivo_mensual', valor='15000'))

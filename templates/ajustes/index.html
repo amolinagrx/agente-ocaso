@@ -151,6 +151,29 @@
                 </div>
             </div>
         </div>
+
+        <!-- Backup & Reset -->
+        <div class="card mt-3 border-warning" style="border-width:2px">
+            <div class="card-header bg-warning bg-opacity-10">
+                <i class="bi bi-database me-2"></i>Copia de seguridad y reset
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 mb-3">
+                    <a href="{{ url_for('ajustes.exportar_backup') }}" class="btn btn-outline-secondary btn-sm flex-grow-1">
+                        <i class="bi bi-download me-1"></i> Exportar backup
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm flex-grow-1" data-bs-toggle="modal" data-bs-target="#importBackupModal">
+                        <i class="bi bi-upload me-1"></i> Importar backup
+                    </button>
+                </div>
+
+                <hr>
+                <button class="btn btn-outline-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#resetModal">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Borrar todos los datos
+                </button>
+                <div class="form-text mt-1">Elimina todos los datos y deja la aplicacion limpia. Requiere codigo de seguridad.</div>
+            </div>
+        </div>
     </div>
 
     <!-- Tariffs section -->
@@ -253,6 +276,63 @@
                     <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">
                         Anadir tarifa
                     </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Importar Backup -->
+<div class="modal fade" id="importBackupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('ajustes.importar_backup') }}" enctype="multipart/form-data">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Importar backup</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Esto reemplazara todos los datos actuales. Se guarda una copia de seguridad previa automaticamente.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Archivo de backup (.db)</label>
+                        <input type="file" name="backup_file" class="form-control" accept=".db" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">Importar backup</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Reset -->
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('ajustes.reset_all') }}">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-1"></i> Borrar todos los datos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger small">
+                        <strong>ATENCION:</strong> Esta accion eliminara TODOS los datos: clientes, polizas, recibos, siniestros, renovaciones, documentos, mensajes, configuracion... Todo.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Codigo de seguridad</label>
+                        <input type="password" name="codigo_seguridad" class="form-control" placeholder="Introduce el codigo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Escribe "BORRAR TODO" para confirmar</label>
+                        <input type="text" name="confirmacion" class="form-control" placeholder="BORRAR TODO" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Confirmar borrado total</button>
                 </div>
             </div>
         </form>
