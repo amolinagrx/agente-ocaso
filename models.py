@@ -94,6 +94,26 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    nombre = db.Column(db.String(200))
+    is_admin = db.Column(db.Boolean, default=False)
+    activo = db.Column(db.Boolean, default=True)
+    permisos = db.Column(db.Text, default='{}')  # JSON: {"modulo": "rw"|"r"|"none"}
+
+    def tiene_permiso(self, modulo, nivel='r'):
+        """Verifica si el usuario tiene al menos nivel de permiso en un modulo."""
+        if self.is_admin:
+            return True
+        import json
+        try:
+            p = json.loads(self.permisos or '{}')
+        except json.JSONDecodeError:
+            return False
+        perm = p.get(modulo, 'none')
+        if perm == 'rw':
+            return True
+        if perm == 'r' and nivel == 'r':
+            return True
+        return False
 
 
 class Cliente(db.Model):

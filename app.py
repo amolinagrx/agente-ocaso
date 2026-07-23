@@ -50,6 +50,7 @@ def create_app():
     from routes.listados import listados_bp
     from routes.asistente import asistente_bp
     from routes.ajustes import ajustes_bp
+    from routes.usuarios import usuarios_bp
     from routes.api import api_bp
 
     app.register_blueprint(auth_bp)
@@ -64,6 +65,7 @@ def create_app():
     app.register_blueprint(listados_bp, url_prefix='/listados')
     app.register_blueprint(asistente_bp, url_prefix='/asistente')
     app.register_blueprint(ajustes_bp, url_prefix='/ajustes')
+    app.register_blueprint(usuarios_bp, url_prefix='/usuarios')
     app.register_blueprint(api_bp, url_prefix='/api')
 
     with app.app_context():
@@ -79,9 +81,17 @@ def _seed_user(app):
     username = os.environ.get('OCASO_USER', 'admin')
     password = os.environ.get('OCASO_PASS', 'ocaso2025')
     if not User.query.filter_by(username=username).first():
-        db.session.add(User(username=username, password=password))
+        user = User(username=username, password=password, nombre='Administrador', is_admin=True,
+                     permisos='{}', activo=True)
+        db.session.add(user)
         db.session.commit()
         print(f'User created: {username}')
+    else:
+        user = User.query.filter_by(username=username).first()
+        if not user.is_admin and user.username == 'admin':
+            user.is_admin = True
+            user.nombre = user.nombre or 'Administrador'
+            db.session.commit()
 
 
 def _auto_seed_if_empty(app):
@@ -105,6 +115,19 @@ def _migrar_schema():
     try:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
+
+        cursor.execute("PRAGMA table_info(users)")
+        user_cols = {row[1] for row in cursor.fetchall()}
+
+        for col, col_type in [
+            ('nombre', 'VARCHAR(200)'),
+            ('is_admin', 'BOOLEAN DEFAULT 0'),
+            ('activo', 'BOOLEAN DEFAULT 1'),
+            ('permisos', 'TEXT DEFAULT \'{}\''),
+        ]:
+            if col not in user_cols:
+                cursor.execute(f'ALTER TABLE users ADD COLUMN {col} {col_type}')
+                print(f'Migracion: anadida columna {col} a users')
 
         cursor.execute("PRAGMA table_info(polizas)")
         cols = {row[1] for row in cursor.fetchall()}

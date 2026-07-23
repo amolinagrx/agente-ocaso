@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Editar Usuario{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-person-gear me-2" style="color:var(--ocaso-blue)"></i>Editar {{ usuario.username }}</h4>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header"><strong>Datos del usuario</strong></div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Usuario</label>
+                            <input type="text" class="form-control" value="{{ usuario.username }}" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nueva contrasena</label>
+                            <input type="password" name="password" class="form-control" placeholder="Dejar vacio para no cambiar">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" name="nombre" class="form-control" value="{{ usuario.nombre or '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" name="is_admin" id="isAdmin"
+                                       {% if usuario.is_admin %}checked{% endif %} onchange="togglePermisos()">
+                                <label class="form-check-label" for="isAdmin">
+                                    <strong>Administrador</strong>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" name="activo" id="activo"
+                                       {% if usuario.activo %}checked{% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    <strong>Activo</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="permisosSection" class="mt-4" style="{% if usuario.is_admin %}display:none{% endif %}">
+                        <h6 class="mb-3">Permisos por modulo</h6>
+                        {% for modulo, label in modulos if modulo != 'usuarios' %}
+                        <div class="row align-items-center mb-2 pb-2 border-bottom">
+                            <div class="col-md-4">
+                                <strong>{{ label }}</strong>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="btn-group btn-group-sm">
+                                    {% for nivel_val, nivel_label in niveles %}
+                                    <input type="radio" class="btn-check" name="perm_{{ modulo }}"
+                                           value="{{ nivel_val }}" id="perm_{{ modulo }}_{{ nivel_val }}"
+                                           {% if permisos_actuales.get(modulo, 'rw') == nivel_val %}checked{% endif %}>
+                                    <label class="btn btn-outline-secondary" for="perm_{{ modulo }}_{{ nivel_val }}">
+                                        {{ nivel_label }}
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-check-lg me-1"></i> Guardar Cambios
+                    </button>
+                    <a href="{{ url_for('usuarios.index') }}" class="btn btn-outline-secondary mt-3 ms-2">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePermisos() {
+    document.getElementById('permisosSection').style.display =
+        document.getElementById('isAdmin').checked ? 'none' : 'block';
+}
+</script>
+
+{% endblock %}
