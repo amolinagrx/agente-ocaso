@@ -58,13 +58,8 @@
     </div>
     <div class="col-md-2">
         <label class="form-label small">Ramo</label>
-        <select name="ramo" class="form-select form-select-sm">
-            <option value="">Todos</option>
-            <option value="auto" {% if ramo == 'auto' %}selected{% endif %}>Auto</option>
-            <option value="hogar" {% if ramo == 'hogar' %}selected{% endif %}>Hogar</option>
-            <option value="vida" {% if ramo == 'vida' %}selected{% endif %}>Vida</option>
-            <option value="decesos" {% if ramo == 'decesos' %}selected{% endif %}>Decesos</option>
-        </select>
+        <input type="text" list="ramos-datalist" name="ramo" class="form-select form-select-sm"
+               value="{{ ramo }}" placeholder="Buscar ramo..." autocomplete="off">
     </div>
     <div class="col-md-3">
         <label class="form-label small">Buscar</label>

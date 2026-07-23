@@ -9,8 +9,9 @@ def create_app():
 
     @app.context_processor
     def inject_globals():
-        from models import COMPANIAS_ESPANA
-        return {'companias': COMPANIAS_ESPANA, 'today': __import__('datetime').date.today()}
+        from models import COMPANIAS_ESPANA, RAMOS_ESPANA
+        return {'companias': COMPANIAS_ESPANA, 'ramos_list': RAMOS_ESPANA,
+                'today': __import__('datetime').date.today()}
 
     @app.route('/')
     def root():

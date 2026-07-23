@@ -48,6 +48,46 @@ COMPANIAS_ESPANA = [
     'Otra',
 ]
 
+RAMOS_ESPANA = [
+    'Auto',
+    'Hogar',
+    'Vida',
+    'Vida Riesgo',
+    'Vida Ahorro',
+    'Decesos',
+    'Accidentes',
+    'Salud',
+    'Asistencia Sanitaria',
+    'Comercio',
+    'Negocio',
+    'Responsabilidad Civil',
+    'Comunidades',
+    'Empresas',
+    'PYME',
+    'Transportes',
+    'Flotas',
+    'Embarcaciones',
+    'Caza',
+    'Pesca',
+    'Mascotas',
+    'Agricola',
+    'Industrial',
+    'Construccion',
+    'Todo Riesgo Construccion',
+    'Credito',
+    'Caucion',
+    'Defensa Juridica',
+    'Asistencia en Viaje',
+    'Dependencia',
+    'Jubilacion',
+    'Planes de Pensiones',
+    'Multirriesgo',
+    'Aeronaves',
+    'Ciberriesgo',
+    'Proteccion de Pagos',
+    'Baja Laboral',
+]
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'

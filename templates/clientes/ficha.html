@@ -311,11 +311,9 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small">Ramo</label>
-                            <select name="ramo" id="epRamo" class="form-select form-select-sm" onchange="toggleEditRamo()">
-                                <option value="auto">Auto</option><option value="hogar">Hogar</option>
-                                <option value="vida">Vida</option><option value="decesos">Decesos</option>
-                                <option value="accidentes">Accidentes</option><option value="comercio">Comercio</option>
-                            </select>
+                            <input type="text" list="ramos-datalist" name="ramo" id="epRamo" class="form-control form-control-sm"
+                                   required autocomplete="off" placeholder="Escribe para buscar..."
+                                   onchange="toggleEditRamo()" oninput="toggleEditRamo()">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small">Compania</label>
@@ -543,7 +541,7 @@ function editarPoliza(id, numero, ramo, compania, desc, capital, prima, fechaEf,
 }
 
 function toggleEditRamo() {
-    var ramo = document.getElementById('epRamo').value;
+    var ramo = (document.getElementById('epRamo').value || '').toLowerCase().replace(/\s+/g, '_');
     document.getElementById('editAutoFields').style.display = ramo === 'auto' ? 'flex' : 'none';
     document.getElementById('editHogarFields').style.display = ramo === 'hogar' ? 'flex' : 'none';
 }

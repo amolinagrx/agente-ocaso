@@ -263,6 +263,12 @@
             });
         })();
     </script>
+
+    <datalist id="ramos-datalist">
+        {% for r in ramos_list %}
+        <option value="{{ r }}">
+        {% endfor %}
+    </datalist>
     {% else %}
     {% block auth_content %}{% endblock %}
     {% endif %}

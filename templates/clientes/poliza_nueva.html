@@ -25,15 +25,9 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Ramo *</label>
-                            <select name="ramo" class="form-select" required onchange="toggleRamoFields(this.value)">
-                                <option value="">Seleccionar...</option>
-                                <option value="auto">Auto</option>
-                                <option value="hogar">Hogar</option>
-                                <option value="vida">Vida</option>
-                                <option value="decesos">Decesos</option>
-                                <option value="accidentes">Accidentes</option>
-                                <option value="comercio">Comercio</option>
-                            </select>
+                            <input type="text" list="ramos-datalist" name="ramo" class="form-control" required
+                                   placeholder="Escribe para buscar..." autocomplete="off"
+                                   onchange="toggleRamoFields(this.value)" oninput="toggleRamoFields(this.value)">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Descripción</label>
@@ -137,8 +131,9 @@
 
 <script>
 function toggleRamoFields(ramo) {
-    document.getElementById('autoFields').style.display = ramo === 'auto' ? 'block' : 'none';
-    document.getElementById('hogarFields').style.display = ramo === 'hogar' ? 'block' : 'none';
+    var r = (ramo || '').toLowerCase().replace(/\\s+/g, '_');
+    document.getElementById('autoFields').style.display = r === 'auto' ? 'block' : 'none';
+    document.getElementById('hogarFields').style.display = r === 'hogar' ? 'block' : 'none';
 }
 </script>
 

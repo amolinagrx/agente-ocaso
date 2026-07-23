@@ -5,7 +5,7 @@ Seed script: generates realistic demo data for Ocaso Gestion.
 
 import random
 from datetime import date, datetime, timedelta
-from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, DocumentoSiniestro, Configuracion, HistorialContacto, DocumentoCliente, COMPANIAS_ESPANA
+from models import db, Cliente, Poliza, Recibo, Renovacion, Siniestro, HitoSiniestro, DocumentoSiniestro, Configuracion, HistorialContacto, DocumentoCliente, COMPANIAS_ESPANA, RAMOS_ESPANA
 
 NOMBRES = [
     "Antonio Garcia Lopez", "Maria Rodriguez Sanchez", "Jose Martinez Fernandez",
@@ -58,7 +58,7 @@ TELEFONOS = [
 MARCAS_AUTO = ["Toyota", "Seat", "Renault", "Peugeot", "Volkswagen", "Opel", "Citroen", "Ford", "Hyundai", "Kia"]
 MODELOS_AUTO = ["C3", "Ibiza", "Leon", "Corsa", "Golf", "Focus", "308", "Clio", "Tucson", "Rio"]
 
-RAMOS = ["auto", "hogar", "vida", "decesos", "accidentes", "comercio"]
+RAMOS = RAMOS_ESPANA  # usa la lista completa de modelos.py
 ESTADOS_RECIBO = ["cobrado", "cobrado", "cobrado", "cobrado", "cobrado", "devuelto", "pendiente"]
 TIPOS_SINIESTRO = [
     "accidente_trafico", "robo", "incendio", "danos_agua",

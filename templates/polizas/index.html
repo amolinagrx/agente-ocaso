@@ -37,15 +37,8 @@
 <form method="GET" class="row g-2 mb-3 align-items-end">
     <div class="col-md-2">
         <label class="form-label small">Ramo</label>
-        <select name="ramo" class="form-select form-select-sm">
-            <option value="">Todos</option>
-            <option value="auto" {% if ramo=='auto' %}selected{% endif %}>Auto</option>
-            <option value="hogar" {% if ramo=='hogar' %}selected{% endif %}>Hogar</option>
-            <option value="vida" {% if ramo=='vida' %}selected{% endif %}>Vida</option>
-            <option value="decesos" {% if ramo=='decesos' %}selected{% endif %}>Decesos</option>
-            <option value="accidentes" {% if ramo=='accidentes' %}selected{% endif %}>Accidentes</option>
-            <option value="comercio" {% if ramo=='comercio' %}selected{% endif %}>Comercio</option>
-        </select>
+                <input type="text" list="ramos-datalist" name="ramo" class="form-select form-select-sm"
+                       value="{{ ramo }}" placeholder="Buscar ramo..." autocomplete="off">
     </div>
     <div class="col-md-2">
         <label class="form-label small">Estado</label>
