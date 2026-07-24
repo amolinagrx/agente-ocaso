@@ -182,7 +182,7 @@ def subir_documento(id):
         db.session.add(doc)
         db.session.commit()
         flash('Documento subido', 'success')
-    return redirect(url_for('clientes.ficha', id=id))
+    return redirect(url_for('clientes.ficha', id=id, _anchor='documentos'))
 
 
 @clientes_bp.route('/<int:id>/documento/<int:doc_id>/eliminar', methods=['POST'])
@@ -195,7 +195,7 @@ def eliminar_documento(id, doc_id):
     db.session.delete(doc)
     db.session.commit()
     flash('Documento eliminado', 'success')
-    return redirect(url_for('clientes.ficha', id=id))
+    return redirect(url_for('clientes.ficha', id=id, _anchor='documentos'))
 
 
 @clientes_bp.route('/<int:id>/documento/<int:doc_id>/descargar')
