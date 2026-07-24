@@ -338,22 +338,10 @@
             }
 
             // Paginated bottom nav for mobile (5 items per page)
-            const NAV_PER_PAGE = 5;
-            let navPage = 0;
             window.navSlide = function(dir) {
-                const pages = document.getElementById('navPages');
-                if (!pages) return;
-                const items = pages.querySelectorAll('.nav-item');
-                if (!items.length) return;
-                const totalPages = Math.ceil(items.length / NAV_PER_PAGE);
-                navPage = (navPage + dir + totalPages) % totalPages;
-                const start = navPage * NAV_PER_PAGE;
-                items.forEach(function(item, i) {
-                    item.style.display = (i >= start && i < start + NAV_PER_PAGE) ? '' : 'none';
-                });
+                var area = document.getElementById('navPages');
+                if (area) area.scrollBy({ left: dir * area.offsetWidth, behavior: 'smooth' });
             };
-            // Init: show first 5 items
-            if (document.getElementById('navPages')) navSlide(0);
 
             // Search handler
             buscador.addEventListener('htmx:afterRequest', function(evt) {
