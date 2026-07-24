@@ -97,7 +97,9 @@ class User(UserMixin, db.Model):
     nombre = db.Column(db.String(200))
     is_admin = db.Column(db.Boolean, default=False)
     activo = db.Column(db.Boolean, default=True)
-    permisos = db.Column(db.Text, default='{}')  # JSON: {"modulo": "rw"|"r"|"none"}
+    permisos = db.Column(db.Text, default='{}')
+    totp_secret = db.Column(db.String(64))
+    totp_enabled = db.Column(db.Boolean, default=False)  # JSON: {"modulo": "rw"|"r"|"none"}
 
     def tiene_permiso(self, modulo, nivel='r'):
         """Verifica si el usuario tiene al menos nivel de permiso en un modulo."""

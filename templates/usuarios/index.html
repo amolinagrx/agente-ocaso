@@ -18,6 +18,7 @@
                 <th class="hide-mobile">Tipo</th>
                 <th class="hide-mobile">Permisos</th>
                 <th>Activo</th>
+                <th class="hide-mobile">2FA</th>
                 <th class="text-end">Acciones</th>
             </tr>
         </thead>
@@ -59,9 +60,16 @@
                     <span class="badge bg-secondary">No</span>
                     {% endif %}
                 </td>
+                <td class="hide-mobile">
+                    {% if u.totp_enabled %}
+                    <span class="badge bg-success"><i class="bi bi-shield-check"></i> Activado</span>
+                    {% else %}
+                    <span class="badge bg-light text-dark">No</span>
+                    {% endif %}
+                </td>
                 <td class="text-end">
-                    <a href="{{ url_for('usuarios.editar', id=u.id) }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-pencil"></i>
+                    <a href="{{ url_for('usuarios.setup_2fa', id=u.id) }}" class="btn btn-sm btn-outline-secondary" title="Configurar 2FA">
+                        <i class="bi bi-shield-lock"></i>
                     </a>
                     {% if u.id != current_user.id %}
                     <form method="POST" action="{{ url_for('usuarios.eliminar', id=u.id) }}" class="d-inline">

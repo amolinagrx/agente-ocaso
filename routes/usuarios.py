@@ -1,4 +1,8 @@
 import json
+import pyotp
+import qrcode
+import base64
+import io
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
 from models import db, User
@@ -133,4 +137,66 @@ def eliminar(id):
     db.session.delete(user)
     db.session.commit()
     flash(f'Usuario {username} eliminado', 'success')
+    return redirect(url_for('usuarios.index'))
+
+
+@usuarios_bp.route('/<int:id>/2fa/setup', methods=['GET', 'POST'])
+@login_required
+def setup_2fa(id):
+    """Enable TOTP 2FA for a user."""
+    user = User.query.get_or_404(id)
+
+    # Only admin or the user themselves can set up 2FA
+    if not current_user.is_admin and current_user.id != user.id:
+        flash('No tienes permisos para modificar este usuario', 'danger')
+        return redirect(url_for('usuarios.index'))
+
+    if request.method == 'POST':
+        code = request.form.get('totp_code', '').strip()
+        secret = request.form.get('totp_secret', '')
+
+        if not secret or not code:
+            flash('Faltan datos', 'danger')
+            return redirect(url_for('usuarios.setup_2fa', id=id))
+
+        totp = pyotp.TOTP(secret)
+        if totp.verify(code, valid_window=1):
+            user.totp_secret = secret
+            user.totp_enabled = True
+            db.session.commit()
+            flash(f'Autenticacion en dos pasos activada para {user.username}', 'success')
+            return redirect(url_for('usuarios.index'))
+        else:
+            flash('Codigo incorrecto. Intentalo de nuevo.', 'danger')
+            return redirect(url_for('usuarios.setup_2fa', id=id))
+
+    # Generate new secret
+    secret = pyotp.random_base32()
+    totp = pyotp.TOTP(secret)
+    uri = totp.provisioning_uri(name=user.username, issuer_name='Ocaso Armilla')
+
+    # Generate QR code as base64
+    img = qrcode.make(uri)
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+    return render_template('usuarios/2fa_setup.html',
+                           usuario=user, secret=secret, uri=uri, qr_b64=qr_b64)
+
+
+@usuarios_bp.route('/<int:id>/2fa/disable', methods=['POST'])
+@login_required
+def disable_2fa(id):
+    """Disable 2FA for a user."""
+    user = User.query.get_or_404(id)
+
+    if not current_user.is_admin:
+        flash('Solo el administrador puede desactivar 2FA', 'danger')
+        return redirect(url_for('usuarios.index'))
+
+    user.totp_secret = None
+    user.totp_enabled = False
+    db.session.commit()
+    flash(f'2FA desactivado para {user.username}', 'success')
     return redirect(url_for('usuarios.index'))

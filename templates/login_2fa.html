@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="text-center bg-white p-4 p-md-5 rounded-4 shadow">
+            <div class="mb-4">
+                <div style="background:var(--ocaso-blue,#003396);color:white;width:72px;height:72px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold">O</div>
+            </div>
+            <h5 class="mb-1 fw-bold" style="color:var(--ocaso-blue)">Verificacion en dos pasos</h5>
+            <p class="text-muted mb-3">{{ username }}</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" autocomplete="off">
+                <div class="mb-3 text-start">
+                    <label class="form-label">Codigo de autenticacion</label>
+                    <input type="text" name="totp_code" class="form-control text-center fs-4" 
+                           placeholder="000000" maxlength="6" pattern="[0-9]{6}"
+                           inputmode="numeric" autocomplete="one-time-code" autofocus required>
+                    <div class="form-text">Introduce el codigo de 6 digitos de tu app autenticadora.</div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2" style="background-color:var(--ocaso-blue)">
+                    Verificar
+                </button>
+            </form>
+
+            <hr class="my-3">
+            <a href="{{ url_for('auth.logout') }}" class="text-muted small">Cancelar e iniciar sesion con otro usuario</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

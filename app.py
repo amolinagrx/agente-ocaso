@@ -124,6 +124,8 @@ def _migrar_schema():
             ('is_admin', 'BOOLEAN DEFAULT 0'),
             ('activo', 'BOOLEAN DEFAULT 1'),
             ('permisos', 'TEXT DEFAULT \'{}\''),
+            ('totp_secret', 'VARCHAR(64)'),
+            ('totp_enabled', 'BOOLEAN DEFAULT 0'),
         ]:
             if col not in user_cols:
                 cursor.execute(f'ALTER TABLE users ADD COLUMN {col} {col_type}')

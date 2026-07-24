@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Configurar 2FA - {{ usuario.username }}{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-shield-lock me-2" style="color:var(--ocaso-blue)"></i>Autenticacion en dos pasos</h4>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header"><strong>Configurar para {{ usuario.username }}</strong></div>
+            <div class="card-body">
+                <div class="alert alert-info small">
+                    <strong>Paso 1:</strong> Escanea este codigo QR con tu app autenticadora (Google Authenticator, Authy, Microsoft Authenticator, etc.)
+                </div>
+
+                <div class="text-center mb-3 p-3 bg-white rounded border">
+                    <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code" style="max-width:200px">
+                </div>
+
+                <div class="alert alert-light border small mb-3">
+                    <strong>Paso 2:</strong> Si no puedes escanear el QR, introduce manualmente esta clave en tu app:
+                    <div class="input-group input-group-sm mt-2">
+                        <input type="text" class="form-control font-monospace text-center" value="{{ secret }}" id="secretKey" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ secret }}')">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning small">
+                    <strong>Paso 3:</strong> Introduce el codigo de 6 digitos que aparece en tu app para verificar:
+                </div>
+
+                <form method="POST">
+                    <input type="hidden" name="totp_secret" value="{{ secret }}">
+                    <div class="mb-3">
+                        <input type="text" name="totp_code" class="form-control form-control-lg text-center fs-4"
+                               placeholder="000000" maxlength="6" pattern="[0-9]{6}"
+                               inputmode="numeric" autocomplete="one-time-code" autofocus required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-shield-check me-1"></i> Activar 2FA
+                    </button>
+                </form>
+
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('usuarios.index') }}" class="text-muted small">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><strong>¿Como funciona?</strong></div>
+            <div class="card-body small">
+                <ol class="mb-0">
+                    <li class="mb-2">Descarga una app autenticadora: <strong>Google Authenticator</strong>, <strong>Authy</strong> o <strong>Microsoft Authenticator</strong> en tu movil.</li>
+                    <li class="mb-2">Escanea el codigo QR o introduce la clave manualmente.</li>
+                    <li class="mb-2">La app generara un codigo nuevo cada 30 segundos.</li>
+                    <li>Al iniciar sesion, necesitaras tu contraseña + el codigo de la app.</li>
+                </ol>
+                <hr>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Si pierdes el acceso a tu app autenticadora, contacta con el administrador para desactivar 2FA en tu cuenta.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
