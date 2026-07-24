@@ -95,6 +95,9 @@ def _seed_user(app):
 
 
 def _auto_seed_if_empty(app):
+    """Only seed in development mode."""
+    if os.environ.get('OCASO_ENV', 'production') != 'development':
+        return
     from models import Cliente
     if Cliente.query.count() == 0:
         print('Empty database detected. Running seed data...')
@@ -157,4 +160,5 @@ def _migrar_schema():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(host='0.0.0.0', port=5050, debug=True)
+    debug = os.environ.get('OCASO_ENV', 'production') == 'development'
+    app.run(host='0.0.0.0', port=5050, debug=debug)
