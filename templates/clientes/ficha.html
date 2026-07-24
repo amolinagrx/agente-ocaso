@@ -245,7 +245,12 @@
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="abrirCamara()">
-                    <i class="bi bi-camera me-1"></i> Escanear
+                    <i class="bi bi-camera me-1"></i> Usar camara
+                </button>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="abrirEscaner()" title="Digitalizar desde escaner">
+                    <i class="bi bi-printer"></i>
                 </button>
             </div>
             <div class="col-md-2">
@@ -260,6 +265,9 @@
 
         <!-- Camera capture (hidden input + live preview modal) -->
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none"
+               onchange="handleCameraCapture(this)">
+        
+        <input type="file" id="scannerInput" accept="image/*,application/pdf" style="display:none"
                onchange="handleCameraCapture(this)">
         
         <div class="modal fade" id="cameraModal" tabindex="-1">
@@ -663,6 +671,11 @@ function handleCameraCapture(input) {
         document.getElementById('fileInput').files = input.files;
         document.getElementById('fileName').textContent = input.files[0].name;
     }
+}
+
+function abrirEscaner() {
+    // On Windows, this opens the file dialog which may detect scanner devices (TWAIN/WIA)
+    document.getElementById('scannerInput').click();
 }
 </script>
 
