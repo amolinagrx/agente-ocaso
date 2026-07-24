@@ -118,8 +118,8 @@ def convertir(id):
     lead.updated_at = datetime.utcnow()
     db.session.commit()
 
-    flash(f'Lead convertido a cliente: {cliente.nombre}', 'success')
-    return redirect(url_for('clientes.ficha', id=cliente.id))
+    flash(f'Lead convertido a cliente: {cliente.nombre}. Completa los datos que falten.', 'success')
+    return redirect(url_for('clientes.editar', id=cliente.id))
 
 
 @leads_bp.route('/<int:id>/eliminar', methods=['POST'])
