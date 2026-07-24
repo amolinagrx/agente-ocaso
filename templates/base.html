@@ -20,9 +20,9 @@
 
     <!-- Sidebar -->
     <div class="sidebar bg-white border-end" id="sidebar-wrapper">
-        <div class="sidebar-heading text-center py-3 border-bottom position-relative">
-            <button class="btn btn-sm position-absolute top-50 start-0 translate-middle-y ms-2 d-lg-none" id="sidebarToggle" aria-label="Menu" style="color:white;border-color:rgba(255,255,255,0.3)">
-                <i class="bi bi-list"></i>
+        <div class="sidebar-heading text-center py-3 border-bottom">
+            <button class="btn btn-sm float-end me-2 d-lg-none" id="sidebarClose" aria-label="Cerrar" style="color:white;border-color:rgba(255,255,255,0.3)">
+                <i class="bi bi-x-lg"></i>
             </button>
             <h5 class="mb-0 fw-bold">OCASO</h5>
             <small class="text-muted">Armilla</small>
@@ -106,6 +106,13 @@
 
     <!-- Page content -->
     <div id="page-content-wrapper">
+        <!-- Floating sidebar toggle (always visible) -->
+        <button class="btn btn-sm btn-outline-secondary position-fixed" id="sidebarToggle" 
+                style="top:10px;left:8px;z-index:1050;border-radius:50%;width:36px;height:36px;padding:0;display:none"
+                aria-label="Menu">
+            <i class="bi bi-list"></i>
+        </button>
+
         <!-- Top bar -->
         <nav class="navbar navbar-top border-bottom px-2 py-2">
             <div class="flex-grow-1 position-relative" style="min-width:0">
@@ -156,7 +163,6 @@
         (function() {
             const sidebar = document.getElementById('sidebar-wrapper');
             const backdrop = document.getElementById('sidebar-backdrop');
-            const toggleBtn = document.getElementById('sidebarToggle');
             const darkToggle = document.getElementById('darkModeToggle');
             const buscador = document.getElementById('buscadorUniversal');
             const resultados = document.getElementById('resultadosBusqueda');
@@ -164,19 +170,18 @@
             function openSidebar() {
                 sidebar.classList.remove('collapsed');
                 backdrop.classList.add('show');
-                document.body.style.overflow = 'hidden';
+                document.getElementById('sidebarToggle').style.display = 'none';
             }
 
             function closeSidebar() {
                 sidebar.classList.add('collapsed');
                 backdrop.classList.remove('show');
-                document.body.style.overflow = '';
+                document.getElementById('sidebarToggle').style.display = '';
             }
 
-            toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                sidebar.classList.contains('collapsed') ? openSidebar() : closeSidebar();
-            });
+            document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
+            var closeBtn = document.getElementById('sidebarClose');
+            if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
 
             backdrop.addEventListener('click', closeSidebar);
 
