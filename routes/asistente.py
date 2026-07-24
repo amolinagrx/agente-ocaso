@@ -85,68 +85,82 @@ def chat():
 @asistente_bp.route('/subir-documento', methods=['POST'])
 @login_required
 def subir_documento():
-    file = request.files.get('documento')
-    if not file:
-        flash('No se selecciono archivo', 'danger')
+    files = request.files.getlist('documento')
+    if not files or (len(files) == 1 and not files[0].filename):
+        flash('No se selecciono ningun archivo', 'danger')
         return redirect(url_for('asistente.index'))
 
-    filename = file.filename
     upload_dir = current_app.config['UPLOAD_FOLDER']
-    filepath = os.path.join(upload_dir, f'doc_{datetime.utcnow().strftime("%Y%m%d%H%M%S")}_{filename}')
-    file.save(filepath)
+    procesados = 0
+    errores = 0
 
-    # Extract text
-    texto = extract_text_from_file(filepath, filename)
-    if not texto or texto.startswith('ERROR'):
-        os.remove(filepath)
-        flash(f'Error al procesar el archivo: {texto}', 'danger')
-        return redirect(url_for('asistente.index'))
+    for file in files:
+        if not file or not file.filename:
+            continue
 
-    # Create document
-    doc = DocumentoConocimiento(
-        nombre=filename,
-        tipo=filename.rsplit('.', 1)[-1].lower() if '.' in filename else 'txt',
-        contenido_raw=texto[:50000]
-    )
-    db.session.add(doc)
-    db.session.flush()
+        filename = file.filename
+        filepath = os.path.join(upload_dir, f'doc_{datetime.utcnow().strftime("%Y%m%d%H%M%S")}_{filename}')
+        file.save(filepath)
 
-    # Generate summary
-    summary = summarize_document(texto[:6000])
-    if summary:
-        doc_summary = DocumentoConocimiento(
-            nombre=f'[RESUMEN] {filename}',
-            tipo='txt',
-            contenido_raw=summary
+        texto = extract_text_from_file(filepath, filename)
+        if not texto or texto.startswith('ERROR'):
+            os.remove(filepath)
+            errores += 1
+            continue
+
+        doc = DocumentoConocimiento(
+            nombre=filename,
+            tipo=filename.rsplit('.', 1)[-1].lower() if '.' in filename else 'txt',
+            contenido_raw=texto[:50000]
         )
-        db.session.add(doc_summary)
+        db.session.add(doc)
         db.session.flush()
 
-        summary_chunk = ChunkConocimiento(
-            documento_id=doc_summary.id,
-            texto=summary,
-            indice=0
-        )
-        db.session.add(summary_chunk)
+        # Generate summary (skip if API key not configured)
+        try:
+            summary = summarize_document(texto[:6000])
+            if summary:
+                doc_summary = DocumentoConocimiento(
+                    nombre=f'[RESUMEN] {filename}',
+                    tipo='txt',
+                    contenido_raw=summary
+                )
+                db.session.add(doc_summary)
+                db.session.flush()
+                ChunkConocimiento(
+                    documento_id=doc_summary.id,
+                    texto=summary,
+                    indice=0
+                )
+        except Exception:
+            pass  # Summary is optional
 
-    # Chunk and embed
-    chunks = chunk_text(texto)
-    chunk_count = 0
-    for i, chunk_text_content in enumerate(chunks):
-        embedding = generate_embedding(chunk_text_content)
-        chunk_obj = ChunkConocimiento(
-            documento_id=doc.id,
-            texto=chunk_text_content,
-            embedding=json.dumps(embedding) if embedding else None,
-            indice=i
-        )
-        db.session.add(chunk_obj)
-        chunk_count += 1
+        # Chunk and embed
+        chunks = chunk_text(texto)
+        chunk_count = 0
+        for i, chunk_text_content in enumerate(chunks):
+            try:
+                embedding = generate_embedding(chunk_text_content)
+            except Exception:
+                embedding = None
+            ChunkConocimiento(
+                documento_id=doc.id,
+                texto=chunk_text_content,
+                embedding=json.dumps(embedding) if embedding else None,
+                indice=i
+            )
+            chunk_count += 1
 
-    doc.num_chunks = chunk_count
+        doc.num_chunks = chunk_count
+        procesados += 1
+
     db.session.commit()
 
-    flash(f'Documento "{filename}" procesado: {chunk_count} fragmentos indexados', 'success')
+    if procesados > 0:
+        flash(f'{procesados} documento(s) procesado(s) correctamente.', 'success')
+    if errores > 0:
+        flash(f'{errores} archivo(s) no se pudieron procesar.', 'warning')
+
     return redirect(url_for('asistente.index'))
 
 
