@@ -105,9 +105,7 @@
     <div id="page-content-wrapper">
         <!-- Top bar -->
         <nav class="navbar navbar-top border-bottom px-2 py-2">
-            <button class="btn btn-outline-secondary btn-sm d-lg-none me-2" id="sidebarToggle" aria-label="Menu">
-                <i class="bi bi-list"></i>
-            </button>
+            <button class="btn btn-outline-secondary btn-sm d-lg-none me-2" id="sidebarToggle" aria-label="Menu" style="display:none"></button>
             <div class="flex-grow-1 position-relative" style="min-width:0">
                 <input type="search"
                        id="buscadorUniversal"
@@ -171,9 +169,49 @@
             <i class="bi bi-file-earmark-text"></i>Polizas
         </a>
         {% endif %}
+        {% if current_user.tiene_permiso('renovaciones') %}
+        <a href="{{ url_for('renovaciones.index') }}" class="nav-item" data-nav="renovaciones">
+            <i class="bi bi-calendar-check"></i>Renovar
+        </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('listados') %}
+        <a href="{{ url_for('listados.index') }}" class="nav-item" data-nav="listados">
+            <i class="bi bi-file-earmark-bar-graph"></i>Listados
+        </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('siniestros') %}
+        <a href="{{ url_for('siniestros.index') }}" class="nav-item" data-nav="siniestros">
+            <i class="bi bi-exclamation-triangle"></i>Siniestros
+        </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('comunicaciones') %}
+        <a href="{{ url_for('comunicaciones.index') }}" class="nav-item" data-nav="comunicaciones">
+            <i class="bi bi-chat-dots"></i>Comunic.
+        </a>
+        {% endif %}
         {% if current_user.tiene_permiso('whatsapp') %}
         <a href="{{ url_for('whatsapp.index') }}" class="nav-item" data-nav="whatsapp">
             <i class="bi bi-whatsapp"></i>WhatsApp
+        </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('agenda') %}
+        <a href="{{ url_for('agenda.index') }}" class="nav-item" data-nav="agenda">
+            <i class="bi bi-journal-check"></i>Agenda
+        </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('asistente') %}
+        <a href="{{ url_for('asistente.index') }}" class="nav-item" data-nav="asistente">
+            <i class="bi bi-robot"></i>IA
+        </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('ajustes') %}
+        <a href="{{ url_for('ajustes.index') }}" class="nav-item" data-nav="ajustes">
+            <i class="bi bi-sliders2"></i>Ajustes
+        </a>
+        {% endif %}
+        {% if current_user.tiene_permiso('usuarios') %}
+        <a href="{{ url_for('usuarios.index') }}" class="nav-item" data-nav="usuarios">
+            <i class="bi bi-people-gear"></i>Usuarios
         </a>
         {% endif %}
     </nav>
