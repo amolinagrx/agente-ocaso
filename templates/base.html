@@ -186,10 +186,33 @@
             var closeBtn = document.getElementById('sidebarClose');
             if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
 
-            // Restore saved sidebar state
-            if (localStorage.getItem('ocaso-sidebar') === 'closed') {
-                closeSidebar();
+            // Desktop: sidebar always visible, no toggle buttons
+            function isDesktop() { return window.innerWidth >= 992; }
+
+            if (isDesktop()) {
+                sidebar.classList.remove('collapsed');
+                backdrop.style.display = 'none';
+                document.getElementById('sidebarToggle').style.display = 'none';
+                if (closeBtn) closeBtn.style.display = 'none';
+            } else {
+                if (localStorage.getItem('ocaso-sidebar') === 'closed') {
+                    closeSidebar();
+                }
+                document.getElementById('sidebarToggle').style.display = '';
+                if (closeBtn) closeBtn.style.display = '';
             }
+
+            window.addEventListener('resize', function() {
+                if (isDesktop()) {
+                    sidebar.classList.remove('collapsed');
+                    backdrop.style.display = 'none';
+                    document.getElementById('sidebarToggle').style.display = 'none';
+                    if (closeBtn) closeBtn.style.display = 'none';
+                } else {
+                    document.getElementById('sidebarToggle').style.display = '';
+                    if (closeBtn) closeBtn.style.display = '';
+                }
+            });
 
             backdrop.addEventListener('click', closeSidebar);
 

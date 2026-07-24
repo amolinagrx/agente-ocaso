@@ -41,6 +41,14 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.15) !important;
 }
 
+/* Desktop: sidebar always visible */
+@media (min-width: 992px) {
+    #sidebar-wrapper { transform: translateX(0) !important; }
+    #sidebar-backdrop { display: none !important; }
+    #page-content-wrapper { margin-left: var(--sidebar-width) !important; }
+    #sidebarToggle { display: none !important; }
+}
+
 .sidebar-heading h5 {
     color: white !important;
     font-weight: 700;
