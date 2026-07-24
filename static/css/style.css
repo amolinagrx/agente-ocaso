@@ -50,6 +50,8 @@ body {
     overflow-y: auto;
     background: linear-gradient(180deg, var(--ocaso-blue) 0%, #002a7a 100%) !important;
     color: white !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 #sidebar-wrapper.collapsed {
@@ -65,6 +67,15 @@ body {
     height: 100%;
     background: rgba(0,0,0,0.5);
     z-index: 1029;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+#sidebar-backdrop.show {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 #page-content-wrapper {
@@ -610,6 +621,10 @@ body {
         transform: translateX(0);
     }
 
+    #sidebar-wrapper {
+        touch-action: pan-y;
+    }
+
     #page-content-wrapper { margin-left: 0 !important; }
 
     #bottomNav { display: flex; justify-content: space-around; }
@@ -628,6 +643,11 @@ body {
     .modal-dialog { margin: 8px; }
 
     .navbar-top .position-relative { max-width: calc(100vw - 100px); }
+
+    #sidebarToggle {
+        padding: 8px 12px;
+        font-size: 1.2rem;
+    }
 }
 
 @media (max-width: 575.98px) {

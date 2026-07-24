@@ -192,13 +192,13 @@
 
             function openSidebar() {
                 sidebar.classList.remove('collapsed');
-                backdrop.style.display = 'block';
+                backdrop.classList.add('show');
                 document.body.style.overflow = 'hidden';
             }
 
             function closeSidebar() {
                 sidebar.classList.add('collapsed');
-                backdrop.style.display = 'none';
+                backdrop.classList.remove('show');
                 document.body.style.overflow = '';
             }
 
@@ -222,20 +222,51 @@
                 });
             });
 
-            // Dark mode toggle
-            if (darkToggle) {
-                darkToggle.addEventListener('change', function() {
-                    document.documentElement.setAttribute('data-bs-theme',
-                        this.checked ? 'dark' : 'light');
-                    localStorage.setItem('ocaso-theme', this.checked ? 'dark' : 'light');
-                });
+            // Mobile swipe: open from left edge, close by swiping left
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchMoved = false;
 
-                // Restore saved theme
-                if (localStorage.getItem('ocaso-theme') === 'dark') {
-                    darkToggle.checked = true;
-                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchMoved = false;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                touchMoved = true;
+            }, { passive: true });
+
+            document.addEventListener('touchend', function(e) {
+                if (!touchMoved) return;
+                const diffX = e.changedTouches[0].clientX - touchStartX;
+                const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY);
+
+                if (Math.abs(diffX) < 30 || diffY > Math.abs(diffX)) return;
+
+                // Swipe right from left edge -> open
+                if (diffX > 60 && touchStartX < 30 && sidebar.classList.contains('collapsed')) {
+                    openSidebar();
                 }
-            }
+                // Swipe left anywhere -> close
+                else if (diffX < -60 && !sidebar.classList.contains('collapsed')) {
+                    closeSidebar();
+                }
+            });
+
+            // Resize handler: auto-close on mobile, auto-open on desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 992) {
+                    sidebar.classList.remove('collapsed');
+                    backdrop.classList.remove('show');
+                    document.body.style.overflow = '';
+                } else {
+                    sidebar.classList.add('collapsed');
+                }
+            });
+
+            // Set remember 2FA cookie after login
+            fetch('/set-remember-cookie');
 
             // Search handler
             buscador.addEventListener('htmx:afterRequest', function(evt) {
@@ -264,7 +295,6 @@
                 }
             });
 
-            // Close search on outside click/tap
             document.addEventListener('click', function(e) {
                 if (!buscador.contains(e.target) && !resultados.contains(e.target)) {
                     resultados.style.display = 'none';
@@ -280,32 +310,18 @@
                 }
             });
 
-            // Touch: close sidebar on swipe right to left
-            var touchStartX = 0;
-            document.addEventListener('touchstart', function(e) {
-                touchStartX = e.touches[0].clientX;
-            }, { passive: true });
-
-            document.addEventListener('touchend', function(e) {
-                var diff = touchStartX - e.changedTouches[0].clientX;
-                if (diff > 80 && !sidebar.classList.contains('collapsed')) {
-                    closeSidebar();
+            // Dark mode toggle
+            if (darkToggle) {
+                darkToggle.addEventListener('change', function() {
+                    document.documentElement.setAttribute('data-bs-theme',
+                        this.checked ? 'dark' : 'light');
+                    localStorage.setItem('ocaso-theme', this.checked ? 'dark' : 'light');
+                });
+                if (localStorage.getItem('ocaso-theme') === 'dark') {
+                    darkToggle.checked = true;
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
                 }
-            });
-
-            // Resize handler
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 992) {
-                    backdrop.style.display = 'none';
-                    document.body.style.overflow = '';
-                    sidebar.classList.remove('collapsed');
-                } else {
-                    sidebar.classList.add('collapsed');
-                }
-            });
-
-            // Set remember 2FA cookie after login (avoids redirect cookie issues)
-            fetch('/set-remember-cookie');
+            }
         })();
     </script>
 
