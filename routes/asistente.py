@@ -39,9 +39,20 @@ def chat():
     db.session.add(user_msg)
     db.session.commit()
 
-    # Search relevant knowledge chunks
-    chunks = ChunkConocimiento.query.all()
-    relevant = search_relevant_chunks(pregunta, chunks, top_k=6) if chunks else []
+    # Search relevant knowledge from documents on disk
+    docs = DocumentoConocimiento.query.all()
+    knowledge_text = ''
+    if docs:
+        knowledge_parts = []
+        for doc in docs:
+            try:
+                texto = extract_text_from_file(doc.contenido_raw, doc.nombre)
+                if texto and not texto.startswith('ERROR'):
+                    knowledge_parts.append(f'--- {doc.nombre} ---\n{texto[:4000]}')
+            except Exception:
+                pass
+        knowledge_text = '\n\n'.join(knowledge_parts) if knowledge_parts else ''
+        relevant = None  # No chunk-based search, use full docs
 
     # Get platform context
     platform_ctx = get_platform_context(pregunta)
@@ -59,12 +70,12 @@ def chat():
         api_messages.append({'role': role, 'content': m.contenido})
 
     # Get response from Deepseek
-    respuesta = chat_with_context(api_messages, relevant, platform_ctx)
+    respuesta = chat_with_context(api_messages, None, platform_ctx, knowledge_text)
 
     # Save assistant message
     ctx_summary = ''
-    if relevant:
-        ctx_summary = f'Fuentes: {", ".join(set(c.documento.nombre for c in relevant[:5]))}'
+    if docs:
+        ctx_summary = f'Fuentes: {len(docs)} documento(s)'
     if platform_ctx:
         ctx_summary += '\n[Usados datos de plataforma]'
 
@@ -91,88 +102,41 @@ def subir_documento():
         return redirect(url_for('asistente.index'))
 
     upload_dir = current_app.config['UPLOAD_FOLDER']
-    MAX_SIZE = 10 * 1024 * 1024  # 10 MB
-    MAX_CHUNKS = 200
+    MAX_SIZE = 10 * 1024 * 1024
     procesados = 0
     errores = 0
 
     for file in files:
         if not file or not file.filename:
             continue
-
         filename = file.filename
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        if ext not in ('pdf', 'md', 'txt'):
+            errores += 1; continue
 
-        # Check file size
         file.seek(0, os.SEEK_END)
         size = file.tell()
         file.seek(0)
         if size > MAX_SIZE:
-            flash(f'{filename}: supera los 10MB, no se procesa.', 'warning')
-            errores += 1
-            continue
-
-        # Check extension
-        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
-        if ext not in ('pdf', 'md', 'txt'):
-            flash(f'{filename}: formato no soportado.', 'warning')
-            errores += 1
-            continue
+            errores += 1; continue
 
         try:
             filepath = os.path.join(upload_dir, f'doc_{datetime.utcnow().strftime("%Y%m%d%H%M%S")}_{filename}')
             file.save(filepath)
-
-            texto = extract_text_from_file(filepath, filename)
-            if not texto or texto.startswith('ERROR'):
-                try:
-                    os.remove(filepath)
-                except Exception:
-                    pass
-                errores += 1
-                continue
-
             doc = DocumentoConocimiento(
-                nombre=filename,
-                tipo=ext,
-                contenido_raw=texto[:50000]
+                nombre=filename, tipo=ext,
+                contenido_raw=filepath, num_chunks=0
             )
             db.session.add(doc)
-            db.session.flush()
-
-            chunks = chunk_text(texto, chunk_size=600, overlap=50)
-            batch = 0
-            for i, chunk_text_content in enumerate(chunks[:MAX_CHUNKS]):
-                db.session.add(ChunkConocimiento(
-                    documento_id=doc.id,
-                    texto=chunk_text_content,
-                    embedding=None,
-                    indice=i
-                ))
-                batch += 1
-                if batch >= 50:
-                    db.session.commit()
-                    batch = 0
-
-            if batch > 0:
-                db.session.commit()
-
-            doc.num_chunks = min(len(chunks), MAX_CHUNKS)
-            db.session.commit()
             procesados += 1
-
-        except Exception as e:
-            db.session.rollback()
-            try:
-                os.remove(filepath)
-            except Exception:
-                pass
-            flash(f'Error procesando {filename}', 'danger')
+        except Exception:
             errores += 1
 
+    db.session.commit()
     if procesados > 0:
-        flash(f'{procesados} documento(s) procesado(s).', 'success')
+        flash(f'{procesados} documento(s) guardado(s).', 'success')
     if errores > 0:
-        flash(f'{errores} archivo(s) con error.', 'warning')
+        flash(f'{errores} error(es). Max 10MB, solo PDF/MD/TXT.', 'warning')
 
     return redirect(url_for('asistente.index'))
 

@@ -290,22 +290,15 @@ REGLAS:
 - Responde en español, con tono profesional pero cercano."""
 
 
-def chat_with_context(messages, knowledge_chunks, platform_context=''):
+def chat_with_context(messages, knowledge_chunks=None, platform_context='', knowledge_text=''):
     """Send chat completion to Deepseek with RAG context."""
     client = get_client()
     if not client:
         return 'Error: Deepseek API key no configurada. Configura DEEPSEEK_API_KEY en las variables de entorno.'
 
-    # Build context from knowledge chunks
-    knowledge_text = ''
-    if knowledge_chunks:
-        knowledge_text = '\n\n--- DOCUMENTACION DE PRODUCTOS ---\n\n'
-        for i, chunk in enumerate(knowledge_chunks):
-            knowledge_text += f'[Documento: {chunk.documento.nombre}]\n{chunk.texto}\n\n'
-
     system_content = build_system_prompt()
     if knowledge_text:
-        system_content += f'\n\nDocumentacion relevante para esta consulta:\n{knowledge_text[:6000]}'
+        system_content += f'\n\nDocumentacion de productos:\n{knowledge_text[:8000]}'
     if platform_context:
         system_content += f'\n\nDatos de la plataforma relevantes para esta consulta:\n{platform_context[:4000]}'
 
