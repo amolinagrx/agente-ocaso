@@ -105,7 +105,9 @@
     <div id="page-content-wrapper">
         <!-- Top bar -->
         <nav class="navbar navbar-top border-bottom px-2 py-2">
-            <button class="btn btn-outline-secondary btn-sm d-lg-none me-2" id="sidebarToggle" aria-label="Menu" style="display:none"></button>
+            <button class="btn btn-outline-secondary btn-sm me-2" id="sidebarToggle" aria-label="Menu">
+                <i class="bi bi-list"></i>
+            </button>
             <div class="flex-grow-1 position-relative" style="min-width:0">
                 <input type="search"
                        id="buscadorUniversal"
@@ -121,10 +123,7 @@
                 </span>
                 <div id="resultadosBusqueda" class="position-absolute bg-white border rounded shadow mt-1 start-0 end-0" style="max-height:400px;overflow-y:auto;display:none"></div>
             </div>
-            <button class="btn btn-sm btn-outline-secondary ms-2" id="layoutToggle" title="Cambiar vista escritorio/movil">
-                <i class="bi bi-phone" id="layoutIcon"></i>
-            </button>
-            <div class="form-check form-switch ms-2 d-none d-lg-flex">
+            <div class="form-check form-switch ms-2">
                 <input class="form-check-input" type="checkbox" id="darkModeToggle">
                 <label class="form-check-label" for="darkModeToggle"><i class="bi bi-moon"></i></label>
             </div>
@@ -149,83 +148,6 @@
             {% block content %}{% endblock %}
         </div>
     </div>
-
-    <!-- Bottom navigation (mobile) -->
-    <nav id="bottomNav">
-        <button class="nav-arrow" onclick="navSlide(-1)" aria-label="Anterior">
-            <i class="bi bi-chevron-left"></i>
-        </button>
-        <div class="nav-pages" id="navPages">
-            {% if current_user.tiene_permiso('dashboard') %}
-            <a href="{{ url_for('dashboard.index') }}" class="nav-item" data-nav="dashboard">
-                <i class="bi bi-speedometer2"></i>Inicio
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('recibos') %}
-            <a href="{{ url_for('recibos.index') }}" class="nav-item" data-nav="recibos">
-                <i class="bi bi-receipt"></i>Recibos
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('clientes') %}
-            <a href="{{ url_for('clientes.index') }}" class="nav-item" data-nav="clientes">
-                <i class="bi bi-people"></i>Clientes
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('polizas') %}
-            <a href="{{ url_for('polizas.index') }}" class="nav-item" data-nav="polizas">
-                <i class="bi bi-file-earmark-text"></i>Polizas
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('renovaciones') %}
-            <a href="{{ url_for('renovaciones.index') }}" class="nav-item" data-nav="renovaciones">
-                <i class="bi bi-calendar-check"></i>Renovar
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('listados') %}
-            <a href="{{ url_for('listados.index') }}" class="nav-item" data-nav="listados">
-                <i class="bi bi-file-earmark-bar-graph"></i>Listados
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('siniestros') %}
-            <a href="{{ url_for('siniestros.index') }}" class="nav-item" data-nav="siniestros">
-                <i class="bi bi-exclamation-triangle"></i>Siniestro
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('comunicaciones') %}
-            <a href="{{ url_for('comunicaciones.index') }}" class="nav-item" data-nav="comunicaciones">
-                <i class="bi bi-chat-dots"></i>Comunic.
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('whatsapp') %}
-            <a href="{{ url_for('whatsapp.index') }}" class="nav-item" data-nav="whatsapp">
-                <i class="bi bi-whatsapp"></i>WhatsApp
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('agenda') %}
-            <a href="{{ url_for('agenda.index') }}" class="nav-item" data-nav="agenda">
-                <i class="bi bi-journal-check"></i>Agenda
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('asistente') %}
-            <a href="{{ url_for('asistente.index') }}" class="nav-item" data-nav="asistente">
-                <i class="bi bi-robot"></i>IA
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('ajustes') %}
-            <a href="{{ url_for('ajustes.index') }}" class="nav-item" data-nav="ajustes">
-                <i class="bi bi-sliders2"></i>Ajustes
-            </a>
-            {% endif %}
-            {% if current_user.tiene_permiso('usuarios') %}
-            <a href="{{ url_for('usuarios.index') }}" class="nav-item" data-nav="usuarios">
-                <i class="bi bi-people-gear"></i>Usuarios
-            </a>
-            {% endif %}
-        </div>
-        <button class="nav-arrow" onclick="navSlide(1)" aria-label="Siguiente">
-            <i class="bi bi-chevron-right"></i>
-        </button>
-    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -253,114 +175,28 @@
 
             toggleBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                if (sidebar.classList.contains('collapsed')) {
-                    openSidebar();
-                } else {
-                    closeSidebar();
-                }
+                sidebar.classList.contains('collapsed') ? openSidebar() : closeSidebar();
             });
 
             backdrop.addEventListener('click', closeSidebar);
 
-            // Close sidebar when clicking a nav item on mobile
             sidebar.querySelectorAll('.list-group-item').forEach(function(link) {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth < 992) {
-                        closeSidebar();
-                    }
-                });
+                link.addEventListener('click', closeSidebar);
             });
 
-            // Mobile swipe: open from left edge, close by swiping left
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let touchMoved = false;
-
-            document.addEventListener('touchstart', function(e) {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                touchMoved = false;
-            }, { passive: true });
-
-            document.addEventListener('touchmove', function(e) {
-                touchMoved = true;
-            }, { passive: true });
-
-            document.addEventListener('touchend', function(e) {
-                if (!touchMoved) return;
-                const diffX = e.changedTouches[0].clientX - touchStartX;
-                const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY);
-
-                if (Math.abs(diffX) < 30 || diffY > Math.abs(diffX)) return;
-
-                // Swipe right from left edge -> open
-                if (diffX > 60 && touchStartX < 30 && sidebar.classList.contains('collapsed')) {
-                    openSidebar();
-                }
-                // Swipe left anywhere -> close
-                else if (diffX < -60 && !sidebar.classList.contains('collapsed')) {
-                    closeSidebar();
-                }
-            });
-
-            // Resize handler: auto-close on mobile, auto-open on desktop
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 992) {
-                    sidebar.classList.remove('collapsed');
-                    backdrop.classList.remove('show');
-                    document.body.style.overflow = '';
-                } else {
-                    sidebar.classList.add('collapsed');
-                }
-            });
-
-            // Set remember 2FA cookie after login
-            fetch('/set-remember-cookie');
-
-            // Layout toggle: desktop <-> mobile
-            const layoutToggle = document.getElementById('layoutToggle');
-            const layoutIcon = document.getElementById('layoutIcon');
-            function setLayout(mode) {
-                document.body.classList.remove('layout-desktop', 'layout-mobile');
-                document.body.classList.add('layout-' + mode);
-                if (layoutIcon) {
-                    layoutIcon.className = mode === 'mobile' ? 'bi bi-phone' : 'bi bi-laptop';
-                }
-                localStorage.setItem('ocaso-layout', mode);
-            }
-            layoutToggle.addEventListener('click', function() {
-                var current = document.body.classList.contains('layout-mobile') ? 'desktop' : 'mobile';
-                setLayout(current);
-            });
-            var saved = localStorage.getItem('ocaso-layout');
-            if (saved === 'mobile' || saved === 'desktop') {
-                setLayout(saved);
-            }
-
-            // Paginated bottom nav for mobile (5 items per page)
-            window.navSlide = function(dir) {
-                var area = document.getElementById('navPages');
-                if (area) area.scrollBy({ left: dir * area.offsetWidth, behavior: 'smooth' });
-            };
-
-            // Search handler
+            // Search
             buscador.addEventListener('htmx:afterRequest', function(evt) {
                 const data = JSON.parse(evt.detail.xhr.responseText);
                 if (data && data.length > 0) {
                     let html = '';
                     data.forEach(function(item) {
                         html += '<a href="' + item.url + '" class="d-block px-3 py-2 border-bottom text-decoration-none text-reset search-result-item">' +
-                            '<div class="d-flex justify-content-between align-items-center">' +
-                                '<strong>' + (item.nombre || item.numero) + '</strong>' +
-                                '<small class="text-muted text-capitalize">' + item.type + '</small>' +
-                            '</div>' +
-                            '<small class="text-muted">' +
-                                (item.dni ? 'DNI: ' + item.dni + ' ' : '') +
-                                (item.telefono ? 'Tel: ' + item.telefono + ' ' : '') +
-                                (item.polizas_activas !== undefined ? item.polizas_activas + ' polizas' : '') +
-                                (item.alerta ? ' <span class="badge bg-danger">&#9888;</span>' : '') +
-                            '</small>' +
-                        '</a>';
+                            '<div class="d-flex justify-content-between align-items-center"><strong>' + (item.nombre || item.numero) + '</strong>' +
+                            '<small class="text-muted text-capitalize">' + item.type + '</small></div>' +
+                            '<small class="text-muted">' + (item.dni ? 'DNI: ' + item.dni + ' ' : '') +
+                            (item.telefono ? 'Tel: ' + item.telefono + ' ' : '') +
+                            (item.polizas_activas !== undefined ? item.polizas_activas + ' polizas' : '') +
+                            (item.alerta ? ' <span class="badge bg-danger">&#9888;</span>' : '') + '</small></a>';
                     });
                     resultados.innerHTML = html;
                     resultados.style.display = 'block';
@@ -376,7 +212,7 @@
                 }
             });
 
-            // Active nav highlighting
+            // Active nav
             var path = window.location.pathname;
             document.querySelectorAll('[data-nav]').forEach(function(el) {
                 var nav = el.getAttribute('data-nav');
@@ -385,11 +221,10 @@
                 }
             });
 
-            // Dark mode toggle
+            // Dark mode
             if (darkToggle) {
                 darkToggle.addEventListener('change', function() {
-                    document.documentElement.setAttribute('data-bs-theme',
-                        this.checked ? 'dark' : 'light');
+                    document.documentElement.setAttribute('data-bs-theme', this.checked ? 'dark' : 'light');
                     localStorage.setItem('ocaso-theme', this.checked ? 'dark' : 'light');
                 });
                 if (localStorage.getItem('ocaso-theme') === 'dark') {
@@ -397,6 +232,8 @@
                     document.documentElement.setAttribute('data-bs-theme', 'dark');
                 }
             }
+
+            fetch('/set-remember-cookie');
         })();
     </script>
 
