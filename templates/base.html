@@ -121,7 +121,10 @@
                 </span>
                 <div id="resultadosBusqueda" class="position-absolute bg-white border rounded shadow mt-1 start-0 end-0" style="max-height:400px;overflow-y:auto;display:none"></div>
             </div>
-            <div class="form-check form-switch ms-2 ms-lg-3 d-none d-lg-flex">
+            <button class="btn btn-sm btn-outline-secondary ms-2" id="layoutToggle" title="Cambiar vista escritorio/movil">
+                <i class="bi bi-phone" id="layoutIcon"></i>
+            </button>
+            <div class="form-check form-switch ms-2 d-none d-lg-flex">
                 <input class="form-check-input" type="checkbox" id="darkModeToggle">
                 <label class="form-check-label" for="darkModeToggle"><i class="bi bi-moon"></i></label>
             </div>
@@ -313,6 +316,26 @@
 
             // Set remember 2FA cookie after login
             fetch('/set-remember-cookie');
+
+            // Layout toggle: desktop <-> mobile
+            const layoutToggle = document.getElementById('layoutToggle');
+            const layoutIcon = document.getElementById('layoutIcon');
+            function setLayout(mode) {
+                document.body.classList.remove('layout-desktop', 'layout-mobile');
+                document.body.classList.add('layout-' + mode);
+                if (layoutIcon) {
+                    layoutIcon.className = mode === 'mobile' ? 'bi bi-phone' : 'bi bi-laptop';
+                }
+                localStorage.setItem('ocaso-layout', mode);
+            }
+            layoutToggle.addEventListener('click', function() {
+                var current = document.body.classList.contains('layout-mobile') ? 'desktop' : 'mobile';
+                setLayout(current);
+            });
+            var saved = localStorage.getItem('ocaso-layout');
+            if (saved === 'mobile' || saved === 'desktop') {
+                setLayout(saved);
+            }
 
             // Paginated bottom nav for mobile (5 items per page)
             const NAV_PER_PAGE = 5;
