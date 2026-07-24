@@ -1,11 +1,44 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
+from itsdangerous import URLSafeTimedSerializer
 import pyotp
 
 auth_bp = Blueprint('auth', __name__)
 
 TOTP_ISSUER = 'Ocaso Armilla'
+REMEMBER_DAYS = 7
+
+
+def _get_serializer():
+    from flask import current_app
+    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+
+def _check_remember_cookie(user_id):
+    """Check if there's a valid remember_2fa cookie for this user."""
+    cookie_val = request.cookies.get('remember_2fa')
+    if not cookie_val:
+        return False
+    try:
+        s = _get_serializer()
+        data = s.loads(cookie_val, max_age=REMEMBER_DAYS * 86400)
+        return str(data.get('user_id')) == str(user_id)
+    except Exception:
+        return False
+
+
+def _set_remember_cookie(response, user_id):
+    """Set a signed 7-day cookie to remember this device."""
+    s = _get_serializer()
+    token = s.dumps({'user_id': user_id})
+    response.set_cookie(
+        'remember_2fa', token,
+        max_age=REMEMBER_DAYS * 86400,
+        httponly=True,
+        secure=request.is_secure,
+        samesite='Lax'
+    )
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -21,6 +54,12 @@ def login():
                 return render_template('login.html')
 
             if user.totp_enabled:
+                # Check if this device is remembered
+                if _check_remember_cookie(user.id):
+                    resp = make_response(redirect(url_for('dashboard.index')))
+                    login_user(user)
+                    return resp
+
                 session['pending_user_id'] = user.id
                 return redirect(url_for('auth.verify_2fa'))
 
@@ -50,7 +89,15 @@ def verify_2fa():
         if totp.verify(code, valid_window=1):
             session.pop('pending_user_id', None)
             login_user(user)
-            return redirect(url_for('dashboard.index'))
+
+            next_page = request.args.get('next') or url_for('dashboard.index')
+            resp = make_response(redirect(next_page))
+
+            # Set remember cookie if checked
+            if request.form.get('remember_device') == 'on':
+                _set_remember_cookie(resp, user.id)
+
+            return resp
 
         flash('Codigo de verificacion incorrecto', 'danger')
 
@@ -61,8 +108,10 @@ def verify_2fa():
 @login_required
 def logout():
     session.pop('pending_user_id', None)
+    resp = make_response(redirect(url_for('auth.login')))
+    resp.delete_cookie('remember_2fa')
     logout_user()
-    return redirect(url_for('auth.login'))
+    return resp
 
 
 def generate_totp_secret():
