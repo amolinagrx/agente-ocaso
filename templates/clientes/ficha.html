@@ -229,23 +229,61 @@
 
     <!-- Documentos -->
     <div class="tab-pane fade" id="documentos">
-        <form method="POST" action="{{ url_for('clientes.subir_documento', id=cliente.id) }}" enctype="multipart/form-data" class="row g-2 mb-3">
-            <div class="col-md-3">
+        <form method="POST" action="{{ url_for('clientes.subir_documento', id=cliente.id) }}" enctype="multipart/form-data" class="row g-2 mb-3" id="uploadForm">
+            <div class="col-md-2">
                 <select name="tipo" class="form-select form-select-sm">
-                    <option value="poliza">Póliza</option>
+                    <option value="poliza">Poliza</option>
                     <option value="dni">DNI</option>
                     <option value="certificado">Certificado</option>
                     <option value="escaneo">Escaneo</option>
                     <option value="otro">Otro</option>
                 </select>
             </div>
-            <div class="col-md-6">
-                <input type="file" name="documento" class="form-control form-control-sm">
+            <div class="col-md-5">
+                <input type="file" name="documento" id="fileInput" class="form-control form-control-sm" 
+                       onchange="document.getElementById('fileName').textContent = this.files[0]?.name || ''">
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-sm btn-danger w-100" style="background:var(--ocaso-blue)">Subir</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="abrirCamara()">
+                    <i class="bi bi-camera me-1"></i> Escanear
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">
+                    <i class="bi bi-upload me-1"></i> Subir
+                </button>
+            </div>
+            <div class="col-12">
+                <small id="fileName" class="text-muted"></small>
             </div>
         </form>
+
+        <!-- Camera capture (hidden input + live preview modal) -->
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none"
+               onchange="handleCameraCapture(this)">
+        
+        <div class="modal fade" id="cameraModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-camera me-1"></i> Digitalizar documento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="detenerCamara()"></button>
+                    </div>
+                    <div class="modal-body text-center bg-dark rounded">
+                        <video id="cameraPreview" autoplay playsinline style="max-width:100%;max-height:60vh;border-radius:8px"></video>
+                        <canvas id="cameraCanvas" style="display:none"></canvas>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" onclick="cambiarCamara()">
+                            <i class="bi bi-arrow-repeat"></i> Cambiar camara
+                        </button>
+                        <button type="button" class="btn btn-primary" style="background:var(--ocaso-blue)" onclick="capturarFoto()">
+                            <i class="bi bi-camera"></i> Capturar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-sm">
@@ -558,6 +596,73 @@ function toggleEditRamo() {
     var ramo = (document.getElementById('epRamo').value || '').toLowerCase().replace(/\s+/g, '_');
     document.getElementById('editAutoFields').style.display = ramo === 'auto' ? 'flex' : 'none';
     document.getElementById('editHogarFields').style.display = ramo === 'hogar' ? 'flex' : 'none';
+}
+
+// ---- Camera / Scanner ----
+let cameraStream = null;
+let facingMode = 'environment';
+
+async function abrirCamara() {
+    // Try device camera first (mobile)
+    const cameraInput = document.getElementById('cameraInput');
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        cameraInput.click();
+        return;
+    }
+    // Desktop: open webcam preview modal
+    document.getElementById('cameraModal').addEventListener('shown.bs.modal', iniciarCamara, {once: true});
+    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', detenerCamara, {once: true});
+    new bootstrap.Modal(document.getElementById('cameraModal')).show();
+}
+
+async function iniciarCamara() {
+    try {
+        if (cameraStream) detenerCamara();
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: facingMode, width: { ideal: 1920 } } 
+        });
+        document.getElementById('cameraPreview').srcObject = cameraStream;
+    } catch(e) {
+        alert('No se pudo acceder a la camara. Verifica permisos.');
+    }
+}
+
+function detenerCamara() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+}
+
+function cambiarCamara() {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+    detenerCamara();
+    iniciarCamara();
+}
+
+function capturarFoto() {
+    const video = document.getElementById('cameraPreview');
+    const canvas = document.getElementById('cameraCanvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    canvas.toBlob(function(blob) {
+        const file = new File([blob], 'escaneo_' + Date.now() + '.jpg', {type: 'image/jpeg'});
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('fileInput').files = dt.files;
+        document.getElementById('fileName').textContent = file.name;
+        bootstrap.Modal.getInstance(document.getElementById('cameraModal')).hide();
+        detenerCamara();
+    }, 'image/jpeg', 0.85);
+}
+
+function handleCameraCapture(input) {
+    if (input.files && input.files[0]) {
+        document.getElementById('fileInput').files = input.files;
+        document.getElementById('fileName').textContent = input.files[0].name;
+    }
 }
 </script>
 

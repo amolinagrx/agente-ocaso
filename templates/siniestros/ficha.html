@@ -42,7 +42,7 @@
                 <strong>Documentos</strong>
             </div>
             <div class="card-body p-2">
-                <form method="POST" action="{{ url_for('siniestros.subir_documento', id=siniestro.id) }}" enctype="multipart/form-data" class="mb-2">
+                <form method="POST" action="{{ url_for('siniestros.subir_documento', id=siniestro.id) }}" enctype="multipart/form-data" class="mb-2" id="siniestroUploadForm">
                     <div class="input-group input-group-sm">
                         <select name="tipo" class="form-select form-select-sm" style="max-width:130px">
                             <option value="parte_amistoso">Parte amistoso</option>
@@ -50,10 +50,15 @@
                             <option value="informe_pericial">Inf. pericial</option>
                             <option value="otro">Otro</option>
                         </select>
-                        <input type="file" name="documento" class="form-control form-control-sm">
-                        <button class="btn btn-danger btn-sm" type="submit" style="background:var(--ocaso-blue)"><i class="bi bi-upload"></i></button>
+                        <input type="file" name="documento" id="siniestroFileInput" class="form-control form-control-sm">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="abrirCamaraSiniestro()" title="Escanear">
+                            <i class="bi bi-camera"></i>
+                        </button>
+                        <button class="btn btn-primary btn-sm" type="submit" style="background:var(--ocaso-blue)"><i class="bi bi-upload"></i></button>
                     </div>
                 </form>
+                <input type="file" id="siniestroCameraInput" accept="image/*" capture="environment" style="display:none"
+                       onchange="document.getElementById('siniestroFileInput').files = this.files">
                 {% for d in documentos %}
                 <div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
                     <span>{{ d.nombre }}</span>
@@ -131,5 +136,11 @@
         </form>
     </div>
 </div>
+
+<script>
+function abrirCamaraSiniestro() {
+    document.getElementById('siniestroCameraInput').click();
+}
+</script>
 
 {% endblock %}
