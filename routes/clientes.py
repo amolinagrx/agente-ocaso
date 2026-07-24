@@ -156,9 +156,26 @@ def subir_documento(id):
         filename = f"cliente_{id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{file.filename}"
         ruta = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
         file.save(ruta)
+
+        # Convert to PDF if it's an image from camera
+        if file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.bmp')):
+            try:
+                from PIL import Image
+                img = Image.open(ruta)
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+                pdf_name = filename.rsplit('.', 1)[0] + '.pdf'
+                pdf_ruta = os.path.join(current_app.config['UPLOAD_FOLDER'], pdf_name)
+                img.save(pdf_ruta, 'PDF', optimize=True, resolution=150)
+                os.remove(ruta)
+                ruta = pdf_ruta
+                filename = pdf_name
+            except ImportError:
+                pass  # PIL not available, keep as image
+
         doc = DocumentoCliente(
             cliente_id=id,
-            nombre=file.filename,
+            nombre=filename,
             tipo=request.form.get('tipo', 'otro'),
             ruta=ruta
         )
@@ -166,6 +183,35 @@ def subir_documento(id):
         db.session.commit()
         flash('Documento subido', 'success')
     return redirect(url_for('clientes.ficha', id=id))
+
+
+@clientes_bp.route('/<int:id>/documento/<int:doc_id>/eliminar', methods=['POST'])
+@login_required
+def eliminar_documento(id, doc_id):
+    doc = DocumentoCliente.query.get_or_404(doc_id)
+    import os
+    if os.path.exists(doc.ruta):
+        os.remove(doc.ruta)
+    db.session.delete(doc)
+    db.session.commit()
+    flash('Documento eliminado', 'success')
+    return redirect(url_for('clientes.ficha', id=id))
+
+
+@clientes_bp.route('/<int:id>/documento/<int:doc_id>/descargar')
+@login_required
+def descargar_documento(id, doc_id):
+    from flask import send_file
+    doc = DocumentoCliente.query.get_or_404(doc_id)
+    return send_file(doc.ruta, download_name=doc.nombre, as_attachment=True)
+
+
+@clientes_bp.route('/<int:id>/documento/<int:doc_id>/preview')
+@login_required
+def preview_documento(id, doc_id):
+    from flask import send_file
+    doc = DocumentoCliente.query.get_or_404(doc_id)
+    return send_file(doc.ruta)
 
 
 @clientes_bp.route('/<int:id>/poliza/<int:poliza_id>/editar', methods=['POST'])
