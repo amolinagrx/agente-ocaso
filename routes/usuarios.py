@@ -19,6 +19,7 @@ MODULOS = [
     ('siniestros', 'Siniestros'),
     ('comunicaciones', 'Comunicaciones'),
     ('whatsapp', 'WhatsApp'),
+    ('agenda', 'Agenda'),
     ('asistente', 'Asistente IA'),
     ('ajustes', 'Ajustes'),
     ('usuarios', 'Gestion de Usuarios'),

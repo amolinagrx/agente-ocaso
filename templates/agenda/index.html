@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Agenda - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-journal-check me-2" style="color:var(--ocaso-blue)"></i>Mi Agenda</h4>
+    <div class="btn-group btn-group-sm">
+        <a href="?vista=lista{% if fecha_str %}&fecha={{ fecha_str }}{% endif %}" 
+           class="btn btn-outline-secondary {% if vista == 'lista' %}active{% endif %}">
+            <i class="bi bi-list-ul me-1"></i> Lista
+        </a>
+        <a href="?vista=calendario" class="btn btn-outline-secondary {% if vista == 'calendario' %}active{% endif %}">
+            <i class="bi bi-calendar3 me-1"></i> Calendario
+        </a>
+    </div>
+</div>
+
+{% if vista == 'lista' %}
+<!-- ========== LIST VIEW ========== -->
+<div class="row g-3">
+    <!-- Date navigation -->
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-body py-2">
+                <form method="GET" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="vista" value="lista">
+                    <a href="?vista=lista&fecha={{ fecha_anterior }}" 
+                       class="btn btn-sm btn-outline-secondary">&laquo;</a>
+                    <input type="date" name="fecha" value="{{ fecha_str }}" class="form-control form-control-sm" 
+                           style="max-width:160px" onchange="this.form.submit()">
+                    <a href="?vista=lista&fecha={{ fecha_siguiente }}" 
+                       class="btn btn-sm btn-outline-secondary">&raquo;</a>
+                    <a href="?vista=lista&fecha={{ today.isoformat() }}" class="btn btn-sm btn-outline-secondary">Hoy</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- New entry button -->
+        <button class="btn btn-primary btn-sm mb-3 w-100" style="background:var(--ocaso-blue)"
+                data-bs-toggle="modal" data-bs-target="#nuevaEntradaModal"
+                onclick="document.getElementById('entradaFecha').value='{{ fecha_str }}'">
+            <i class="bi bi-plus-lg me-1"></i> Nueva entrada
+        </button>
+
+        <!-- Entries -->
+        {% if entradas %}
+        {% for e in entradas %}
+        <div class="card mb-2 {% if e.completado %}opacity-50{% endif %}">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2">
+                            <form method="POST" action="{{ url_for('agenda.toggle', id=e.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
+                                        style="font-size:1.2rem;line-height:1">
+                                    {% if e.completado %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-circle text-muted"></i>
+                                    {% endif %}
+                                </button>
+                            </form>
+                            <strong class="{% if e.completado %}text-decoration-line-through{% endif %}">{{ e.titulo }}</strong>
+                            <span class="badge bg-light text-dark small">{{ tipos.get(e.tipo, e.tipo) }}</span>
+                        </div>
+                        {% if e.notas %}<p class="small text-muted mt-1 mb-0">{{ e.notas }}</p>{% endif %}
+                    </div>
+                    <form method="POST" action="{{ url_for('agenda.eliminar', id=e.id) }}" class="d-inline ms-2">
+                        <button class="btn btn-sm text-muted" title="Eliminar"
+                                onclick="return confirm('¿Eliminar esta entrada?')">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-journal fs-1 d-block mb-2"></i>
+            <p>No hay entradas para esta fecha.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar: upcoming days -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><strong>Proximos dias con notas</strong></div>
+            <div class="list-group list-group-flush">
+                {% for p in proximos %}
+                <a href="?vista=lista&fecha={{ p.fecha.isoformat() }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
+                    <span>{{ p.fecha.strftime('%d/%m') }} - {{ p.fecha.strftime('%A') }}</span>
+                    <span class="badge bg-primary rounded-pill">{{ p.count }}</span>
+                </a>
+                {% else %}
+                <div class="list-group-item text-muted small text-center">Sin entradas proximas</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- ========== CALENDAR VIEW ========== -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <a href="?vista=calendario&mes={{ mes_anterior }}&anio={{ anio_anterior }}" 
+           class="btn btn-sm btn-outline-secondary">&laquo;</a>
+        <h5 class="mb-0">{{ mes_nombre }} {{ anio }}</h5>
+        <a href="?vista=calendario&mes={{ mes_siguiente }}&anio={{ anio_siguiente }}"
+           class="btn btn-sm btn-outline-secondary">&raquo;</a>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-bordered mb-0">
+            <thead>
+                <tr class="text-center bg-light">
+                    <th style="width:14%">Lun</th><th style="width:14%">Mar</th><th style="width:14%">Mie</th>
+                    <th style="width:14%">Jue</th><th style="width:14%">Vie</th>
+                    <th style="width:15%">Sab</th><th style="width:15%">Dom</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for semana in semanas %}
+                <tr>
+                    {% for dia in semana %}
+                    <td class="{% if dia and dia.hoy %}bg-primary bg-opacity-10{% endif %} p-1"
+                        style="height:80px;vertical-align:top;{% if not dia %}background:#f8f9fa{% endif %}">
+                        {% if dia %}
+                        <a href="?vista=lista&fecha={{ dia.fecha.isoformat() }}"
+                           class="d-block text-decoration-none small fw-bold {% if dia.hoy %}text-primary{% endif %}"
+                           style="padding:2px 4px">
+                            {{ dia.dia }}
+                        </a>
+                        {% for e in dia.entradas[:3] %}
+                        <div class="small px-1" style="font-size:10px;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"
+                             title="{{ e.titulo }}">
+                            {% if e.completado %}<del>{% endif %}
+                            <span class="badge bg-{% if e.tipo=='tarea' %}warning text-dark{% elif e.tipo=='llamada' %}success{% elif e.tipo=='reunion' %}info{% else %}secondary{% endif %}" style="font-size:8px">{{ tipos.get(e.tipo, 'N')[0] }}</span>
+                            {{ e.titulo }}
+                            {% if e.completado %}</del>{% endif %}
+                        </div>
+                        {% endfor %}
+                        {% if dia.entradas|length > 3 %}
+                        <div class="small text-muted" style="font-size:9px">+{{ dia.entradas|length - 3 }} mas</div>
+                        {% endif %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Nueva Entrada -->
+<div class="modal fade" id="nuevaEntradaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('agenda.nuevo') }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva entrada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" name="fecha" id="entradaFecha" class="form-control" value="{{ fecha_str }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Titulo *</label>
+                        <input type="text" name="titulo" class="form-control" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select name="tipo" class="form-select">
+                            {% for k, v in tipos.items() %}
+                            <option value="{{ k }}">{{ v }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notas</label>
+                        <textarea name="notas" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">Guardar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

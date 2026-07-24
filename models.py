@@ -335,3 +335,15 @@ class MensajeAsistente(db.Model):
     contenido = db.Column(db.Text, nullable=False)
     contexto_usado = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Agenda(db.Model):
+    __tablename__ = 'agenda'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    fecha = db.Column(db.Date, nullable=False, default=date.today)
+    titulo = db.Column(db.String(300), nullable=False)
+    notas = db.Column(db.Text)
+    tipo = db.Column(db.String(30), default='nota')  # nota, llamada, reunion, tarea
+    completado = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
