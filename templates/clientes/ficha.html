@@ -15,7 +15,7 @@
             {% if cliente.telefono %}Tel: {{ cliente.telefono }} | {% endif %}
             {% if cliente.email %}{{ cliente.email }}{% endif %}
         </p>
-        {% if cliente.direccion %}<p class="text-muted small mb-0">{{ cliente.direccion }}</p>{% endif %}
+        {% if cliente.direccion or cliente.codigo_postal or cliente.poblacion or cliente.provincia %}<p class="text-muted small mb-0">{{ cliente.direccion or '' }}{% if cliente.codigo_postal %}, {{ cliente.codigo_postal }}{% endif %}{% if cliente.poblacion %}, {{ cliente.poblacion }}{% endif %}{% if cliente.provincia %} ({{ cliente.provincia }}){% endif %}</p>{% endif %}
     </div>
     <div>
         {% if cliente.telefono %}

@@ -134,6 +134,17 @@ def _migrar_schema():
                 cursor.execute(f'ALTER TABLE users ADD COLUMN {col} {col_type}')
                 print(f'Migracion: anadida columna {col} a users')
 
+        cursor.execute("PRAGMA table_info(clientes)")
+        cliente_cols = {row[1] for row in cursor.fetchall()}
+        for col, col_type in [
+            ('codigo_postal', 'VARCHAR(10)'),
+            ('poblacion', 'VARCHAR(100)'),
+            ('provincia', 'VARCHAR(100)'),
+        ]:
+            if col not in cliente_cols:
+                cursor.execute(f'ALTER TABLE clientes ADD COLUMN {col} {col_type}')
+                print(f'Migracion: anadida columna {col} a clientes')
+
         cursor.execute("PRAGMA table_info(polizas)")
         cols = {row[1] for row in cursor.fetchall()}
 

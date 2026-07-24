@@ -39,6 +39,9 @@ def nuevo():
             nombre=request.form.get('nombre'),
             dni=request.form.get('dni'),
             direccion=request.form.get('direccion'),
+            codigo_postal=request.form.get('codigo_postal'),
+            poblacion=request.form.get('poblacion'),
+            provincia=request.form.get('provincia'),
             telefono=request.form.get('telefono'),
             email=request.form.get('email'),
             fecha_nacimiento=request.form.get('fecha_nacimiento') or None,
@@ -77,6 +80,9 @@ def editar(id):
         cliente.nombre = request.form.get('nombre')
         cliente.dni = request.form.get('dni')
         cliente.direccion = request.form.get('direccion')
+        cliente.codigo_postal = request.form.get('codigo_postal')
+        cliente.poblacion = request.form.get('poblacion')
+        cliente.provincia = request.form.get('provincia')
         cliente.telefono = request.form.get('telefono')
         cliente.email = request.form.get('email')
         fecha_nac = request.form.get('fecha_nacimiento')

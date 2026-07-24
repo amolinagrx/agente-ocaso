@@ -19,8 +19,20 @@
                             <input type="text" name="dni" class="form-control" value="{{ cliente.dni or '' }}">
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label">Dirección</label>
+                            <label class="form-label">Direccion</label>
                             <input type="text" name="direccion" class="form-control" value="{{ cliente.direccion or '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Codigo Postal</label>
+                            <input type="text" name="codigo_postal" class="form-control" value="{{ cliente.codigo_postal or '' }}" maxlength="10">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Poblacion</label>
+                            <input type="text" name="poblacion" class="form-control" value="{{ cliente.poblacion or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Provincia</label>
+                            <input type="text" name="provincia" class="form-control" value="{{ cliente.provincia or '' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Teléfono</label>

@@ -102,6 +102,9 @@ def run_seed():
             nombre=NOMBRES[i],
             dni=DNIS[i],
             direccion=random.choice(DIRECCIONES),
+            codigo_postal=str(random.randint(18001, 18200)),
+            poblacion='Armilla',
+            provincia='Granada',
             telefono=str(telefono) if telefono else None,
             email=f"{NOMBRES[i].split()[0].lower()}{i}@email.com" if random.random() > 0.3 else None,
             fecha_nacimiento=date(random.randint(1960, 2000), random.randint(1, 12), random.randint(1, 28)) if random.random() > 0.2 else None
