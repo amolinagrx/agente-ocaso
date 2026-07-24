@@ -24,15 +24,22 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Codigo Postal</label>
-                            <input type="text" name="codigo_postal" class="form-control" value="{{ cliente.codigo_postal or '' }}" maxlength="10">
+                            <input type="text" name="codigo_postal" id="cpInput" list="cp-datalist" class="form-control" 
+                                   maxlength="5" autocomplete="off" placeholder="Buscar CP..."
+                                   value="{{ cliente.codigo_postal or '' }}"
+                                   onchange="autoFillFromCP()" oninput="autoFillFromCP()">
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Poblacion</label>
-                            <input type="text" name="poblacion" class="form-control" value="{{ cliente.poblacion or '' }}">
+                            <input type="text" name="poblacion" id="poblacionInput" list="poblacion-datalist" class="form-control" 
+                                   autocomplete="off" placeholder="Buscar poblacion..."
+                                   value="{{ cliente.poblacion or '' }}"
+                                   onchange="autoFillFromPoblacion()" oninput="autoFillFromPoblacion()">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Provincia</label>
-                            <input type="text" name="provincia" class="form-control" value="{{ cliente.provincia or '' }}">
+                            <input type="text" name="provincia" id="provinciaInput" class="form-control" 
+                                   value="{{ cliente.provincia or '' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Teléfono</label>
@@ -58,5 +65,53 @@
         </div>
     </div>
 </div>
+
+<datalist id="cp-datalist"></datalist>
+<datalist id="poblacion-datalist"></datalist>
+
+<script src="{{ url_for('static', filename='js/codigos_postales.js') }}"></script>
+<script>
+(function(){
+    var cpDl = document.getElementById('cp-datalist');
+    var pobDl = document.getElementById('poblacion-datalist');
+    var addedCPs = new Set();
+    var addedPobs = new Set();
+    
+    CODIGOS_POSTALES.forEach(function(item) {
+        if (!addedCPs.has(item.cp)) {
+            addedCPs.add(item.cp);
+            var opt = document.createElement('option');
+            opt.value = item.cp;
+            opt.textContent = item.cp + ' - ' + item.poblacion + ' (' + item.provincia + ')';
+            cpDl.appendChild(opt);
+        }
+        if (!addedPobs.has(item.poblacion)) {
+            addedPobs.add(item.poblacion);
+            var opt2 = document.createElement('option');
+            opt2.value = item.poblacion;
+            opt2.textContent = item.poblacion + ' (' + item.provincia + ')';
+            pobDl.appendChild(opt2);
+        }
+    });
+
+    window.autoFillFromCP = function() {
+        var cp = document.getElementById('cpInput').value.trim();
+        var found = CODIGOS_POSTALES.find(function(item) { return item.cp === cp; });
+        if (found) {
+            document.getElementById('poblacionInput').value = found.poblacion;
+            document.getElementById('provinciaInput').value = found.provincia;
+        }
+    };
+
+    window.autoFillFromPoblacion = function() {
+        var pob = document.getElementById('poblacionInput').value.trim();
+        var found = CODIGOS_POSTALES.find(function(item) { return item.poblacion === pob; });
+        if (found) {
+            document.getElementById('cpInput').value = found.cp;
+            document.getElementById('provinciaInput').value = found.provincia;
+        }
+    };
+})();
+</script>
 
 {% endblock %}
