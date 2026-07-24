@@ -49,6 +49,12 @@
                     <a href="{{ url_for('clientes.ficha', id=c.id) }}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-eye"></i>
                     </a>
+                    <form method="POST" action="{{ url_for('clientes.eliminar', id=c.id) }}" class="d-inline"
+                          onsubmit="return confirm('¿Borrar a {{ c.nombre }}? Se eliminaran todas sus polizas, recibos y siniestros.')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
             {% else %}

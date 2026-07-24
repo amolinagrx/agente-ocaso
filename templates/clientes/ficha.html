@@ -27,6 +27,12 @@
         <a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-pencil"></i> Editar
         </a>
+        <form method="POST" action="{{ url_for('clientes.eliminar', id=cliente.id) }}" class="d-inline"
+              onsubmit="return confirm('¿Estas seguro de que quieres borrar a {{ cliente.nombre }}?\n\nSe eliminaran tambien todas sus polizas, recibos, siniestros y comunicaciones.')">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
     </div>
 </div>
 

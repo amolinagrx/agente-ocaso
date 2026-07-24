@@ -279,6 +279,17 @@ def polizas_json(id):
     } for p in polizas])
 
 
+@clientes_bp.route('/<int:id>/eliminar', methods=['POST'])
+@login_required
+def eliminar(id):
+    cliente = Cliente.query.get_or_404(id)
+    nombre = cliente.nombre
+    db.session.delete(cliente)
+    db.session.commit()
+    flash(f'Cliente {nombre} eliminado correctamente', 'success')
+    return redirect(url_for('clientes.index'))
+
+
 def _parse_date(val):
     """Parse a date string to a Python date object."""
     if not val or (isinstance(val, str) and not val.strip()):
