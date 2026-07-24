@@ -44,7 +44,7 @@ def nuevo():
             provincia=request.form.get('provincia'),
             telefono=request.form.get('telefono'),
             email=request.form.get('email'),
-            fecha_nacimiento=request.form.get('fecha_nacimiento') or None,
+            fecha_nacimiento=_parse_date(request.form.get('fecha_nacimiento')),
             notas=request.form.get('notas')
         )
         db.session.add(cliente)
@@ -85,8 +85,8 @@ def editar(id):
         cliente.provincia = request.form.get('provincia')
         cliente.telefono = request.form.get('telefono')
         cliente.email = request.form.get('email')
-        fecha_nac = request.form.get('fecha_nacimiento')
-        cliente.fecha_nacimiento = fecha_nac if fecha_nac else None
+        fecha_nac = _parse_date(request.form.get('fecha_nacimiento'))
+        cliente.fecha_nacimiento = fecha_nac
         cliente.notas = request.form.get('notas')
         db.session.commit()
         flash('Cliente actualizado', 'success')
