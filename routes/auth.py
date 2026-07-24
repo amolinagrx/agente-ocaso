@@ -37,7 +37,8 @@ def _set_remember_cookie(response, user_id):
         max_age=REMEMBER_DAYS * 86400,
         httponly=True,
         secure=request.is_secure,
-        samesite='Lax'
+        samesite='Lax',
+        path='/'
     )
 
 
@@ -109,7 +110,7 @@ def verify_2fa():
 def logout():
     session.pop('pending_user_id', None)
     resp = make_response(redirect(url_for('auth.login')))
-    resp.delete_cookie('remember_2fa')
+    resp.delete_cookie('remember_2fa', path='/')
     logout_user()
     return resp
 
