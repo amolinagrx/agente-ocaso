@@ -35,10 +35,8 @@ def _set_remember_cookie(response, user_id):
     response.set_cookie(
         'remember_2fa', token,
         max_age=REMEMBER_DAYS * 86400,
-        httponly=True,
-        secure=request.is_secure,
-        samesite='Lax',
-        path='/'
+        path='/',
+        samesite='Lax'
     )
 
 
@@ -91,14 +89,11 @@ def verify_2fa():
             session.pop('pending_user_id', None)
             login_user(user)
 
+            remember = request.form.get('remember_device') == 'on'
+            session['set_remember_2fa'] = remember
+
             next_page = request.args.get('next') or url_for('dashboard.index')
-            resp = make_response(redirect(next_page))
-
-            # Set remember cookie if checked
-            if request.form.get('remember_device') == 'on':
-                _set_remember_cookie(resp, user.id)
-
-            return resp
+            return redirect(next_page)
 
         flash('Codigo de verificacion incorrecto', 'danger')
 
@@ -112,6 +107,18 @@ def logout():
     resp = make_response(redirect(url_for('auth.login')))
     resp.delete_cookie('remember_2fa', path='/')
     logout_user()
+    return resp
+
+
+@auth_bp.route('/set-remember-cookie')
+@login_required
+def set_remember_cookie_endpoint():
+    """Set remember_2fa cookie after successful login with 2FA."""
+    remember = session.pop('set_remember_2fa', False)
+    if not remember:
+        return '', 204
+    resp = make_response('', 200)
+    _set_remember_cookie(resp, current_user.id)
     return resp
 
 
