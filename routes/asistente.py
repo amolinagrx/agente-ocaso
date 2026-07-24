@@ -116,42 +116,17 @@ def subir_documento():
         db.session.add(doc)
         db.session.flush()
 
-        # Generate summary (skip if API key not configured)
-        try:
-            summary = summarize_document(texto[:6000])
-            if summary:
-                doc_summary = DocumentoConocimiento(
-                    nombre=f'[RESUMEN] {filename}',
-                    tipo='txt',
-                    contenido_raw=summary
-                )
-                db.session.add(doc_summary)
-                db.session.flush()
-                ChunkConocimiento(
-                    documento_id=doc_summary.id,
-                    texto=summary,
-                    indice=0
-                )
-        except Exception:
-            pass  # Summary is optional
-
-        # Chunk and embed
+        # Chunk text (no embedding to keep upload fast)
         chunks = chunk_text(texto)
-        chunk_count = 0
         for i, chunk_text_content in enumerate(chunks):
-            try:
-                embedding = generate_embedding(chunk_text_content)
-            except Exception:
-                embedding = None
-            ChunkConocimiento(
+            db.session.add(ChunkConocimiento(
                 documento_id=doc.id,
                 texto=chunk_text_content,
-                embedding=json.dumps(embedding) if embedding else None,
+                embedding=None,
                 indice=i
-            )
-            chunk_count += 1
+            ))
 
-        doc.num_chunks = chunk_count
+        doc.num_chunks = len(chunks)
         procesados += 1
 
     db.session.commit()
