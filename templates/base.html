@@ -73,6 +73,11 @@
                 <i class="bi bi-whatsapp me-2"></i> <span class="nav-label">WhatsApp</span>
             </a>
             {% endif %}
+            {% if current_user.tiene_permiso('leads') %}
+            <a href="{{ url_for('leads.index') }}" class="list-group-item list-group-item-action" data-nav="leads">
+                <i class="bi bi-person-plus me-2"></i> <span class="nav-label">Leads</span>
+            </a>
+            {% endif %}
             {% if current_user.tiene_permiso('agenda') %}
             <a href="{{ url_for('agenda.index') }}" class="list-group-item list-group-item-action" data-nav="agenda">
                 <i class="bi bi-journal-check me-2"></i> <span class="nav-label">Agenda</span>

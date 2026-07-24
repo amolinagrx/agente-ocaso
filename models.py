@@ -347,3 +347,24 @@ class Agenda(db.Model):
     tipo = db.Column(db.String(30), default='nota')  # nota, llamada, reunion, tarea
     completado = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Lead(db.Model):
+    __tablename__ = 'leads'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(200), nullable=False)
+    telefono = db.Column(db.String(30))
+    email = db.Column(db.String(120))
+    dni = db.Column(db.String(20))
+    direccion = db.Column(db.String(300))
+    codigo_postal = db.Column(db.String(10))
+    poblacion = db.Column(db.String(100))
+    provincia = db.Column(db.String(100))
+    ramo_interes = db.Column(db.String(100))
+    origen = db.Column(db.String(50), default='web')  # web, telefono, presencial, recomendacion, otro
+    estado = db.Column(db.String(30), default='nuevo')  # nuevo, contactado, presupuesto, ganado, perdido
+    notas = db.Column(db.Text)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

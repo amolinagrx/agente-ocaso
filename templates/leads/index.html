@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Leads - Ocaso{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-person-plus me-2" style="color:var(--ocaso-blue)"></i>Leads</h4>
+    <button class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)" data-bs-toggle="modal" data-bs-target="#nuevoLeadModal">
+        <i class="bi bi-plus-lg me-1"></i> Nuevo Lead
+    </button>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-2">
+        <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Todos los estados</option>
+            {% for k, v in estados.items() %}
+            <option value="{{ k }}" {% if estado==k %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="origen" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Todos los origenes</option>
+            {% for k, v in origenes.items() %}
+            <option value="{{ k }}" {% if origen==k %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="buscar" class="form-control form-control-sm" placeholder="Buscar..." value="{{ buscar }}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">Filtrar</button>
+    </div>
+</form>
+
+<!-- Cards grid -->
+<div class="row g-3">
+    {% for l in leads %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="card h-100 lead-card {% if l.estado=='ganado' %}border-success{% elif l.estado=='perdido' %}border-danger opacity-50{% elif l.estado=='nuevo' %}border-primary{% endif %}" style="border-width:2px">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <strong class="small">{{ l.nombre }}</strong>
+                    <span class="badge bg-{% if l.estado=='ganado' %}success{% elif l.estado=='perdido' %}secondary{% elif l.estado=='nuevo' %}primary{% elif l.estado=='presupuesto' %}warning text-dark{% else %}info{% endif %}">
+                        {{ estados.get(l.estado, l.estado) }}
+                    </span>
+                </div>
+                <div class="small text-muted">
+                    {% if l.telefono %}<i class="bi bi-telephone me-1"></i>{{ l.telefono }}<br>{% endif %}
+                    {% if l.email %}<i class="bi bi-envelope me-1"></i>{{ l.email }}<br>{% endif %}
+                    {% if l.ramo_interes %}<span class="badge bg-light text-dark">{{ l.ramo_interes }}</span>{% endif %}
+                    <span class="badge bg-light text-dark">{{ origenes.get(l.origen, l.origen) }}</span>
+                </div>
+                {% if l.notas %}<p class="small text-muted mt-1 mb-0" style="white-space:pre-wrap">{{ l.notas[:120] }}{% if l.notas|length>120 %}...{% endif %}</p>{% endif %}
+                <div class="text-muted mt-1" style="font-size:10px">{{ l.created_at.strftime('%d/%m/%Y') }}</div>
+            </div>
+            <div class="card-footer p-1">
+                <div class="btn-group btn-group-sm w-100">
+                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editLeadModal{{ l.id }}" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    {% if l.estado != 'ganado' %}
+                    <button class="btn btn-outline-success btn-sm" onclick="document.getElementById('convertForm{{l.id}}').submit()" title="Convertir a cliente">
+                        <i class="bi bi-person-check"></i>
+                    </button>
+                    <form id="convertForm{{l.id}}" method="POST" action="{{ url_for('leads.convertir', id=l.id) }}" class="d-none"></form>
+                    {% endif %}
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" title="Estado">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% for k, v in estados.items() if k != l.estado %}
+                            <li>
+                                <form method="POST" action="{{ url_for('leads.cambiar_estado', id=l.id) }}">
+                                    <input type="hidden" name="estado" value="{{ k }}">
+                                    <button class="dropdown-item small">{{ v }}</button>
+                                </form>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <form method="POST" action="{{ url_for('leads.eliminar', id=l.id) }}" class="d-inline">
+                        <button class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar lead?')" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit modal -->
+        <div class="modal fade" id="editLeadModal{{ l.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ url_for('leads.editar', id=l.id) }}">
+                    <div class="modal-content">
+                        <div class="modal-header"><h5 class="modal-title">Editar Lead</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                        <div class="modal-body">
+                            <div class="row g-2">
+                                <div class="col-md-6"><label class="form-label small">Nombre</label><input type="text" name="nombre" class="form-control form-control-sm" value="{{ l.nombre }}" required></div>
+                                <div class="col-md-6"><label class="form-label small">DNI</label><input type="text" name="dni" class="form-control form-control-sm" value="{{ l.dni or '' }}"></div>
+                                <div class="col-md-6"><label class="form-label small">Telefono</label><input type="text" name="telefono" class="form-control form-control-sm" value="{{ l.telefono or '' }}"></div>
+                                <div class="col-md-6"><label class="form-label small">Email</label><input type="email" name="email" class="form-control form-control-sm" value="{{ l.email or '' }}"></div>
+                                <div class="col-md-6"><label class="form-label small">Ramo interes</label><input type="text" name="ramo_interes" class="form-control form-control-sm" value="{{ l.ramo_interes or '' }}"></div>
+                                <div class="col-md-3"><label class="form-label small">Origen</label><select name="origen" class="form-select form-select-sm">{% for k,v in origenes.items() %}<option value="{{k}}" {% if l.origen==k %}selected{% endif %}>{{v}}</option>{% endfor %}</select></div>
+                                <div class="col-md-3"><label class="form-label small">Estado</label><select name="estado" class="form-select form-select-sm">{% for k,v in estados.items() %}<option value="{{k}}" {% if l.estado==k %}selected{% endif %}>{{v}}</option>{% endfor %}</select></div>
+                                <div class="col-12"><label class="form-label small">Notas</label><textarea name="notas" class="form-control form-control-sm" rows="2">{{ l.notas or '' }}</textarea></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm" style="background:var(--ocaso-blue)">Guardar</button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-person-plus fs-1 d-block mb-3"></i>
+        <p>No hay leads registrados.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Nuevo Lead -->
+<div class="modal fade" id="nuevoLeadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('leads.nuevo') }}">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Nuevo Lead</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-md-6"><label class="form-label small">Nombre *</label><input type="text" name="nombre" class="form-control form-control-sm" required autofocus></div>
+                        <div class="col-md-6"><label class="form-label small">DNI</label><input type="text" name="dni" class="form-control form-control-sm"></div>
+                        <div class="col-md-6"><label class="form-label small">Telefono</label><input type="text" name="telefono" class="form-control form-control-sm"></div>
+                        <div class="col-md-6"><label class="form-label small">Email</label><input type="email" name="email" class="form-control form-control-sm"></div>
+                        <div class="col-md-6"><label class="form-label small">Ramo interes</label><input type="text" name="ramo_interes" class="form-control form-control-sm" placeholder="Auto, Hogar, Vida..."></div>
+                        <div class="col-md-3"><label class="form-label small">Origen</label><select name="origen" class="form-select form-select-sm">{% for k,v in origenes.items() %}<option value="{{k}}">{{v}}</option>{% endfor %}</select></div>
+                        <div class="col-md-3"><label class="form-label small">Estado</label><select name="estado" class="form-select form-select-sm">{% for k,v in estados.items() %}{% if k != 'ganado' %}<option value="{{k}}">{{v}}</option>{% endif %}{% endfor %}</select></div>
+                        <div class="col-12"><label class="form-label small">Notas</label><textarea name="notas" class="form-control form-control-sm" rows="2"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)">Crear Lead</button></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
