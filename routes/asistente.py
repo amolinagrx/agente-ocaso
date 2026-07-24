@@ -91,6 +91,8 @@ def subir_documento():
         return redirect(url_for('asistente.index'))
 
     upload_dir = current_app.config['UPLOAD_FOLDER']
+    MAX_SIZE = 10 * 1024 * 1024  # 10 MB
+    MAX_CHUNKS = 200
     procesados = 0
     errores = 0
 
@@ -99,42 +101,78 @@ def subir_documento():
             continue
 
         filename = file.filename
-        filepath = os.path.join(upload_dir, f'doc_{datetime.utcnow().strftime("%Y%m%d%H%M%S")}_{filename}')
-        file.save(filepath)
 
-        texto = extract_text_from_file(filepath, filename)
-        if not texto or texto.startswith('ERROR'):
-            os.remove(filepath)
+        # Check file size
+        file.seek(0, os.SEEK_END)
+        size = file.tell()
+        file.seek(0)
+        if size > MAX_SIZE:
+            flash(f'{filename}: supera los 10MB, no se procesa.', 'warning')
             errores += 1
             continue
 
-        doc = DocumentoConocimiento(
-            nombre=filename,
-            tipo=filename.rsplit('.', 1)[-1].lower() if '.' in filename else 'txt',
-            contenido_raw=texto[:50000]
-        )
-        db.session.add(doc)
-        db.session.flush()
+        # Check extension
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        if ext not in ('pdf', 'md', 'txt'):
+            flash(f'{filename}: formato no soportado.', 'warning')
+            errores += 1
+            continue
 
-        # Chunk text (no embedding to keep upload fast)
-        chunks = chunk_text(texto)
-        for i, chunk_text_content in enumerate(chunks):
-            db.session.add(ChunkConocimiento(
-                documento_id=doc.id,
-                texto=chunk_text_content,
-                embedding=None,
-                indice=i
-            ))
+        try:
+            filepath = os.path.join(upload_dir, f'doc_{datetime.utcnow().strftime("%Y%m%d%H%M%S")}_{filename}')
+            file.save(filepath)
 
-        doc.num_chunks = len(chunks)
-        procesados += 1
+            texto = extract_text_from_file(filepath, filename)
+            if not texto or texto.startswith('ERROR'):
+                try:
+                    os.remove(filepath)
+                except Exception:
+                    pass
+                errores += 1
+                continue
 
-    db.session.commit()
+            doc = DocumentoConocimiento(
+                nombre=filename,
+                tipo=ext,
+                contenido_raw=texto[:50000]
+            )
+            db.session.add(doc)
+            db.session.flush()
+
+            chunks = chunk_text(texto, chunk_size=600, overlap=50)
+            batch = 0
+            for i, chunk_text_content in enumerate(chunks[:MAX_CHUNKS]):
+                db.session.add(ChunkConocimiento(
+                    documento_id=doc.id,
+                    texto=chunk_text_content,
+                    embedding=None,
+                    indice=i
+                ))
+                batch += 1
+                if batch >= 50:
+                    db.session.commit()
+                    batch = 0
+
+            if batch > 0:
+                db.session.commit()
+
+            doc.num_chunks = min(len(chunks), MAX_CHUNKS)
+            db.session.commit()
+            procesados += 1
+
+        except Exception as e:
+            db.session.rollback()
+            try:
+                os.remove(filepath)
+            except Exception:
+                pass
+            flash(f'Error procesando {filename}', 'danger')
+            errores += 1
 
     if procesados > 0:
-        flash(f'{procesados} documento(s) procesado(s) correctamente.', 'success')
+        flash(f'{procesados} documento(s) procesado(s).', 'success')
     if errores > 0:
-        flash(f'{errores} archivo(s) no se pudieron procesar.', 'warning')
+        flash(f'{errores} archivo(s) con error.', 'warning')
 
     return redirect(url_for('asistente.index'))
 
