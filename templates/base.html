@@ -106,9 +106,10 @@
 
     <!-- Page content -->
     <div id="page-content-wrapper">
-        <!-- Floating sidebar toggle (always visible) -->
-        <button class="btn btn-sm btn-outline-secondary position-fixed" id="sidebarToggle" 
-                style="top:10px;left:8px;z-index:1050;border-radius:50%;width:36px;height:36px;padding:0;display:none"
+        <!-- Floating sidebar toggle (visible when collapsed) -->
+        <button class="btn btn-sm shadow-sm position-fixed" id="sidebarToggle" 
+                style="top:12px;left:6px;z-index:1050;border-radius:50%;width:34px;height:34px;padding:0;display:none;
+                       background:var(--ocaso-blue);color:white;border:none"
                 aria-label="Menu">
             <i class="bi bi-list"></i>
         </button>
@@ -171,17 +172,24 @@
                 sidebar.classList.remove('collapsed');
                 backdrop.classList.add('show');
                 document.getElementById('sidebarToggle').style.display = 'none';
+                localStorage.setItem('ocaso-sidebar', 'open');
             }
 
             function closeSidebar() {
                 sidebar.classList.add('collapsed');
                 backdrop.classList.remove('show');
                 document.getElementById('sidebarToggle').style.display = '';
+                localStorage.setItem('ocaso-sidebar', 'closed');
             }
 
             document.getElementById('sidebarToggle').addEventListener('click', openSidebar);
             var closeBtn = document.getElementById('sidebarClose');
             if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+
+            // Restore saved sidebar state
+            if (localStorage.getItem('ocaso-sidebar') === 'closed') {
+                closeSidebar();
+            }
 
             backdrop.addEventListener('click', closeSidebar);
 
