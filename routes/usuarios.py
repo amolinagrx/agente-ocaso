@@ -76,9 +76,10 @@ def nuevo():
                 permisos[modulo] = nivel
 
         user = User(
-            username=username, password=password, nombre=nombre,
+            username=username, password='pending', nombre=nombre,
             is_admin=is_admin, permisos=json.dumps(permisos), activo=True
         )
+        user.set_password(password)
         db.session.add(user)
         db.session.commit()
         flash(f'Usuario {username} creado', 'success')
@@ -107,7 +108,7 @@ def editar(id):
 
         new_password = request.form.get('password', '')
         if new_password:
-            user.password = new_password
+            user.set_password(new_password)
 
         permisos = {}
         if not user.is_admin:

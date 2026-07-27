@@ -167,8 +167,8 @@ def importar():
             flash(f'{importados} recibos importados correctamente', 'success')
             return redirect(url_for('recibos.index'))
 
-        except Exception as e:
-            flash(f'Error al importar: {str(e)}', 'danger')
+        except Exception:
+            flash('Error al importar. Verifica el formato del archivo.', 'danger')
 
     return render_template('recibos/importar.html')
 

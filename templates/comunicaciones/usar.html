@@ -48,7 +48,7 @@
             <div class="card-body">
                 {% if plantilla.tipo == 'email' %}
                 <div id="previewContent" class="border p-2" style="min-height:200px;overflow-y:auto">
-                    {{ plantilla.contenido | safe }}
+                    {% autoescape false %}{{ plantilla.contenido }}{% endautoescape %}
                 </div>
                 {% else %}
                 <pre id="previewContent" class="small mb-0" style="white-space:pre-wrap">{{ plantilla.contenido }}</pre>

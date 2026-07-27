@@ -229,17 +229,35 @@
             buscador.addEventListener('htmx:afterRequest', function(evt) {
                 const data = JSON.parse(evt.detail.xhr.responseText);
                 if (data && data.length > 0) {
-                    let html = '';
+                    resultados.innerHTML = '';
                     data.forEach(function(item) {
-                        html += '<a href="' + item.url + '" class="d-block px-3 py-2 border-bottom text-decoration-none text-reset search-result-item">' +
-                            '<div class="d-flex justify-content-between align-items-center"><strong>' + (item.nombre || item.numero) + '</strong>' +
-                            '<small class="text-muted text-capitalize">' + item.type + '</small></div>' +
-                            '<small class="text-muted">' + (item.dni ? 'DNI: ' + item.dni + ' ' : '') +
+                        var a = document.createElement('a');
+                        a.href = item.url;
+                        a.className = 'd-block px-3 py-2 border-bottom text-decoration-none text-reset search-result-item';
+                        var row1 = document.createElement('div');
+                        row1.className = 'd-flex justify-content-between align-items-center';
+                        var strong = document.createElement('strong');
+                        strong.textContent = item.nombre || item.numero;
+                        row1.appendChild(strong);
+                        var small = document.createElement('small');
+                        small.className = 'text-muted text-capitalize';
+                        small.textContent = item.type;
+                        row1.appendChild(small);
+                        a.appendChild(row1);
+                        var row2 = document.createElement('small');
+                        row2.className = 'text-muted';
+                        row2.textContent = (item.dni ? 'DNI: ' + item.dni + ' ' : '') +
                             (item.telefono ? 'Tel: ' + item.telefono + ' ' : '') +
-                            (item.polizas_activas !== undefined ? item.polizas_activas + ' polizas' : '') +
-                            (item.alerta ? ' <span class="badge bg-danger">&#9888;</span>' : '') + '</small></a>';
+                            (item.polizas_activas !== undefined ? item.polizas_activas + ' polizas' : '');
+                        if (item.alerta) {
+                            var badge = document.createElement('span');
+                            badge.className = 'badge bg-danger ms-1';
+                            badge.textContent = '!';
+                            row2.appendChild(badge);
+                        }
+                        a.appendChild(row2);
+                        resultados.appendChild(a);
                     });
-                    resultados.innerHTML = html;
                     resultados.style.display = 'block';
                 } else {
                     resultados.innerHTML = '<div class="px-3 py-2 text-muted small">Sin resultados</div>';

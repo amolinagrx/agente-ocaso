@@ -171,7 +171,13 @@ function enviarMensaje() {
     var container=document.getElementById('chatMessages');
     var bubble=document.createElement('div');
     bubble.className='d-flex justify-content-end mb-3';
-    bubble.innerHTML='<div class="chat-bubble chat-user"><div class="small mb-1"><strong>Tu</strong></div><div>'+msg.replace(/\n/g,'<br>')+'</div></div>';
+    var inner=document.createElement('div');
+    inner.className='chat-bubble chat-user';
+    inner.innerHTML='<div class=\"small mb-1\"><strong>Tu</strong></div>';
+    var cd=document.createElement('div');
+    cd.className='chat-content'; cd.textContent = msg;
+    inner.appendChild(cd);
+    bubble.appendChild(inner);
     container.appendChild(bubble);
 
     document.getElementById('typingIndicator').classList.remove('d-none');
@@ -182,8 +188,19 @@ function enviarMensaje() {
     .then(r=>r.json()).then(data=>{
         document.getElementById('typingIndicator').classList.add('d-none');
         var ab=document.createElement('div'); ab.className='d-flex mb-3';
-        var ctx=data.contexto?'<div class="small text-muted mt-1" style="font-size:0.7rem"><i class="bi bi-info-circle"></i> '+data.contexto+'</div>':'';
-        ab.innerHTML='<div class="chat-bubble chat-assistant"><div class="small mb-1"><strong>Asistente</strong></div><div class="chat-content">'+(data.respuesta||'').replace(/\n/g,'<br>')+'</div>'+ctx+'</div>';
+        var inner=document.createElement('div');
+        inner.className='chat-bubble chat-assistant';
+        inner.innerHTML='<div class=\"small mb-1\"><strong>Asistente</strong></div>';
+        var cd2=document.createElement('div');
+        cd2.className='chat-content'; cd2.innerHTML = (data.respuesta||'').replace(/\n/g,'<br>');
+        inner.appendChild(cd2);
+        if(data.contexto){
+            var ctx=document.createElement('div');
+            ctx.className='small text-muted mt-1'; ctx.style.fontSize='0.7rem';
+            ctx.innerHTML='<i class=\"bi bi-info-circle\"></i> '+data.contexto;
+            inner.appendChild(ctx);
+        }
+        ab.appendChild(inner);
         container.appendChild(ab); scrollToBottom();
         input.disabled=false; input.focus();
     }).catch(function(){ document.getElementById('typingIndicator').classList.add('d-none'); input.disabled=false; });

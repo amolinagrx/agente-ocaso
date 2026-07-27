@@ -1,5 +1,6 @@
 import os
-from flask import Flask
+import secrets
+from flask import Flask, session
 from flask_login import LoginManager
 from models import db, User
 
@@ -20,13 +21,24 @@ def create_app():
         if current_user.is_authenticated:
             return redirect(url_for('dashboard.index'))
         return redirect(url_for('auth.login'))
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ocaso-secret-key-2025')
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     data_dir = os.environ.get('DATA_DIR', '/data')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{data_dir}/ocaso.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = f'{data_dir}/uploads'
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    # Security headers
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        return response
 
     db.init_app(app)
 
@@ -85,8 +97,9 @@ def _seed_user(app):
     username = os.environ.get('OCASO_USER', 'admin')
     password = os.environ.get('OCASO_PASS', 'ocaso2025')
     if not User.query.filter_by(username=username).first():
-        user = User(username=username, password=password, nombre='Administrador', is_admin=True,
+        user = User(username=username, password='pending', nombre='Administrador', is_admin=True,
                      permisos='{}', activo=True)
+        user.set_password(password)
         db.session.add(user)
         db.session.commit()
         print(f'User created: {username}')
@@ -95,6 +108,10 @@ def _seed_user(app):
         if not user.is_admin and user.username == 'admin':
             user.is_admin = True
             user.nombre = user.nombre or 'Administrador'
+            db.session.commit()
+        # Migrate plaintext password to hash if needed
+        if user.password == 'ocaso2025':
+            user.set_password('ocaso2025')
             db.session.commit()
 
 

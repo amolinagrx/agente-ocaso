@@ -35,8 +35,10 @@ def _set_remember_cookie(response, user_id):
     response.set_cookie(
         'remember_2fa', token,
         max_age=REMEMBER_DAYS * 86400,
-        path='/',
-        samesite='Lax'
+        httponly=True,
+        secure=request.is_secure,
+        samesite='Lax',
+        path='/'
     )
 
 
@@ -47,7 +49,7 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
 
-        if user and user.password == password:
+        if user and user.check_password(password):
             if not user.activo:
                 flash('Usuario desactivado. Contacta con el administrador.', 'danger')
                 return render_template('login.html')
@@ -62,9 +64,11 @@ def login():
                 session['pending_user_id'] = user.id
                 return redirect(url_for('auth.verify_2fa'))
 
-            login_user(user)
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard.index'))
+    login_user(user)
+    next_page = request.args.get('next')
+    if next_page and not next_page.startswith('/'):
+        next_page = None
+    return redirect(next_page or url_for('dashboard.index'))
 
         flash('Usuario o contrasena incorrectos', 'danger')
     return render_template('login.html')

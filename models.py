@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime, date
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -101,7 +102,11 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(64))
     totp_enabled = db.Column(db.Boolean, default=False)  # JSON: {"modulo": "rw"|"r"|"none"}
 
-    def tiene_permiso(self, modulo, nivel='r'):
+    def set_password(self, raw):
+        self.password = generate_password_hash(raw)
+
+    def check_password(self, raw):
+        return check_password_hash(self.password, raw)
         """Verifica si el usuario tiene al menos nivel de permiso en un modulo."""
         if self.is_admin:
             return True
