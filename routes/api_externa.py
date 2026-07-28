@@ -1,9 +1,10 @@
 import os
+import os
 import secrets
 import functools
 from datetime import date, datetime, timedelta
 from flask import Blueprint, jsonify, request
-from models import db, ApiKey, Cliente, Poliza, Recibo, Siniestro, Lead, User
+from models import db, ApiKey, Cliente, Poliza, Recibo, Siniestro, Lead, User, DocumentoCliente
 
 api_externa_bp = Blueprint('api_externa', __name__)
 
@@ -118,6 +119,37 @@ def clientes_delete(id):
     db.session.delete(c)
     db.session.commit()
     return jsonify({'deleted': True})
+
+
+@api_externa_bp.route('/v1/clientes/<int:id>/documentos', methods=['POST'])
+@require_api_key
+def clientes_upload_documento(id):
+    Cliente.query.get_or_404(id)
+    file = request.files.get('documento')
+    if not file or not file.filename:
+        return jsonify({'error': 'Archivo requerido'}), 400
+
+    from flask import current_app
+    filename = f"api_{id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+    ruta = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    file.save(ruta)
+
+    doc = DocumentoCliente(
+        cliente_id=id, nombre=file.filename,
+        tipo=request.form.get('tipo', 'otro'), ruta=ruta
+    )
+    db.session.add(doc)
+    db.session.commit()
+    return jsonify({'id': doc.id, 'nombre': doc.nombre, 'tipo': doc.tipo}), 201
+
+
+@api_externa_bp.route('/v1/clientes/<int:id>/documentos')
+@require_api_key
+def clientes_documentos(id):
+    Cliente.query.get_or_404(id)
+    docs = DocumentoCliente.query.filter_by(cliente_id=id).order_by(
+        DocumentoCliente.uploaded_at.desc()).all()
+    return jsonify([{'id': d.id, 'nombre': d.nombre, 'tipo': d.tipo} for d in docs])
 
 
 # ========== POLIZAS ==========
