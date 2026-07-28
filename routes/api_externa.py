@@ -1,0 +1,352 @@
+import os
+import secrets
+import functools
+from datetime import date, datetime, timedelta
+from flask import Blueprint, jsonify, request
+from models import db, ApiKey, Cliente, Poliza, Recibo, Siniestro, Lead, User
+
+api_externa_bp = Blueprint('api_externa', __name__)
+
+
+def require_api_key(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('X-API-Key') or request.args.get('api_key')
+        if not token:
+            return jsonify({'error': 'API key requerida'}), 401
+
+        api_key = ApiKey.query.filter_by(token=token, activo=True).first()
+        if not api_key:
+            return jsonify({'error': 'API key invalida o inactiva'}), 403
+
+        api_key.last_used = datetime.utcnow()
+        db.session.commit()
+
+        request.api_user = User.query.get(api_key.user_id)
+        if not request.api_user or not request.api_user.activo:
+            return jsonify({'error': 'Usuario desactivado'}), 403
+
+        return f(*args, **kwargs)
+    return decorated
+
+
+@api_externa_bp.route('/v1/health')
+def health():
+    return jsonify({
+        'status': 'ok',
+        'version': '1.0',
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
+
+# ========== CLIENTES ==========
+
+@api_externa_bp.route('/v1/clientes')
+@require_api_key
+def clientes_list():
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 200)
+    buscar = request.args.get('buscar', '')
+
+    query = Cliente.query
+    if buscar:
+        query = query.filter(
+            db.or_(
+                Cliente.nombre.ilike(f'%{buscar}%'),
+                Cliente.dni.ilike(f'%{buscar}%'),
+                Cliente.telefono.ilike(f'%{buscar}%')
+            )
+        )
+
+    pag = query.order_by(Cliente.nombre).paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        'total': pag.total,
+        'page': page,
+        'per_page': per_page,
+        'data': [_cliente_to_dict(c) for c in pag.items]
+    })
+
+
+@api_externa_bp.route('/v1/clientes/<int:id>')
+@require_api_key
+def clientes_get(id):
+    c = Cliente.query.get_or_404(id)
+    return jsonify(_cliente_to_dict(c, include_polizas=True))
+
+
+@api_externa_bp.route('/v1/clientes', methods=['POST'])
+@require_api_key
+def clientes_create():
+    data = request.get_json(force=True, silent=True) or {}
+    if not data.get('nombre'):
+        return jsonify({'error': 'nombre requerido'}), 400
+
+    c = Cliente(
+        nombre=data['nombre'],
+        dni=data.get('dni', ''),
+        direccion=data.get('direccion', ''),
+        codigo_postal=data.get('codigo_postal', ''),
+        poblacion=data.get('poblacion', ''),
+        provincia=data.get('provincia', ''),
+        telefono=data.get('telefono', ''),
+        email=data.get('email', ''),
+        notas=data.get('notas', '')
+    )
+    db.session.add(c)
+    db.session.commit()
+    return jsonify(_cliente_to_dict(c)), 201
+
+
+@api_externa_bp.route('/v1/clientes/<int:id>', methods=['PUT'])
+@require_api_key
+def clientes_update(id):
+    c = Cliente.query.get_or_404(id)
+    data = request.get_json(force=True, silent=True) or {}
+    for field in ['nombre', 'dni', 'direccion', 'codigo_postal', 'poblacion',
+                  'provincia', 'telefono', 'email', 'notas']:
+        if field in data:
+            setattr(c, field, data[field])
+    db.session.commit()
+    return jsonify(_cliente_to_dict(c))
+
+
+# ========== POLIZAS ==========
+
+@api_externa_bp.route('/v1/polizas')
+@require_api_key
+def polizas_list():
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 200)
+    ramo = request.args.get('ramo', '')
+    activa = request.args.get('activa', '')
+
+    query = Poliza.query
+    if ramo:
+        query = query.filter(Poliza.ramo == ramo)
+    if activa == 'true':
+        query = query.filter(Poliza.activa == True)
+    elif activa == 'false':
+        query = query.filter(Poliza.activa == False)
+
+    pag = query.order_by(Poliza.fecha_efecto.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        'total': pag.total, 'page': page, 'per_page': per_page,
+        'data': [_poliza_to_dict(p) for p in pag.items]
+    })
+
+
+@api_externa_bp.route('/v1/polizas/<int:id>')
+@require_api_key
+def polizas_get(id):
+    p = Poliza.query.get_or_404(id)
+    return jsonify(_poliza_to_dict(p))
+
+
+@api_externa_bp.route('/v1/polizas', methods=['POST'])
+@require_api_key
+def polizas_create():
+    data = request.get_json(force=True, silent=True) or {}
+    if not data.get('numero_poliza') or not data.get('cliente_id'):
+        return jsonify({'error': 'numero_poliza y cliente_id requeridos'}), 400
+
+    p = Poliza(
+        cliente_id=data['cliente_id'],
+        numero_poliza=data['numero_poliza'],
+        ramo=data.get('ramo', ''),
+        compania=data.get('compania', 'Ocaso'),
+        descripcion=data.get('descripcion', ''),
+        capital_asegurado=float(data.get('capital_asegurado', 0)),
+        prima_anual=float(data.get('prima_anual', 0)),
+        fecha_efecto=data.get('fecha_efecto', date.today().isoformat()),
+        fecha_vencimiento=data.get('fecha_vencimiento', ''),
+        activa=data.get('activa', True),
+        numero_cuenta=data.get('numero_cuenta', ''),
+        unidades=int(data.get('unidades', 1)),
+        detalles=data.get('detalles', '')
+    )
+    db.session.add(p)
+    db.session.commit()
+    return jsonify(_poliza_to_dict(p)), 201
+
+
+# ========== RECIBOS ==========
+
+@api_externa_bp.route('/v1/recibos')
+@require_api_key
+def recibos_list():
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 200)
+    estado = request.args.get('estado', '')
+
+    query = Recibo.query
+    if estado:
+        query = query.filter(Recibo.estado == estado)
+
+    pag = query.order_by(Recibo.fecha_emision.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        'total': pag.total, 'page': page, 'per_page': per_page,
+        'data': [_recibo_to_dict(r) for r in pag.items]
+    })
+
+
+# ========== SINIESTROS ==========
+
+@api_externa_bp.route('/v1/siniestros')
+@require_api_key
+def siniestros_list():
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 100)
+
+    query = Siniestro.query.order_by(Siniestro.fecha_apertura.desc())
+    pag = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        'total': pag.total, 'page': page, 'per_page': per_page,
+        'data': [_siniestro_to_dict(s) for s in pag.items]
+    })
+
+
+# ========== LEADS ==========
+
+@api_externa_bp.route('/v1/leads')
+@require_api_key
+def leads_list():
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 50, type=int), 200)
+    estado = request.args.get('estado', '')
+
+    query = Lead.query
+    if estado:
+        query = query.filter(Lead.estado == estado)
+
+    pag = query.order_by(Lead.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        'total': pag.total, 'page': page, 'per_page': per_page,
+        'data': [_lead_to_dict(l) for l in pag.items]
+    })
+
+
+@api_externa_bp.route('/v1/leads', methods=['POST'])
+@require_api_key
+def leads_create():
+    data = request.get_json(force=True, silent=True) or {}
+    if not data.get('nombre'):
+        return jsonify({'error': 'nombre requerido'}), 400
+
+    l = Lead(
+        nombre=data['nombre'],
+        telefono=data.get('telefono', ''),
+        email=data.get('email', ''),
+        dni=data.get('dni', ''),
+        ramo_interes=data.get('ramo_interes', ''),
+        origen=data.get('origen', 'web'),
+        estado=data.get('estado', 'nuevo'),
+        notas=data.get('notas', ''),
+        user_id=request.api_user.id
+    )
+    db.session.add(l)
+    db.session.commit()
+    return jsonify(_lead_to_dict(l)), 201
+
+
+# ========== STATS ==========
+
+@api_externa_bp.route('/v1/stats')
+@require_api_key
+def stats():
+    hoy = date.today()
+    inicio_mes = hoy.replace(day=1)
+
+    return jsonify({
+        'clientes_total': Cliente.query.count(),
+        'polizas_activas': Poliza.query.filter(Poliza.activa == True).count(),
+        'polizas_mes': Poliza.query.filter(Poliza.fecha_efecto >= inicio_mes).count(),
+        'recibos_pendientes': Recibo.query.filter(Recibo.estado == 'pendiente').count(),
+        'siniestros_abiertos': Siniestro.query.filter(
+            ~Siniestro.estado.in_(['cerrado', 'resuelto'])
+        ).count(),
+        'leads_activos': Lead.query.filter(~Lead.estado.in_(['ganado', 'perdido'])).count(),
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
+
+# ========== API KEY MANAGEMENT ==========
+
+@api_externa_bp.route('/v1/me')
+@require_api_key
+def me():
+    """Returns info about the current API key/user."""
+    user = request.api_user
+    return jsonify({
+        'user_id': user.id,
+        'username': user.username,
+        'is_admin': user.is_admin
+    })
+
+
+# ========== SERIALIZERS ==========
+
+def _cliente_to_dict(c, include_polizas=False):
+    d = {
+        'id': c.id, 'nombre': c.nombre, 'dni': c.dni,
+        'telefono': c.telefono, 'email': c.email,
+        'direccion': c.direccion, 'codigo_postal': c.codigo_postal,
+        'poblacion': c.poblacion, 'provincia': c.provincia,
+        'fecha_alta': c.fecha_alta.isoformat() if c.fecha_alta else None,
+        'alerta_devoluciones': c.alerta_devoluciones
+    }
+    if include_polizas:
+        d['polizas'] = [_poliza_to_dict(p) for p in c.polizas_activas]
+    return d
+
+
+def _poliza_to_dict(p):
+    return {
+        'id': p.id, 'cliente_id': p.cliente_id,
+        'numero_poliza': p.numero_poliza, 'ramo': p.ramo,
+        'compania': p.compania, 'descripcion': p.descripcion,
+        'capital_asegurado': p.capital_asegurado,
+        'prima_anual': p.prima_anual,
+        'fecha_efecto': p.fecha_efecto.isoformat() if p.fecha_efecto else None,
+        'fecha_vencimiento': p.fecha_vencimiento.isoformat() if p.fecha_vencimiento else None,
+        'activa': p.activa, 'numero_cuenta': p.numero_cuenta,
+        'unidades': p.unidades, 'detalles': p.detalles,
+        'marca': p.marca, 'modelo': p.modelo, 'matricula': p.matricula,
+    }
+
+
+def _recibo_to_dict(r):
+    return {
+        'id': r.id, 'cliente_id': r.cliente_id,
+        'numero_poliza': r.numero_poliza, 'concepto': r.concepto,
+        'importe': r.importe, 'fecha_emision': r.fecha_emision.isoformat() if r.fecha_emision else None,
+        'fecha_cargo': r.fecha_cargo.isoformat() if r.fecha_cargo else None,
+        'estado': r.estado, 'estado_gestion': r.estado_gestion,
+        'compania': r.compania, 'notas': r.notas
+    }
+
+
+def _siniestro_to_dict(s):
+    return {
+        'id': s.id, 'cliente_id': s.cliente_id, 'poliza_id': s.poliza_id,
+        'numero_expediente': s.numero_expediente, 'tipo': s.tipo,
+        'descripcion': s.descripcion,
+        'fecha_ocurrencia': s.fecha_ocurrencia.isoformat() if s.fecha_ocurrencia else None,
+        'fecha_apertura': s.fecha_apertura.isoformat() if s.fecha_apertura else None,
+        'estado': s.estado, 'importe_estimado': s.importe_estimado,
+        'fecha_ultima_actualizacion': s.fecha_ultima_actualizacion.isoformat() if s.fecha_ultima_actualizacion else None
+    }
+
+
+def _lead_to_dict(l):
+    return {
+        'id': l.id, 'nombre': l.nombre, 'telefono': l.telefono,
+        'email': l.email, 'dni': l.dni, 'ramo_interes': l.ramo_interes,
+        'origen': l.origen, 'estado': l.estado, 'notas': l.notas,
+        'cliente_id': l.cliente_id,
+        'created_at': l.created_at.isoformat() if l.created_at else None
+    }

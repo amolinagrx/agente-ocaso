@@ -103,7 +103,7 @@ class User(UserMixin, db.Model):
     totp_enabled = db.Column(db.Boolean, default=False)  # JSON: {"modulo": "rw"|"r"|"none"}
 
     def set_password(self, raw):
-        self.password = generate_password_hash(raw)
+        self.password = generate_password_hash(raw, method='pbkdf2:sha256')
 
     def check_password(self, raw):
         return check_password_hash(self.password, raw)
@@ -373,3 +373,14 @@ class Lead(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ApiKey(db.Model):
+    __tablename__ = 'api_keys'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    token = db.Column(db.String(64), unique=True, nullable=False)
+    activo = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_used = db.Column(db.DateTime)

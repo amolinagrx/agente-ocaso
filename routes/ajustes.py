@@ -1,8 +1,9 @@
 import os
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
-from models import db, Configuracion, DocumentoConocimiento, ChunkConocimiento, MensajeAsistente
+from models import db, Configuracion, DocumentoConocimiento, ChunkConocimiento, MensajeAsistente, ApiKey
 from datetime import datetime
+import secrets
 
 ajustes_bp = Blueprint('ajustes', __name__)
 
@@ -46,9 +47,11 @@ def index():
     key_from_env = bool(os.environ.get('DEEPSEEK_API_KEY', ''))
     key_from_db = bool(config.get('deepseek_api_key', ''))
     api_key_configured = key_from_env or key_from_db
+    api_keys = ApiKey.query.filter_by(activo=True).order_by(ApiKey.created_at.desc()).all()
 
     return render_template('ajustes/index.html',
                            config=config,
+                           api_keys=api_keys,
                            docs_count=docs_count,
                            chunks_count=chunks_count,
                            mensajes_count=mensajes_count,
@@ -161,5 +164,29 @@ def reset_all():
         flash('Todos los datos han sido eliminados. Los usuarios se conservan.', 'success')
     except Exception as e:
         flash(f'Error al resetear: {e}', 'danger')
+
+    return redirect(url_for('ajustes.index'))
+
+
+@ajustes_bp.route('/api-key/nueva', methods=['POST'])
+@login_required
+def nueva_api_key():
+    nombre = request.form.get('nombre', 'API Key').strip()
+    token = secrets.token_hex(32)
+    key = ApiKey(user_id=current_user.id, nombre=nombre, token=token)
+    db.session.add(key)
+    db.session.commit()
+    flash('API Key generada', 'success')
+    return redirect(url_for('ajustes.index'))
+
+
+@ajustes_bp.route('/api-key/<int:id>/revocar', methods=['POST'])
+@login_required
+def revocar_api_key(id):
+    key = ApiKey.query.get_or_404(id)
+    key.activo = False
+    db.session.commit()
+    flash('API Key revocada', 'success')
+    return redirect(url_for('ajustes.index'))
 
     return redirect(url_for('ajustes.index'))

@@ -65,6 +65,7 @@ def create_app():
     from routes.usuarios import usuarios_bp
     from routes.agenda import agenda_bp
     from routes.leads import leads_bp
+    from routes.api_externa import api_externa_bp
     from routes.api import api_bp
 
     app.register_blueprint(auth_bp)
@@ -82,6 +83,7 @@ def create_app():
     app.register_blueprint(usuarios_bp, url_prefix='/usuarios')
     app.register_blueprint(agenda_bp, url_prefix='/agenda')
     app.register_blueprint(leads_bp, url_prefix='/leads')
+    app.register_blueprint(api_externa_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
 
     with app.app_context():

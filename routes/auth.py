@@ -64,11 +64,11 @@ def login():
                 session['pending_user_id'] = user.id
                 return redirect(url_for('auth.verify_2fa'))
 
-    login_user(user)
-    next_page = request.args.get('next')
-    if next_page and not next_page.startswith('/'):
-        next_page = None
-    return redirect(next_page or url_for('dashboard.index'))
+            login_user(user)
+            next_page = request.args.get('next')
+            if next_page and not next_page.startswith('/'):
+                next_page = None
+            return redirect(next_page or url_for('dashboard.index'))
 
         flash('Usuario o contrasena incorrectos', 'danger')
     return render_template('login.html')
