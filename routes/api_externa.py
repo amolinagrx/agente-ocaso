@@ -111,6 +111,15 @@ def clientes_update(id):
     return jsonify(_cliente_to_dict(c))
 
 
+@api_externa_bp.route('/v1/clientes/<int:id>', methods=['DELETE'])
+@require_api_key
+def clientes_delete(id):
+    c = Cliente.query.get_or_404(id)
+    db.session.delete(c)
+    db.session.commit()
+    return jsonify({'deleted': True})
+
+
 # ========== POLIZAS ==========
 
 @api_externa_bp.route('/v1/polizas')
@@ -137,6 +146,114 @@ def polizas_list():
     })
 
 
+    db.session.commit()
+    return jsonify({'deleted': True})
+
+
+@api_externa_bp.route('/v1/polizas/<int:id>', methods=['PUT'])
+@require_api_key
+def polizas_update(id):
+    p = Poliza.query.get_or_404(id)
+    data = request.get_json(force=True, silent=True) or {}
+    for field in ['ramo', 'compania', 'descripcion', 'numero_poliza',
+                  'prima_anual', 'capital_asegurado', 'numero_cuenta',
+                  'unidades', 'detalles', 'activa']:
+        if field in data:
+            if field in ('prima_anual', 'capital_asegurado'):
+                setattr(p, field, float(data[field]))
+            elif field == 'unidades':
+                setattr(p, field, int(data[field]))
+            elif field == 'activa':
+                setattr(p, field, bool(data[field]))
+            else:
+                setattr(p, field, data[field])
+    db.session.commit()
+    return jsonify(_poliza_to_dict(p))
+
+
+@api_externa_bp.route('/v1/polizas/<int:id>', methods=['DELETE'])
+@require_api_key
+def polizas_delete(id):
+    p = Poliza.query.get_or_404(id)
+    db.session.delete(p)
+    db.session.commit()
+    return jsonify({'deleted': True})
+
+
+@api_externa_bp.route('/v1/recibos', methods=['POST'])
+@require_api_key
+def recibos_create():
+    data = request.get_json(force=True, silent=True) or {}
+    if not data.get('cliente_id') or not data.get('importe'):
+        return jsonify({'error': 'cliente_id e importe requeridos'}), 400
+
+    r = Recibo(
+        cliente_id=data['cliente_id'],
+        poliza_id=data.get('poliza_id'),
+        numero_poliza=data.get('numero_poliza', ''),
+        concepto=data.get('concepto', ''),
+        importe=float(data['importe']),
+        fecha_emision=_parse_date(data.get('fecha_emision')) or date.today(),
+        fecha_cargo=_parse_date(data.get('fecha_cargo')),
+        estado=data.get('estado', 'pendiente'),
+        compania=data.get('compania', 'Ocaso'),
+        notas=data.get('notas', '')
+    )
+    db.session.add(r)
+    db.session.commit()
+    return jsonify(_recibo_to_dict(r)), 201
+
+
+@api_externa_bp.route('/v1/search')
+@require_api_key
+def search():
+    """Busqueda unificada para agentes IA."""
+    q = request.args.get('q', '').strip()
+    if len(q) < 2:
+        return jsonify({'results': [], 'total': 0})
+
+    results = []
+    clientes = Cliente.query.filter(
+        db.or_(Cliente.nombre.ilike(f'%{q}%'), Cliente.dni.ilike(f'%{q}%'))
+    ).limit(20).all()
+
+    for c in clientes:
+        results.append({
+            'type': 'cliente', 'id': c.id, 'nombre': c.nombre,
+            'dni': c.dni, 'telefono': c.telefono,
+            'polizas_activas': c.polizas.filter(Poliza.activa == True).count(),
+            'url': f'/clientes/{c.id}'
+        })
+
+    polizas = Poliza.query.filter(
+        Poliza.numero_poliza.ilike(f'%{q}%')
+    ).limit(10).all()
+    for p in polizas:
+        c = Cliente.query.get(p.cliente_id)
+        results.append({
+            'type': 'poliza', 'id': p.id,
+            'numero_poliza': p.numero_poliza, 'ramo': p.ramo,
+            'cliente_nombre': c.nombre if c else '', 'cliente_id': p.cliente_id,
+            'url': f'/polizas/'
+        })
+
+    siniestros = Siniestro.query.filter(
+        Siniestro.numero_expediente.ilike(f'%{q}%')
+    ).limit(10).all()
+    for s in siniestros:
+        results.append({
+            'type': 'siniestro', 'id': s.id,
+            'numero_expediente': s.numero_expediente, 'estado': s.estado,
+            'url': f'/siniestros/{s.id}'
+        })
+
+    return jsonify({'results': results, 'total': len(results)})
+
+
+# ========== EXISTING ENDPOINTS CONTINUE ==========
+
+
+
 @api_externa_bp.route('/v1/polizas/<int:id>')
 @require_api_key
 def polizas_get(id):
@@ -159,8 +276,8 @@ def polizas_create():
         descripcion=data.get('descripcion', ''),
         capital_asegurado=float(data.get('capital_asegurado', 0)),
         prima_anual=float(data.get('prima_anual', 0)),
-        fecha_efecto=data.get('fecha_efecto', date.today().isoformat()),
-        fecha_vencimiento=data.get('fecha_vencimiento', ''),
+        fecha_efecto=_parse_date(data.get('fecha_efecto')) or date.today(),
+        fecha_vencimiento=_parse_date(data.get('fecha_vencimiento')) or date.today(),
         activa=data.get('activa', True),
         numero_cuenta=data.get('numero_cuenta', ''),
         unidades=int(data.get('unidades', 1)),
@@ -350,3 +467,9 @@ def _lead_to_dict(l):
         'cliente_id': l.cliente_id,
         'created_at': l.created_at.isoformat() if l.created_at else None
     }
+
+
+def _parse_date(val):
+    if not val: return None
+    try: return datetime.strptime(str(val)[:10], "%Y-%m-%d").date()
+    except: return None
