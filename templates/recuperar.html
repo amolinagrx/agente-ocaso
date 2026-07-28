@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block auth_content %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="text-center bg-white p-4 p-md-5 rounded-4 shadow">
+            <div class="mb-4">
+                <div style="background:var(--ocaso-blue,#003396);color:white;width:72px;height:72px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold">O</div>
+            </div>
+
+            {% if paso == 1 %}
+            <h5 class="mb-1 fw-bold" style="color:var(--ocaso-blue)">Recuperar contrasena</h5>
+            <p class="text-muted mb-4">Introduce la clave secreta de recuperacion</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" autocomplete="off">
+                <div class="mb-3 text-start">
+                    <label class="form-label">Clave secreta</label>
+                    <input type="password" name="clave_secreta" class="form-control" required autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2" style="background-color:var(--ocaso-blue)">
+                    Verificar
+                </button>
+            </form>
+
+            {% else %}
+            <h5 class="mb-1 fw-bold" style="color:var(--ocaso-blue)">Cambiar contrasena</h5>
+            <p class="text-muted mb-3">Selecciona el usuario y pon la nueva contrasena</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('auth.recuperar_cambiar') }}" autocomplete="off">
+                <div class="mb-3 text-start">
+                    <label class="form-label">Usuario</label>
+                    <select name="user_id" class="form-select" required autofocus>
+                        <option value="">Seleccionar usuario...</option>
+                        {% for u in usuarios %}
+                        <option value="{{ u.id }}" {% if user_id == u.id %}selected{% endif %}>
+                            {{ u.username }} - {{ u.nombre or 'Sin nombre' }}
+                            {% if u.is_admin %}(Admin){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3 text-start">
+                    <label class="form-label">Nueva contrasena</label>
+                    <input type="password" name="password" class="form-control" required minlength="3">
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2" style="background-color:var(--ocaso-blue)">
+                    Cambiar contrasena
+                </button>
+            </form>
+            {% endif %}
+
+            <hr class="my-3">
+            <a href="{{ url_for('auth.login') }}" class="text-muted small">Volver al inicio de sesion</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -55,7 +55,6 @@ def login():
                 return render_template('login.html')
 
             if user.totp_enabled:
-                # Check if this device is remembered
                 if _check_remember_cookie(user.id):
                     resp = make_response(redirect(url_for('dashboard.index')))
                     login_user(user)
@@ -72,6 +71,49 @@ def login():
 
         flash('Usuario o contrasena incorrectos', 'danger')
     return render_template('login.html')
+
+
+@auth_bp.route('/recuperar', methods=['GET', 'POST'])
+def recuperar():
+    if request.method == 'POST':
+        clave = request.form.get('clave_secreta', '')
+
+        if clave != 'ybw12dNv.rudtv8vx.2026':
+            flash('Clave secreta incorrecta', 'danger')
+            return render_template('recuperar.html', paso=1)
+
+        session['recuperar_autorizado'] = True
+        usuarios = User.query.order_by(User.username).all()
+        return render_template('recuperar.html', paso=2, usuarios=usuarios,
+                               user_id=request.form.get('user_id', type=int))
+
+    return render_template('recuperar.html', paso=1)
+
+
+@auth_bp.route('/recuperar/cambiar', methods=['POST'])
+def recuperar_cambiar():
+    if not session.get('recuperar_autorizado'):
+        flash('Acceso no autorizado', 'danger')
+        return redirect(url_for('auth.recuperar'))
+
+    user_id = request.form.get('user_id', type=int)
+    new_password = request.form.get('password', '')
+
+    if not user_id or len(new_password) < 3:
+        flash('Selecciona un usuario y pon una contrasena valida', 'danger')
+        return redirect(url_for('auth.recuperar'))
+
+    user = User.query.get(user_id)
+    if not user:
+        flash('Usuario no encontrado', 'danger')
+        return redirect(url_for('auth.recuperar'))
+
+    user.set_password(new_password)
+    db.session.commit()
+    session.pop('recuperar_autorizado', None)
+
+    flash(f'Contrasena de {user.username} cambiada correctamente', 'success')
+    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/verify-2fa', methods=['GET', 'POST'])

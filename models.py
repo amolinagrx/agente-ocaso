@@ -107,6 +107,8 @@ class User(UserMixin, db.Model):
 
     def check_password(self, raw):
         return check_password_hash(self.password, raw)
+
+    def tiene_permiso(self, modulo, nivel='r'):
         """Verifica si el usuario tiene al menos nivel de permiso en un modulo."""
         if self.is_admin:
             return True
