@@ -461,58 +461,46 @@ Checkbox "Recordar este equipo 7 dias" (marcado por defecto). Al verificarte, no
 ### Recuperacion
 Si un usuario pierde el acceso a su app authenticator, el administrador puede desactivar 2FA desde Usuarios.
 
+### Recuperar contrasena
+En la pantalla de login, link **"¿Olvidaste tu contrasena?"**:
+1. Introduce la clave secreta de recuperacion
+2. Selecciona el usuario de la lista
+3. Establece nueva contrasena
+
 ---
 
 ## 17. API Externa
 
 La aplicacion expone una API REST para integraciones con terceros (agentes IA, Zapier, PowerBI, etc.).
 
-### Autenticacion
-Header HTTP: `X-API-Key: tu-token`
+> **Documentacion completa**: consulta [API.md](API.md) para la referencia detallada de todos los endpoints, parametros y ejemplos de codigo.
 
-Los tokens se generan en **Ajustes > API Keys**.
-
-### Endpoints disponibles
+### Resumen de endpoints
 
 | Metodo | Ruta | Descripcion |
 |---|---|---|
-| GET | `/v1/health` | Estado del servicio (sin auth) |
+| GET | `/v1/health` | Estado del servicio |
 | GET | `/v1/search?q=` | Busqueda unificada |
 | GET | `/v1/stats` | Estadisticas generales |
-| GET | `/v1/me` | Info del token actual |
-| GET/POST | `/v1/clientes` | Listar/Crear clientes |
-| GET/PUT/DELETE | `/v1/clientes/:id` | Ver/Editar/Eliminar cliente |
-| GET/POST | `/v1/clientes/:id/documentos` | Listar/Subir documentos |
-| GET/POST | `/v1/polizas` | Listar/Crear polizas |
-| GET/PUT/DELETE | `/v1/polizas/:id` | Ver/Editar/Eliminar poliza |
-| GET/POST | `/v1/recibos` | Listar/Crear recibos |
+| GET | `/v1/me` | Info del token |
+| GET/POST | `/v1/clientes` | CRUD clientes |
+| GET/PUT/DELETE | `/v1/clientes/:id` | Ver/Editar/Eliminar |
+| GET/POST | `/v1/clientes/:id/documentos` | Docs de cliente |
+| GET/POST | `/v1/polizas` | CRUD polizas |
+| GET/PUT/DELETE | `/v1/polizas/:id` | Ver/Editar/Eliminar |
+| GET/POST | `/v1/recibos` | CRUD recibos |
 | GET | `/v1/siniestros` | Listar siniestros |
-| GET/POST | `/v1/leads` | Listar/Crear leads |
+| GET/POST | `/v1/leads` | CRUD leads |
 
-### Ejemplos
+### Autenticacion
+
+Header HTTP: `X-API-Key: tu-token`. Los tokens se generan en **Ajustes > API Keys**.
+
+### Ejemplo rapido
 
 ```bash
-# Listar clientes
-curl -H "X-API-Key: mi-token" http://localhost:5050/v1/clientes
-
-# Crear cliente
-curl -X POST -H "X-API-Key: mi-token" \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Nuevo Cliente","telefono":"600111222"}' \
-  http://localhost:5050/v1/clientes
-
-# Buscar
-curl -H "X-API-Key: mi-token" \
-  "http://localhost:5050/v1/search?q=garcia"
-
-# Subir documento
-curl -X POST -H "X-API-Key: mi-token" \
-  -F "documento=@poliza.pdf" -F "tipo=poliza" \
-  http://localhost:5050/v1/clientes/1/documentos
+curl -H "X-API-Key: TOKEN" http://localhost:5050/v1/clientes
 ```
-
-### Paginacion
-Todos los endpoints de listado aceptan `?page=1&per_page=50` (max 200).
 
 ---
 
