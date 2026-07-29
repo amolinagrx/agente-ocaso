@@ -402,6 +402,25 @@ def leads_create():
     return jsonify(_lead_to_dict(l)), 201
 
 
+@api_externa_bp.route('/v1/leads/<int:id>', methods=['DELETE'])
+@require_api_key
+def leads_delete(id):
+    l = Lead.query.get_or_404(id)
+    db.session.delete(l)
+    db.session.commit()
+    return jsonify({'deleted': True})
+
+
+@api_externa_bp.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'No encontrado'}), 404
+
+
+@api_externa_bp.errorhandler(500)
+def server_error(e):
+    return jsonify({'error': 'Error interno del servidor'}), 500
+
+
 # ========== STATS ==========
 
 @api_externa_bp.route('/v1/stats')
