@@ -177,6 +177,16 @@
             </form>
         </div>
         <div class="card-body p-2">
+            {% if request.args.get('_show_token') %}
+            <div class="alert alert-success small mb-3">
+                <strong><i class="bi bi-check-circle me-1"></i> API Key generada. Copiala ahora:</strong>
+                <div class="input-group input-group-sm mt-2">
+                    <input type="text" class="form-control font-monospace" value="{{ request.args.get('_show_token') }}" id="newToken" readonly>
+                    <button class="btn btn-outline-secondary" onclick="copyToken('newToken')"><i class="bi bi-copy"></i></button>
+                </div>
+                <small class="text-danger">No se volvera a mostrar. Guardala en un lugar seguro.</small>
+            </div>
+            {% endif %}
             {% if api_keys %}
             <table class="table table-sm mb-0">
                 <thead><tr><th>Nombre</th><th>Token</th><th>Creada</th><th></th></tr></thead>
@@ -184,7 +194,19 @@
                     {% for k in api_keys %}
                     <tr>
                         <td>{{ k.nombre }}</td>
-                        <td><code class="small">{{ k.token[:12] }}...{{ k.token[-4:] }}</code></td>
+                        <td>
+                            <div class="input-group input-group-sm" style="max-width:320px">
+                                <input type="password" class="form-control form-control-sm font-monospace" 
+                                       value="{{ k.token }}" id="token{{ k.id }}" readonly 
+                                       style="font-size:10px">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="toggleToken('token{{ k.id }}', this)" title="Mostrar">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="copyToken('token{{ k.id }}')" title="Copiar">
+                                    <i class="bi bi-copy"></i>
+                                </button>
+                            </div>
+                        </td>
                         <td>{{ k.created_at.strftime('%d/%m/%Y') }}</td>
                         <td>
                             <form method="POST" action="{{ url_for('ajustes.revocar_api_key', id=k.id) }}">
@@ -270,6 +292,31 @@ function toggleApiKey() {
         input.type = 'password';
         icon.className = 'bi bi-eye';
     }
+}
+
+function toggleToken(id, btn) {
+    var el = document.getElementById(id);
+    var icon = btn.querySelector('i');
+    if (el.type === 'password') {
+        el.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        el.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+function copyToken(id) {
+    var el = document.getElementById(id);
+    el.type = 'text';
+    el.select();
+    document.execCommand('copy');
+    el.type = 'password';
+    // Brief feedback
+    var orig = el.value;
+    el.type = 'text';
+    el.value = 'Copiado!';
+    setTimeout(function() { el.value = orig; el.type = 'password'; }, 800);
 }
 </script>
 

@@ -176,8 +176,8 @@ def nueva_api_key():
     key = ApiKey(user_id=current_user.id, nombre=nombre, token=token)
     db.session.add(key)
     db.session.commit()
-    flash('API Key generada', 'success')
-    return redirect(url_for('ajustes.index'))
+    flash(f'API Key generada. Copiala ahora, no se volvera a mostrar.', 'warning')
+    return redirect(url_for('ajustes.index', _anchor='api-keys', _show_token=token))
 
 
 @ajustes_bp.route('/api-key/<int:id>/revocar', methods=['POST'])
