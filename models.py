@@ -100,12 +100,7 @@ class User(UserMixin, db.Model):
     activo = db.Column(db.Boolean, default=True)
     permisos = db.Column(db.Text, default='{}')
     totp_secret = db.Column(db.String(64))
-    totp_enabled = db.Column(db.Boolean, default=False)
-    email = db.Column(db.String(120))
-    email_verified = db.Column(db.Boolean, default=False)
-    email_verification_code = db.Column(db.String(10))
-    recovery_code = db.Column(db.String(64))
-    recovery_code_expires = db.Column(db.DateTime)
+    totp_enabled = db.Column(db.Boolean, default=False)  # JSON: {"modulo": "rw"|"r"|"none"}
 
     def set_password(self, raw):
         self.password = generate_password_hash(raw, method='pbkdf2:sha256')

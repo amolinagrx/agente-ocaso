@@ -24,23 +24,12 @@
                             <input type="text" name="nombre" class="form-control" placeholder="Nombre completo">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="usuario@email.com">
-                        </div>
-                        <div class="col-md-4">
                             <div class="form-check mt-4">
-                                <input class="form-check-input" type="checkbox" name="send_email" id="sendEmail" checked>
-                                <label class="form-check-label" for="sendEmail">
-                                    <small>Enviar credenciales por email</small>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_admin" id="isAdmin"
                                        onchange="togglePermisos()">
                                 <label class="form-check-label" for="isAdmin">
                                     <strong>Administrador</strong>
+                                    <small class="text-muted d-block">Acceso total a todas las areas</small>
                                 </label>
                             </div>
                         </div>

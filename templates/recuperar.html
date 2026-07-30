@@ -7,39 +7,50 @@
                 <div style="background:var(--ocaso-blue,#003396);color:white;width:72px;height:72px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:28px;font-weight:bold">O</div>
             </div>
 
-            {% if paso == 3 %}
-            <!-- Step 3: Set new password (recovery code verified) -->
-            <h5 class="mb-1 fw-bold" style="color:var(--ocaso-blue)">Nueva contrasena</h5>
-            <p class="text-muted mb-3">{{ recovery_user.username }}</p>
+            {% if paso == 1 %}
+            <h5 class="mb-1 fw-bold" style="color:var(--ocaso-blue)">Recuperar contrasena</h5>
+            <p class="text-muted mb-4">Introduce la clave secreta de recuperacion</p>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}{% for c, m in messages %}<div class="alert alert-{{ c }} py-2">{{ m }}</div>{% endfor %}{% endif %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
 
-            <form method="POST" action="{{ url_for('auth.recuperar_cambiar') }}" autocomplete="off">
+            <form method="POST" autocomplete="off">
                 <div class="mb-3 text-start">
-                    <label class="form-label">Nueva contrasena</label>
-                    <input type="password" name="password" class="form-control" required minlength="3" autofocus>
+                    <label class="form-label">Clave secreta</label>
+                    <input type="password" name="clave_secreta" class="form-control" required autofocus>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2" style="background-color:var(--ocaso-blue)">Cambiar</button>
+                <button type="submit" class="btn btn-primary w-100 py-2" style="background-color:var(--ocaso-blue)">
+                    Verificar
+                </button>
             </form>
 
-            {% elif paso == 2 %}
-            <!-- Step 2: Select user (secret key verified) -->
+            {% else %}
             <h5 class="mb-1 fw-bold" style="color:var(--ocaso-blue)">Cambiar contrasena</h5>
-            <p class="text-muted mb-3">Selecciona el usuario</p>
+            <p class="text-muted mb-3">Selecciona el usuario y pon la nueva contrasena</p>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}{% for c, m in messages %}<div class="alert alert-{{ c }} py-2">{{ m }}</div>{% endfor %}{% endif %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
 
             <form method="POST" action="{{ url_for('auth.recuperar_cambiar') }}" autocomplete="off">
                 <div class="mb-3 text-start">
                     <label class="form-label">Usuario</label>
                     <select name="user_id" class="form-select" required autofocus>
-                        <option value="">Seleccionar...</option>
+                        <option value="">Seleccionar usuario...</option>
                         {% for u in usuarios %}
-                        <option value="{{ u.id }}">{{ u.username }} - {{ u.nombre or '' }}{% if u.is_admin %} (Admin){% endif %}</option>
+                        <option value="{{ u.id }}" {% if user_id == u.id %}selected{% endif %}>
+                            {{ u.username }} - {{ u.nombre or 'Sin nombre' }}
+                            {% if u.is_admin %}(Admin){% endif %}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -47,47 +58,9 @@
                     <label class="form-label">Nueva contrasena</label>
                     <input type="password" name="password" class="form-control" required minlength="3">
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2" style="background-color:var(--ocaso-blue)">Cambiar</button>
-            </form>
-
-            {% else %}
-            <!-- Step 1: Secret key OR email OR recovery code -->
-            <h5 class="mb-1 fw-bold" style="color:var(--ocaso-blue)">Recuperar contrasena</h5>
-            <p class="text-muted mb-3">Elige un metodo de recuperacion</p>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}{% for c, m in messages %}<div class="alert alert-{{ c }} py-2">{{ m }}</div>{% endfor %}{% endif %}
-            {% endwith %}
-
-            <!-- Email recovery -->
-            <form method="POST" class="mb-3" autocomplete="off">
-                <div class="mb-2 text-start">
-                    <label class="form-label small"><strong>Por email</strong></label>
-                    <div class="input-group input-group-sm">
-                        <input type="email" name="email" class="form-control" placeholder="tu@email.com">
-                        <button class="btn btn-outline-primary">Enviar codigo</button>
-                    </div>
-                </div>
-            </form>
-
-            <!-- Recovery code -->
-            <form method="POST" class="mb-3" autocomplete="off">
-                <div class="mb-2 text-start">
-                    <label class="form-label small"><strong>Tengo un codigo</strong></label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" name="recovery_code" class="form-control text-center fs-5" placeholder="000000" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
-                        <button class="btn btn-outline-primary">Verificar</button>
-                    </div>
-                </div>
-            </form>
-
-            <hr>
-            <p class="text-muted small mb-2">O usa la clave secreta de administrador:</p>
-            <form method="POST" autocomplete="off">
-                <div class="input-group input-group-sm">
-                    <input type="password" name="clave_secreta" class="form-control" placeholder="Clave secreta">
-                    <button class="btn btn-outline-secondary">Acceder</button>
-                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2" style="background-color:var(--ocaso-blue)">
+                    Cambiar contrasena
+                </button>
             </form>
             {% endif %}
 
