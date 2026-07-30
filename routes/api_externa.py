@@ -358,6 +358,45 @@ def siniestros_list():
     })
 
 
+@api_externa_bp.route('/v1/siniestros', methods=['POST'])
+@require_api_key
+def siniestros_create():
+    data = request.get_json(force=True, silent=True) or {}
+    if not data.get('cliente_id') or not data.get('tipo') or not data.get('numero_expediente'):
+        return jsonify({'error': 'cliente_id, tipo y numero_expediente requeridos'}), 400
+
+    s = Siniestro(
+        cliente_id=data['cliente_id'],
+        poliza_id=data.get('poliza_id'),
+        numero_expediente=data['numero_expediente'],
+        tipo=data['tipo'],
+        descripcion=data.get('descripcion', ''),
+        fecha_ocurrencia=_parse_date(data.get('fecha_ocurrencia')) or date.today(),
+        fecha_apertura=_parse_date(data.get('fecha_apertura')) or date.today(),
+        estado=data.get('estado', 'abierto'),
+        importe_estimado=float(data.get('importe_estimado', 0)),
+        fecha_ultima_actualizacion=datetime.utcnow()
+    )
+    db.session.add(s)
+    db.session.commit()
+
+    from models import HitoSiniestro
+    db.session.add(HitoSiniestro(
+        siniestro_id=s.id, fecha=datetime.utcnow(),
+        estado='abierto', notas='Creado via API'
+    ))
+    db.session.commit()
+
+    return jsonify(_siniestro_to_dict(s)), 201
+
+
+@api_externa_bp.route('/v1/siniestros/<int:id>')
+@require_api_key
+def siniestros_get(id):
+    s = Siniestro.query.get_or_404(id)
+    return jsonify(_siniestro_to_dict(s))
+
+
 # ========== LEADS ==========
 
 @api_externa_bp.route('/v1/leads')
