@@ -30,6 +30,8 @@ def index():
                 _guardar_config('deepseek_api_key', api_key)
                 db.session.commit()
                 flash('API Key de Deepseek guardada', 'success')
+            else:
+                flash('La API Key no puede estar vacia', 'warning')
 
         elif seccion == 'smtp':
             _guardar_config('smtp_host', request.form.get('smtp_host', ''))
@@ -39,8 +41,6 @@ def index():
             _guardar_config('smtp_from', request.form.get('smtp_from', ''))
             db.session.commit()
             flash('Configuracion SMTP guardada', 'success')
-            else:
-                flash('La API Key no puede estar vacia', 'warning')
 
         return redirect(url_for('ajustes.index'))
 
