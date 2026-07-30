@@ -573,6 +573,39 @@ GET /v1/siniestros
 
 ---
 
+### Ver Siniestro
+
+```http
+GET /v1/siniestros/{id}
+```
+
+---
+
+### Crear Siniestro
+
+```http
+POST /v1/siniestros
+```
+
+**Body** (JSON):
+```json
+{
+  "cliente_id": 1,
+  "poliza_id": 5,
+  "numero_expediente": "EXP-2026-0001",
+  "tipo": "accidente_trafico",
+  "descripcion": "Descripcion del siniestro",
+  "fecha_ocurrencia": "2026-07-28",
+  "fecha_apertura": "2026-07-28",
+  "estado": "abierto",
+  "importe_estimado": 1500
+}
+```
+
+**Campos requeridos**: `cliente_id`, `tipo`, `numero_expediente`
+
+---
+
 ## Leads
 
 ### Listar Leads
@@ -609,6 +642,17 @@ POST /v1/leads
 ```
 
 **Campos requeridos**: `nombre`
+
+### Eliminar Lead
+
+```http
+DELETE /v1/leads/{id}
+```
+
+**Respuesta**: `200 OK`
+```json
+{ "deleted": true }
+```
 
 ---
 

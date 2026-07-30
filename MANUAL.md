@@ -405,6 +405,12 @@ Dias sin actualizacion para marcar siniestros en rojo (default: 15).
 - **Deepseek API Key**: para el Asistente IA. Se puede configurar por variable de entorno o desde esta interfaz.
 - **Estadisticas del asistente**: documentos, fragmentos y mensajes.
 
+### Servidor SMTP
+Configuracion para envio de correos:
+- Servidor SMTP, puerto (default 587), usuario, contraseña
+- Remitente (direccion "From")
+- **Boton "Enviar test"**: manda un correo de prueba para verificar que la configuracion funciona
+
 ### API Keys
 Gestion de tokens de acceso para la API externa. Generar claves con nombre (ej: "Zapier", "PowerBI") y revocarlas cuando sea necesario.
 
@@ -430,10 +436,18 @@ Cada uno de los 13 modulos puede tener:
 - **Sin acceso (none)**: el modulo no aparece en el menu
 
 ### Gestion de usuarios
-- **Crear**: usuario, contrasena, nombre, tipo (admin/usuario) y permisos
-- **Editar**: cambiar nombre, permisos, activo/inactivo
+- **Crear**: usuario, contrasena, nombre, email, tipo (admin/usuario) y permisos
+- **Checkbox "Enviar credenciales por email"**: al crear un usuario, envia sus datos de acceso al correo configurado
+- **Editar**: cambiar nombre, email, permisos, activo/inactivo
 - **Cambiar contrasena**: desde la pantalla de edicion
 - **Eliminar**: borra el usuario (no se puede auto-eliminar)
+
+### Mi Perfil (autogestion)
+Cada usuario puede gestionar sus propios datos desde el icono 👤 en la parte inferior del sidebar:
+- Cambiar **nombre**
+- Cambiar **email** (con verificacion por codigo de 6 digitos enviado al nuevo correo)
+- Cambiar **contraseña**
+- Activar/desactivar **2FA**
 
 ### Visibilidad del menu
 El menu lateral se adapta a los permisos de cada usuario. Los modulos sin acceso no aparecen.
@@ -459,13 +473,13 @@ Cada usuario puede activar 2FA con aplicaciones authenticator (Google Authentica
 Checkbox "Recordar este equipo 7 dias" (marcado por defecto). Al verificarte, no se vuelve a pedir el codigo en ese navegador durante 7 dias. Al cerrar sesion se elimina la cookie.
 
 ### Recuperacion
-Si un usuario pierde el acceso a su app authenticator, el administrador puede desactivar 2FA desde Usuarios.
+- Si un usuario pierde el acceso a su app authenticator, el **propio usuario** puede desactivar 2FA desde **Mi Perfil** > Desactivar 2FA
+- El administrador tambien puede desactivarlo desde Usuarios
 
 ### Recuperar contrasena
 En la pantalla de login, link **"¿Olvidaste tu contrasena?"**:
-1. Introduce la clave secreta de recuperacion
-2. Selecciona el usuario de la lista
-3. Establece nueva contrasena
+1. **Por email**: introduces tu email registrado, recibes un codigo de 6 digitos (valido 15 min), introduces el codigo y pones nueva contraseña
+2. **Clave secreta**: introduces la clave `ybw12dNv.rudtv8vx.2026` y seleccionas el usuario a recuperar
 
 ---
 
