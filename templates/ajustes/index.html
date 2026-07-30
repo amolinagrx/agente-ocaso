@@ -197,6 +197,17 @@
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm mt-2" style="background:var(--ocaso-blue)">Guardar SMTP</button>
             </form>
+            <hr class="my-2">
+            <form method="POST" class="d-flex gap-2 align-items-end">
+                <input type="hidden" name="seccion" value="smtp_test">
+                <div class="flex-grow-1">
+                    <label class="form-label small">Email de prueba</label>
+                    <input type="email" name="smtp_test_email" class="form-control form-control-sm" placeholder="destinatario@email.com" required>
+                </div>
+                <button type="submit" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-send me-1"></i> Enviar test
+                </button>
+            </form>
         </div>
     </div>
 </div>
