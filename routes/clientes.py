@@ -345,6 +345,7 @@ def activar_portal(id):
     password = secrets.token_urlsafe(6)[:8]
     cliente.portal_password = generate_password_hash(password, method='pbkdf2:sha256')
     cliente.portal_activo = True
+    cliente.portal_password_temporal = True
     db.session.commit()
 
     if cliente.email:
@@ -393,6 +394,7 @@ def reenviar_password(id):
 
     password = secrets.token_urlsafe(6)[:8]
     cliente.portal_password = generate_password_hash(password, method='pbkdf2:sha256')
+    cliente.portal_password_temporal = True
     db.session.commit()
 
     if cliente.email:

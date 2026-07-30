@@ -148,6 +148,7 @@ class Cliente(db.Model):
     portal_activo = db.Column(db.Boolean, default=False)
     portal_password = db.Column(db.String(256))
     portal_token = db.Column(db.String(100))
+    portal_password_temporal = db.Column(db.Boolean, default=True)
 
     polizas = db.relationship('Poliza', backref='cliente', lazy='dynamic', cascade='all, delete-orphan')
     recibos = db.relationship('Recibo', backref='cliente', lazy='dynamic', cascade='all, delete-orphan')

@@ -53,11 +53,44 @@ def login():
             session['cliente_id'] = cliente.id
             session['last_activity'] = datetime.utcnow().isoformat()
             session.permanent = True
+
+            if cliente.portal_password_temporal:
+                session['must_change_password'] = True
+                return redirect(url_for('portal.cambiar_password'))
+
             return redirect(url_for('portal.dashboard'))
 
         flash('DNI o contraseña incorrectos', 'danger')
 
     return render_template('portal/login.html')
+
+
+@portal_bp.route('/cambiar-password', methods=['GET', 'POST'])
+def cambiar_password():
+    cliente_id = session.get('cliente_id')
+    if not cliente_id:
+        return redirect(url_for('portal.login'))
+    cliente = Cliente.query.get(cliente_id)
+    if not cliente:
+        session.clear()
+        return redirect(url_for('portal.login'))
+
+    if request.method == 'POST':
+        new_pass = request.form.get('password', '')
+        confirm = request.form.get('confirm', '')
+        if len(new_pass) < 4:
+            flash('La contrasena debe tener al menos 4 caracteres', 'danger')
+        elif new_pass != confirm:
+            flash('Las contrasenas no coinciden', 'danger')
+        else:
+            cliente.portal_password = generate_password_hash(new_pass, method='pbkdf2:sha256')
+            cliente.portal_password_temporal = False
+            db.session.commit()
+            session.pop('must_change_password', None)
+            flash('Contrasena cambiada correctamente', 'success')
+            return redirect(url_for('portal.dashboard'))
+
+    return render_template('portal/cambiar_password.html', cliente=cliente)
 
 
 @portal_bp.route('/logout')

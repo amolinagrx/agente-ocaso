@@ -27,25 +27,45 @@
         <a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-pencil"></i> Editar
         </a>
-        {% if cliente.portal_activo %}
-        <span class="badge bg-success ms-1"><i class="bi bi-check-circle"></i> Portal activo</span>
-        <form method="POST" action="{{ url_for('clientes.reenviar_password', id=cliente.id) }}" class="d-inline">
-            <button class="btn btn-sm btn-outline-info ms-1" title="Reenviar contraseña"><i class="bi bi-envelope"></i></button>
-        </form>
-        <form method="POST" action="{{ url_for('clientes.desactivar_portal', id=cliente.id) }}" class="d-inline">
-            <button class="btn btn-sm btn-outline-warning ms-1" title="Desactivar portal" onclick="return confirm('¿Desactivar acceso al portal?')"><i class="bi bi-lock"></i></button>
-        </form>
-        {% else %}
-        <form method="POST" action="{{ url_for('clientes.activar_portal', id=cliente.id) }}" class="d-inline">
-            <button class="btn btn-sm btn-outline-success ms-1" title="Activar acceso al portal"><i class="bi bi-door-open"></i> Activar portal</button>
-        </form>
-        {% endif %}
         <form method="POST" action="{{ url_for('clientes.eliminar', id=cliente.id) }}" class="d-inline"
               onsubmit="return confirm('¿Estas seguro de que quieres borrar a {{ cliente.nombre }}?\n\nSe eliminaran tambien todas sus polizas, recibos, siniestros y comunicaciones.')">
             <button type="submit" class="btn btn-sm btn-outline-danger">
                 <i class="bi bi-trash"></i>
             </button>
         </form>
+    </div>
+</div>
+
+<!-- Portal de clientes -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <span><i class="bi bi-door-open me-2"></i>Portal de Clientes</span>
+                <form method="POST" action="{% if cliente.portal_activo %}{{ url_for('clientes.desactivar_portal', id=cliente.id) }}{% else %}{{ url_for('clientes.activar_portal', id=cliente.id) }}{% endif %}" class="d-inline">
+                    <div class="form-check form-switch d-inline-block me-2">
+                        <input class="form-check-input" type="checkbox" {% if cliente.portal_activo %}checked{% endif %} 
+                               onchange="this.form.submit()" style="cursor:pointer">
+                    </div>
+                </form>
+            </div>
+            {% if cliente.portal_activo %}
+            <div class="card-body py-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Acceso activo</span>
+                    {% if cliente.email %}
+                    <form method="POST" action="{{ url_for('clientes.reenviar_password', id=cliente.id) }}" class="d-inline">
+                        <button class="btn btn-sm btn-outline-info"><i class="bi bi-envelope me-1"></i> Enviar contraseña al email</button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('clientes.reenviar_password', id=cliente.id) }}" class="d-inline">
+                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-key me-1"></i> Resetear contraseña</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
