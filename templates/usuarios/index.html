@@ -15,6 +15,7 @@
             <tr>
                 <th>Usuario</th>
                 <th>Nombre</th>
+                <th class="hide-mobile">Email</th>
                 <th class="hide-mobile">Tipo</th>
                 <th class="hide-mobile">Permisos</th>
                 <th>Activo</th>
@@ -30,6 +31,7 @@
                     {% if u.is_admin %}<span class="badge bg-warning text-dark ms-1">admin</span>{% endif %}
                 </td>
                 <td>{{ u.nombre or '-' }}</td>
+                <td class="hide-mobile">{{ u.email or '-' }}</td>
                 <td class="hide-mobile">
                     {% if u.is_admin %}
                     <span class="badge bg-warning text-dark">Administrador</span>
@@ -84,7 +86,7 @@
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="text-center text-muted py-4">No hay usuarios</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">No hay usuarios</td></tr>
             {% endfor %}
         </tbody>
     </table>

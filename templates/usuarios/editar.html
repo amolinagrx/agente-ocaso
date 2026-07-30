@@ -23,7 +23,11 @@
                             <label class="form-label">Nombre</label>
                             <input type="text" name="nombre" class="form-control" value="{{ usuario.nombre or '' }}">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ usuario.email or '' }}">
+                        </div>
+                        <div class="col-md-4">
                             <div class="form-check mt-3">
                                 <input class="form-check-input" type="checkbox" name="is_admin" id="isAdmin"
                                        {% if usuario.is_admin %}checked{% endif %} onchange="togglePermisos()">

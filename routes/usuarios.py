@@ -111,6 +111,7 @@ def editar(id):
 
     if request.method == 'POST':
         user.nombre = request.form.get('nombre', '')
+        user.email = request.form.get('email', '').strip() or None
         user.is_admin = request.form.get('is_admin') == 'on'
         user.activo = request.form.get('activo') == 'on'
 
