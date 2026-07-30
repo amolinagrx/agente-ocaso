@@ -362,12 +362,15 @@ def activar_portal(id):
                     <p><a href="http://gestion.ocasoarmilla.es/portal">Acceder al portal</a></p>
                 </div>
             </div>'''
-            send_email(cliente.email, 'Acceso al portal de clientes - Ocaso', html)
-            flash(f'Portal activado. Contrasena enviada a {cliente.email}', 'success')
+            ok = send_email(cliente.email, 'Acceso al portal de clientes - Ocaso', html)
+            if ok:
+                flash(f'Portal activado. Contrasena enviada a {cliente.email}', 'success')
+            else:
+                flash(f'Portal activado. Contrasena: {password} (SMTP no configurado)', 'warning')
         except Exception:
-            flash(f'Portal activado. Contrasena: {password}. No se pudo enviar email.', 'warning')
+            flash(f'Portal activado. Contrasena: {password} (error al enviar email)', 'warning')
     else:
-        flash(f'Portal activado. Contrasena generada (sin email): {password}', 'warning')
+        flash(f'Portal activado. Contrasena: {password} (cliente sin email)', 'warning')
 
     return redirect(url_for('clientes.ficha', id=id))
 
@@ -398,17 +401,23 @@ def reenviar_password(id):
     db.session.commit()
 
     if cliente.email:
-        from utils.email import send_email
-        html = f'''
-        <div style="font-family:Arial;max-width:600px;margin:0 auto;border:1px solid #ddd;border-radius:8px;overflow:hidden">
-            <div style="background:#003396;color:white;padding:20px;text-align:center"><h2>Ocaso Seguros</h2></div>
-            <div style="padding:20px"><p>Hola <strong>{cliente.nombre}</strong>, tu nueva contrasena:</p>
-            <h2 style="text-align:center">{password}</h2></div>
-        </div>'''
-        send_email(cliente.email, 'Nueva contrasena - Portal Ocaso', html)
-        flash(f'Nueva contrasena enviada a {cliente.email}', 'success')
+        try:
+            from utils.email import send_email
+            html = f'''
+            <div style="font-family:Arial;max-width:600px;margin:0 auto;border:1px solid #ddd;border-radius:8px;overflow:hidden">
+                <div style="background:#003396;color:white;padding:20px;text-align:center"><h2>Ocaso Seguros</h2></div>
+                <div style="padding:20px"><p>Hola <strong>{cliente.nombre}</strong>, tu nueva contrasena:</p>
+                <h2 style="text-align:center">{password}</h2></div>
+            </div>'''
+            ok = send_email(cliente.email, 'Nueva contrasena - Portal Ocaso', html)
+            if ok:
+                flash(f'Nueva contrasena enviada a {cliente.email}', 'success')
+            else:
+                flash(f'Nueva contrasena: {password} (SMTP no configurado)', 'warning')
+        except Exception:
+            flash(f'Nueva contrasena: {password} (error al enviar)', 'warning')
     else:
-        flash(f'Nueva contrasena: {password} (sin email)', 'warning')
+        flash(f'Nueva contrasena: {password} (cliente sin email)', 'warning')
 
     return redirect(url_for('clientes.ficha', id=id))
 
