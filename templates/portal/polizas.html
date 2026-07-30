@@ -1,0 +1,42 @@
+{% extends "portal/base.html" %}
+{% block title %}Mis Polizas{% endblock %}
+{% block content %}
+<h4 class="mb-3"><i class="bi bi-file-earmark-text me-2" style="color:var(--portal-blue)"></i>Mis Polizas</h4>
+
+{% if polizas %}
+{% for p in polizas %}
+<div class="portal-card card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <strong>{{ p.numero_poliza }}</strong>
+                <span class="badge bg-{% if p.activa %}success{% else %}secondary{% endif %} ms-2">{% if p.activa %}Activa{% else %}De baja{% endif %}</span>
+            </div>
+            <span class="badge bg-light text-dark">{{ p.ramo.title() }}</span>
+        </div>
+        <div class="text-muted small mt-1">{{ p.compania }} | {{ p.descripcion or '' }}</div>
+
+        <button class="btn btn-sm btn-link p-0 mt-2" data-bs-toggle="collapse" data-bs-target="#poliza{{ p.id }}">
+            <i class="bi bi-chevron-down"></i> Ver detalles
+        </button>
+        <div class="collapse mt-2" id="poliza{{ p.id }}">
+            <div class="row g-2 small bg-light rounded p-2">
+                <div class="col-6"><strong>Prima anual:</strong> {{ "%.2f"|format(p.prima_anual) }}€</div>
+                <div class="col-6"><strong>Capital:</strong> {{ "%.0f"|format(p.capital_asegurado) }}€</div>
+                <div class="col-6"><strong>F. Efecto:</strong> {{ p.fecha_efecto.strftime('%d/%m/%Y') if p.fecha_efecto else '-' }}</div>
+                <div class="col-6"><strong>F. Vencimiento:</strong> {{ p.fecha_vencimiento.strftime('%d/%m/%Y') if p.fecha_vencimiento else '-' }}</div>
+                {% if p.marca %}<div class="col-6"><strong>Vehiculo:</strong> {{ p.marca }} {{ p.modelo or '' }}</div>{% endif %}
+                {% if p.matricula %}<div class="col-6"><strong>Matricula:</strong> {{ p.matricula }}</div>{% endif %}
+                {% if p.numero_cuenta %}<div class="col-12"><strong>IBAN:</strong> {{ p.numero_cuenta }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-file-earmark fs-1 d-block mb-2"></i>
+    <p>No tienes polizas registradas.</p>
+</div>
+{% endif %}
+{% endblock %}

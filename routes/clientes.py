@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, jsonify, flash, redirect,
 from flask_login import login_required
 from models import db, Cliente, Poliza, Recibo, Siniestro, HitoSiniestro, HistorialContacto, DocumentoCliente
 from datetime import datetime, date
+from werkzeug.security import generate_password_hash
+import secrets
 
 clientes_bp = Blueprint('clientes', __name__)
 
@@ -334,6 +336,79 @@ def eliminar(id):
     db.session.commit()
     flash(f'Cliente {nombre} eliminado correctamente', 'success')
     return redirect(url_for('clientes.index'))
+
+
+@clientes_bp.route('/<int:id>/activar_portal', methods=['POST'])
+@login_required
+def activar_portal(id):
+    cliente = Cliente.query.get_or_404(id)
+    password = secrets.token_urlsafe(6)[:8]
+    cliente.portal_password = generate_password_hash(password, method='pbkdf2:sha256')
+    cliente.portal_activo = True
+    db.session.commit()
+
+    if cliente.email:
+        try:
+            from utils.email import send_email
+            html = f'''
+            <div style="font-family:Arial;max-width:600px;margin:0 auto;border:1px solid #ddd;border-radius:8px;overflow:hidden">
+                <div style="background:#003396;color:white;padding:20px;text-align:center"><h2>Ocaso Seguros - Armilla</h2></div>
+                <div style="padding:20px">
+                    <h3>Acceso al portal de clientes</h3>
+                    <p>Hola <strong>{cliente.nombre}</strong>, ya puedes acceder al portal.</p>
+                    <p><strong>DNI:</strong> {cliente.dni}</p>
+                    <p><strong>Contrasena:</strong> <code>{password}</code></p>
+                    <p><a href="http://gestion.ocasoarmilla.es/portal">Acceder al portal</a></p>
+                </div>
+            </div>'''
+            send_email(cliente.email, 'Acceso al portal de clientes - Ocaso', html)
+            flash(f'Portal activado. Contrasena enviada a {cliente.email}', 'success')
+        except Exception:
+            flash(f'Portal activado. Contrasena: {password}. No se pudo enviar email.', 'warning')
+    else:
+        flash(f'Portal activado. Contrasena generada (sin email): {password}', 'warning')
+
+    return redirect(url_for('clientes.ficha', id=id))
+
+
+@clientes_bp.route('/<int:id>/desactivar_portal', methods=['POST'])
+@login_required
+def desactivar_portal(id):
+    cliente = Cliente.query.get_or_404(id)
+    cliente.portal_activo = False
+    cliente.portal_password = None
+    cliente.portal_token = None
+    db.session.commit()
+    flash('Acceso al portal desactivado', 'success')
+    return redirect(url_for('clientes.ficha', id=id))
+
+
+@clientes_bp.route('/<int:id>/reenviar_password', methods=['POST'])
+@login_required
+def reenviar_password(id):
+    cliente = Cliente.query.get_or_404(id)
+    if not cliente.portal_activo:
+        flash('El portal no esta activo para este cliente', 'warning')
+        return redirect(url_for('clientes.ficha', id=id))
+
+    password = secrets.token_urlsafe(6)[:8]
+    cliente.portal_password = generate_password_hash(password, method='pbkdf2:sha256')
+    db.session.commit()
+
+    if cliente.email:
+        from utils.email import send_email
+        html = f'''
+        <div style="font-family:Arial;max-width:600px;margin:0 auto;border:1px solid #ddd;border-radius:8px;overflow:hidden">
+            <div style="background:#003396;color:white;padding:20px;text-align:center"><h2>Ocaso Seguros</h2></div>
+            <div style="padding:20px"><p>Hola <strong>{cliente.nombre}</strong>, tu nueva contrasena:</p>
+            <h2 style="text-align:center">{password}</h2></div>
+        </div>'''
+        send_email(cliente.email, 'Nueva contrasena - Portal Ocaso', html)
+        flash(f'Nueva contrasena enviada a {cliente.email}', 'success')
+    else:
+        flash(f'Nueva contrasena: {password} (sin email)', 'warning')
+
+    return redirect(url_for('clientes.ficha', id=id))
 
 
 def _parse_date(val):

@@ -65,6 +65,7 @@ def create_app():
     from routes.usuarios import usuarios_bp
     from routes.agenda import agenda_bp
     from routes.leads import leads_bp
+    from routes.portal import portal_bp
     from routes.api_externa import api_externa_bp
     from routes.api import api_bp
 
@@ -83,6 +84,7 @@ def create_app():
     app.register_blueprint(usuarios_bp, url_prefix='/usuarios')
     app.register_blueprint(agenda_bp, url_prefix='/agenda')
     app.register_blueprint(leads_bp, url_prefix='/leads')
+    app.register_blueprint(portal_bp)
     app.register_blueprint(api_externa_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
 
@@ -163,6 +165,9 @@ def _migrar_schema():
             ('codigo_postal', 'VARCHAR(10)'),
             ('poblacion', 'VARCHAR(100)'),
             ('provincia', 'VARCHAR(100)'),
+            ('portal_activo', 'BOOLEAN DEFAULT 0'),
+            ('portal_password', 'VARCHAR(256)'),
+            ('portal_token', 'VARCHAR(100)'),
         ]:
             if col not in cliente_cols:
                 cursor.execute(f'ALTER TABLE clientes ADD COLUMN {col} {col_type}')

@@ -27,6 +27,19 @@
         <a href="{{ url_for('clientes.editar', id=cliente.id) }}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-pencil"></i> Editar
         </a>
+        {% if cliente.portal_activo %}
+        <span class="badge bg-success ms-1"><i class="bi bi-check-circle"></i> Portal activo</span>
+        <form method="POST" action="{{ url_for('clientes.reenviar_password', id=cliente.id) }}" class="d-inline">
+            <button class="btn btn-sm btn-outline-info ms-1" title="Reenviar contraseña"><i class="bi bi-envelope"></i></button>
+        </form>
+        <form method="POST" action="{{ url_for('clientes.desactivar_portal', id=cliente.id) }}" class="d-inline">
+            <button class="btn btn-sm btn-outline-warning ms-1" title="Desactivar portal" onclick="return confirm('¿Desactivar acceso al portal?')"><i class="bi bi-lock"></i></button>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('clientes.activar_portal', id=cliente.id) }}" class="d-inline">
+            <button class="btn btn-sm btn-outline-success ms-1" title="Activar acceso al portal"><i class="bi bi-door-open"></i> Activar portal</button>
+        </form>
+        {% endif %}
         <form method="POST" action="{{ url_for('clientes.eliminar', id=cliente.id) }}" class="d-inline"
               onsubmit="return confirm('¿Estas seguro de que quieres borrar a {{ cliente.nombre }}?\n\nSe eliminaran tambien todas sus polizas, recibos, siniestros y comunicaciones.')">
             <button type="submit" class="btn btn-sm btn-outline-danger">

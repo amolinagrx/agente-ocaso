@@ -145,6 +145,9 @@ class Cliente(db.Model):
     fecha_alta = db.Column(db.DateTime, default=datetime.utcnow)
     notas = db.Column(db.Text)
     alerta_devoluciones = db.Column(db.Boolean, default=False)
+    portal_activo = db.Column(db.Boolean, default=False)
+    portal_password = db.Column(db.String(256))
+    portal_token = db.Column(db.String(100))
 
     polizas = db.relationship('Poliza', backref='cliente', lazy='dynamic', cascade='all, delete-orphan')
     recibos = db.relationship('Recibo', backref='cliente', lazy='dynamic', cascade='all, delete-orphan')
