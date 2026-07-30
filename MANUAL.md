@@ -17,11 +17,12 @@ Aplicacion web para la gestion integral de una oficina de seguros Ocaso en Armil
 11. [Leads](#11-leads)
 12. [Agenda](#12-agenda)
 13. [Asistente IA](#13-asistente-ia)
-14. [Ajustes](#14-ajustes)
-15. [Usuarios y Permisos](#15-usuarios-y-permisos)
-16. [Seguridad (2FA)](#16-seguridad-2fa)
-17. [API Externa](#17-api-externa)
-18. [Copias de Seguridad](#18-copias-de-seguridad)
+14. [Portal de Clientes](#14-portal-de-clientes)
+15. [Ajustes](#15-ajustes)
+16. [Usuarios y Permisos](#16-usuarios-y-permisos)
+17. [Seguridad (2FA)](#17-seguridad-2fa)
+18. [API Externa](#18-api-externa)
+19. [Copias de Seguridad](#19-copias-de-seguridad)
 
 ---
 
@@ -389,7 +390,52 @@ Requiere API Key de Deepseek. Se configura en **Ajustes > APIs y servicios**.
 
 ---
 
-## 14. Ajustes
+## 14. Portal de Clientes
+
+**URL**: `/portal`
+
+Portal independiente para que los clientes consulten sus polizas, siniestros y documentos sin acceder al panel de administracion.
+
+### Acceso
+- Login con **DNI + contraseña** (independiente de las credenciales de admin)
+- Diseño responsive, paleta azul corporativa
+
+### Dashboard del cliente
+- **Bienvenida** con el nombre del cliente
+- **Tres tarjetas**: polizas activas, siniestros abiertos, documentos
+- **Datos de contacto**: DNI, telefono, email, direccion
+
+### Polizas
+- Listado de todas las polizas con estado (activa/de baja)
+- **Expandible**: click en "Ver detalles" muestra capital, prima, fechas, IBAN, datos del vehiculo
+
+### Siniestros
+- Tarjetas por siniestro con **codigo de colores**:
+  - 🔴 Rojo: abierto, documentacion enviada, perito, en taller
+  - 🟠 Naranja: en valoracion, pendiente resolucion
+  - 🟢 Verde: resuelto
+  - ⚫ Gris: cerrado
+- Expandible: descripcion e importe estimado
+
+### Documentos
+- Lista de documentos del cliente con fecha y tipo
+- Boton de **descarga** para cada documento
+
+### Activar acceso (administrador)
+Desde la **ficha del cliente** en el panel admin:
+1. **Toggle switch** en la seccion "Portal de Clientes" para activar el acceso
+2. **Boton "Enviar contraseña al email"**: genera contraseña temporal y la envia por correo
+3. **Boton "Resetear contraseña"**: genera nueva contraseña (si no tiene email)
+4. La contraseña es **temporal**: el cliente debe cambiarla en su primer acceso
+
+### Seguridad
+- Sesion independiente del admin (timeout 30 min)
+- Contraseñas hasheadas con pbkdf2:sha256
+- Cambio forzado de contraseña en primer acceso
+
+---
+
+## 15. Ajustes
 
 **Ruta**: `Ajustes` en el menu lateral
 
@@ -421,7 +467,7 @@ Gestion de tokens de acceso para la API externa. Generar claves con nombre (ej: 
 
 ---
 
-## 15. Usuarios y Permisos
+## 16. Usuarios y Permisos
 
 **Ruta**: `Usuarios` en el menu lateral (solo visible para administradores)
 
@@ -454,7 +500,7 @@ El menu lateral se adapta a los permisos de cada usuario. Los modulos sin acceso
 
 ---
 
-## 16. Seguridad (2FA)
+## 17. Seguridad (2FA)
 
 ### Autenticacion en dos pasos
 Cada usuario puede activar 2FA con aplicaciones authenticator (Google Authenticator, Authy, Microsoft Authenticator).
@@ -483,7 +529,7 @@ En la pantalla de login, link **"¿Olvidaste tu contrasena?"**:
 
 ---
 
-## 17. API Externa
+## 18. API Externa
 
 La aplicacion expone una API REST para integraciones con terceros (agentes IA, Zapier, PowerBI, etc.).
 
@@ -518,7 +564,7 @@ curl -H "X-API-Key: TOKEN" http://localhost:5050/v1/clientes
 
 ---
 
-## 18. Copias de Seguridad
+## 19. Copias de Seguridad
 
 ### Exportar
 En **Ajustes > Copia de seguridad y reset > Exportar backup** se descarga un archivo `.db` con toda la base de datos.
