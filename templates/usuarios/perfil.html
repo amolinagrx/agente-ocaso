@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Mi Perfil - Ocaso{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-person-circle me-2" style="color:var(--ocaso-blue)"></i>Mi Perfil</h4>
+
+<div class="row g-3">
+    <!-- Datos -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><strong>Datos personales</strong></div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="accion" value="cambiar_nombre">
+                    <div class="mb-3">
+                        <label class="form-label">Usuario</label>
+                        <input type="text" class="form-control" value="{{ usuario.username }}" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="nombre" class="form-control" value="{{ usuario.nombre or '' }}">
+                    </div>
+                    <button class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><strong>Correo electronico</strong></div>
+            <div class="card-body">
+                {% if session.get('pending_email') %}
+                <div class="alert alert-info small">
+                    Te hemos enviado un codigo a <strong>{{ session.get('pending_email') }}</strong>.
+                    Introducelo para verificar.
+                </div>
+                <form method="POST">
+                    <input type="hidden" name="accion" value="verificar_email">
+                    <div class="input-group input-group-sm mb-3">
+                        <input type="text" name="code" class="form-control text-center fs-5" placeholder="000000" 
+                               maxlength="6" pattern="[0-9]{6}" inputmode="numeric" required autofocus>
+                        <button class="btn btn-primary" style="background:var(--ocaso-blue)">Verificar</button>
+                    </div>
+                </form>
+                {% else %}
+                <form method="POST">
+                    <input type="hidden" name="accion" value="cambiar_email">
+                    <div class="input-group input-group-sm">
+                        <input type="email" name="email" class="form-control" value="{{ usuario.email or '' }}" 
+                               placeholder="tu@email.com" required>
+                        <button class="btn btn-primary" style="background:var(--ocaso-blue)">Cambiar</button>
+                    </div>
+                    {% if usuario.email_verified %}
+                    <small class="text-success"><i class="bi bi-check-circle"></i> Verificado</small>
+                    {% elif usuario.email %}
+                    <small class="text-warning"><i class="bi bi-exclamation-circle"></i> No verificado</small>
+                    {% endif %}
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrasena -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><strong>Cambiar contrasena</strong></div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="accion" value="cambiar_password">
+                    <div class="mb-2">
+                        <label class="form-label">Nueva contrasena</label>
+                        <input type="password" name="password" class="form-control form-control-sm" required minlength="3">
+                    </div>
+                    <button class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)">Actualizar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2FA -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><strong>Autenticacion en dos pasos</strong></div>
+            <div class="card-body">
+                {% if usuario.totp_enabled %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span><span class="badge bg-success"><i class="bi bi-shield-check"></i> Activado</span></span>
+                    <form method="POST" action="{{ url_for('usuarios.disable_2fa', id=usuario.id) }}">
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Desactivar 2FA? Necesitaras solo contrasena para acceder.')">
+                            <i class="bi bi-shield-x"></i> Desactivar 2FA
+                        </button>
+                    </form>
+                </div>
+                <small class="text-muted">Proteges tu cuenta con un codigo de tu app authenticator.</small>
+                {% else %}
+                <a href="{{ url_for('usuarios.setup_2fa', id=usuario.id) }}" class="btn btn-sm btn-primary" style="background:var(--ocaso-blue)">
+                    <i class="bi bi-shield-lock"></i> Activar 2FA
+                </a>
+                <small class="text-muted d-block mt-1">Anade una capa extra de seguridad a tu cuenta.</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
