@@ -51,17 +51,21 @@
             </div>
             {% if cliente.portal_activo %}
             <div class="card-body py-2">
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="badge bg-success"><i class="bi bi-check-circle"></i> Acceso activo</span>
-                    {% if cliente.email %}
-                    <form method="POST" action="{{ url_for('clientes.reenviar_password', id=cliente.id) }}" class="d-inline">
-                        <button class="btn btn-sm btn-outline-info"><i class="bi bi-envelope me-1"></i> Enviar contraseña al email</button>
-                    </form>
-                    {% else %}
-                    <form method="POST" action="{{ url_for('clientes.reenviar_password', id=cliente.id) }}" class="d-inline">
-                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-key me-1"></i> Resetear contraseña</button>
-                    </form>
+                    {% if portal_password %}
+                    <div class="input-group input-group-sm" style="max-width:280px">
+                        <input type="text" class="form-control form-control-sm font-monospace" 
+                               value="{{ portal_password }}" id="portalPass" readonly>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyToken('portalPass')">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                    </div>
+                    <small class="text-warning">Copia esta contraseña ahora</small>
                     {% endif %}
+                    <form method="POST" action="{{ url_for('clientes.reenviar_password', id=cliente.id) }}" class="d-inline">
+                        <button class="btn btn-sm btn-outline-info"><i class="bi bi-arrow-repeat me-1"></i> {% if cliente.email %}Reenviar{% else %}Resetear{% endif %} contraseña</button>
+                    </form>
                 </div>
             </div>
             {% endif %}

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, session
 from flask_login import login_required
 from models import db, Cliente, Poliza, Recibo, Siniestro, HitoSiniestro, HistorialContacto, DocumentoCliente
 from datetime import datetime, date
@@ -65,13 +65,15 @@ def ficha(id):
     siniestros = cliente.siniestros.order_by(Siniestro.fecha_apertura.desc()).all()
     contactos = cliente.contactos.limit(30).all()
     documentos = DocumentoCliente.query.filter_by(cliente_id=cliente.id).order_by(DocumentoCliente.uploaded_at.desc()).all()
+    portal_password = session.pop(f'portal_password_{id}', None)
     return render_template('clientes/ficha.html',
                            cliente=cliente,
                            polizas=polizas,
                            recibos=recibos,
                            siniestros=siniestros,
                            contactos=contactos,
-                           documentos=documentos)
+                           documentos=documentos,
+                           portal_password=portal_password)
 
 
 @clientes_bp.route('/<int:id>/editar', methods=['GET', 'POST'])
@@ -366,13 +368,17 @@ def activar_portal(id):
             if ok:
                 flash(f'Portal activado. Contrasena enviada a {cliente.email}', 'success')
             else:
-                flash(f'Portal activado. Contrasena: {password} (SMTP no configurado)', 'warning')
+                flash(f'Portal activado. Contrasena guardada (SMTP no configurado)', 'warning')
+            session[f'portal_password_{id}'] = password
+            return redirect(url_for('clientes.ficha', id=id))
         except Exception:
-            flash(f'Portal activado. Contrasena: {password} (error al enviar email)', 'warning')
+            session[f'portal_password_{id}'] = password
+            flash(f'Portal activado.', 'warning')
+            return redirect(url_for('clientes.ficha', id=id))
     else:
-        flash(f'Portal activado. Contrasena: {password} (cliente sin email)', 'warning')
-
-    return redirect(url_for('clientes.ficha', id=id))
+        session[f'portal_password_{id}'] = password
+        flash(f'Portal activado.', 'warning')
+        return redirect(url_for('clientes.ficha', id=id))
 
 
 @clientes_bp.route('/<int:id>/desactivar_portal', methods=['POST'])
@@ -413,11 +419,15 @@ def reenviar_password(id):
             if ok:
                 flash(f'Nueva contrasena enviada a {cliente.email}', 'success')
             else:
-                flash(f'Nueva contrasena: {password} (SMTP no configurado)', 'warning')
+                flash(f'Contrasena guardada (SMTP no configurado)', 'warning')
+            session[f'portal_password_{id}'] = password
+            return redirect(url_for('clientes.ficha', id=id))
         except Exception:
-            flash(f'Nueva contrasena: {password} (error al enviar)', 'warning')
+            session[f'portal_password_{id}'] = password
+            return redirect(url_for('clientes.ficha', id=id))
     else:
-        flash(f'Nueva contrasena: {password} (cliente sin email)', 'warning')
+        session[f'portal_password_{id}'] = password
+        flash(f'Nueva contrasena generada.', 'warning')
 
     return redirect(url_for('clientes.ficha', id=id))
 
