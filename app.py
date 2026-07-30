@@ -11,8 +11,14 @@ def create_app():
     @app.context_processor
     def inject_globals():
         from models import COMPANIAS_ESPANA, RAMOS_ESPANA
+        version = '1.0.0'
+        try:
+            with open(os.path.join(os.path.dirname(__file__), 'VERSION')) as f:
+                version = f.read().strip()
+        except Exception:
+            pass
         return {'companias': COMPANIAS_ESPANA, 'ramos_list': RAMOS_ESPANA,
-                'today': __import__('datetime').date.today()}
+                'today': __import__('datetime').date.today(), 'app_version': version}
 
     @app.route('/')
     def root():
