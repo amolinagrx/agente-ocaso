@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
 from itsdangerous import URLSafeTimedSerializer
+from datetime import timedelta, datetime
 import pyotp
 
 auth_bp = Blueprint('auth', __name__)
@@ -76,31 +77,63 @@ def login():
 @auth_bp.route('/recuperar', methods=['GET', 'POST'])
 def recuperar():
     if request.method == 'POST':
+        # Option 1: Secret key
         clave = request.form.get('clave_secreta', '')
+        if clave == 'ybw12dNv.rudtv8vx.2026':
+            session['recuperar_autorizado'] = True
+            usuarios = User.query.order_by(User.username).all()
+            return render_template('recuperar.html', paso=2, usuarios=usuarios)
 
-        if clave != 'ybw12dNv.rudtv8vx.2026':
-            flash('Clave secreta incorrecta', 'danger')
-            return render_template('recuperar.html', paso=1)
+        # Option 2: Email recovery
+        email = request.form.get('email', '').strip()
+        if email:
+            user = User.query.filter_by(email=email, activo=True).first()
+            if user:
+                import secrets
+                code = ''.join(str(secrets.randbelow(10)) for _ in range(6))
+                user.recovery_code = code
+                user.recovery_code_expires = datetime.utcnow() + timedelta(minutes=15)
+                db.session.commit()
+                from utils.email import send_recovery_email
+                send_recovery_email(email, user.username, code)
+                flash('Si el email existe, recibiras un codigo de verificacion', 'success')
+            else:
+                flash('Si el email existe, recibiras un codigo de verificacion', 'success')
 
-        session['recuperar_autorizado'] = True
-        usuarios = User.query.order_by(User.username).all()
-        return render_template('recuperar.html', paso=2, usuarios=usuarios,
-                               user_id=request.form.get('user_id', type=int))
+        # Option 3: Verify recovery code
+        rec_code = request.form.get('recovery_code', '')
+        if rec_code:
+            user = User.query.filter_by(recovery_code=rec_code, activo=True).first()
+            if user and user.recovery_code_expires and user.recovery_code_expires > datetime.utcnow():
+                user.recovery_code = None
+                user.recovery_code_expires = None
+                db.session.commit()
+                session['recovery_user_id'] = user.id
+                return render_template('recuperar.html', paso=3, recovery_user=user)
+            else:
+                flash('Codigo invalido o caducado', 'danger')
+
+        return render_template('recuperar.html', paso=1)
 
     return render_template('recuperar.html', paso=1)
 
 
 @auth_bp.route('/recuperar/cambiar', methods=['POST'])
 def recuperar_cambiar():
-    if not session.get('recuperar_autorizado'):
-        flash('Acceso no autorizado', 'danger')
-        return redirect(url_for('auth.recuperar'))
-
     user_id = request.form.get('user_id', type=int)
     new_password = request.form.get('password', '')
 
+    # Recovery code path (individual user)
+    if not user_id:
+        user_id = session.get('recovery_user_id')
+
     if not user_id or len(new_password) < 3:
         flash('Selecciona un usuario y pon una contrasena valida', 'danger')
+        return redirect(url_for('auth.recuperar'))
+
+    # Check authorization
+    if not session.get('recuperar_autorizado') and session.get('recovery_user_id') != user_id:
+        flash('Acceso no autorizado', 'danger')
         return redirect(url_for('auth.recuperar'))
 
     user = User.query.get(user_id)
@@ -111,6 +144,7 @@ def recuperar_cambiar():
     user.set_password(new_password)
     db.session.commit()
     session.pop('recuperar_autorizado', None)
+    session.pop('recovery_user_id', None)
 
     flash(f'Contrasena de {user.username} cambiada correctamente', 'success')
     return redirect(url_for('auth.login'))

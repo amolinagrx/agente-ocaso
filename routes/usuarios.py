@@ -58,9 +58,11 @@ def nuevo():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
         nombre = request.form.get('nombre', '')
+        email = request.form.get('email', '').strip()
+        send_credentials = request.form.get('send_email') == 'on'
 
         if not username or not password:
-            flash('Usuario y contraseña son obligatorios', 'danger')
+            flash('Usuario y contrasena son obligatorios', 'danger')
             return redirect(url_for('usuarios.nuevo'))
 
         if User.query.filter_by(username=username).first():
@@ -77,11 +79,17 @@ def nuevo():
 
         user = User(
             username=username, password='pending', nombre=nombre,
-            is_admin=is_admin, permisos=json.dumps(permisos), activo=True
+            is_admin=is_admin, permisos=json.dumps(permisos), activo=True,
+            email=email
         )
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
+
+        if send_credentials and email:
+            from utils.email import send_new_user_email
+            send_new_user_email(email, username, password)
+
         flash(f'Usuario {username} creado', 'success')
         return redirect(url_for('usuarios.index'))
 
@@ -191,15 +199,76 @@ def setup_2fa(id):
 @usuarios_bp.route('/<int:id>/2fa/disable', methods=['POST'])
 @login_required
 def disable_2fa(id):
-    """Disable 2FA for a user."""
+    """Disable 2FA for a user. Admin or self."""
     user = User.query.get_or_404(id)
 
-    if not current_user.is_admin:
-        flash('Solo el administrador puede desactivar 2FA', 'danger')
+    if not current_user.is_admin and current_user.id != user.id:
+        flash('No tienes permisos para desactivar 2FA', 'danger')
         return redirect(url_for('usuarios.index'))
 
     user.totp_secret = None
     user.totp_enabled = False
     db.session.commit()
     flash(f'2FA desactivado para {user.username}', 'success')
-    return redirect(url_for('usuarios.index'))
+    return redirect(url_for('usuarios.index') if current_user.is_admin else url_for('usuarios.perfil'))
+
+
+@usuarios_bp.route('/perfil', methods=['GET', 'POST'])
+@login_required
+def perfil():
+    """Self-service profile page for any user."""
+    user = current_user
+
+    if request.method == 'POST':
+        accion = request.form.get('accion', '')
+
+        if accion == 'cambiar_password':
+            new_pass = request.form.get('password', '')
+            if len(new_pass) < 3:
+                flash('Contrasena demasiado corta', 'danger')
+            else:
+                user.set_password(new_pass)
+                db.session.commit()
+                flash('Contrasena actualizada', 'success')
+
+        elif accion == 'cambiar_email':
+            new_email = request.form.get('email', '').strip()
+            if not new_email:
+                flash('Email requerido', 'danger')
+            else:
+                code = generate_code()
+                user.email_verification_code = code
+                user.email_verified = False
+                db.session.commit()
+                from utils.email import send_verification_email
+                send_verification_email(new_email, user.username, code)
+                session['pending_email'] = new_email
+                flash('Te hemos enviado un codigo de verificacion a ' + new_email, 'info')
+                return redirect(url_for('usuarios.perfil'))
+
+        elif accion == 'verificar_email':
+            code = request.form.get('code', '').strip()
+            pending = session.get('pending_email', '')
+            if code == user.email_verification_code:
+                user.email = pending
+                user.email_verified = True
+                user.email_verification_code = None
+                session.pop('pending_email', None)
+                db.session.commit()
+                flash('Email verificado correctamente', 'success')
+            else:
+                flash('Codigo incorrecto', 'danger')
+
+        elif accion == 'cambiar_nombre':
+            user.nombre = request.form.get('nombre', '')
+            db.session.commit()
+            flash('Nombre actualizado', 'success')
+
+        return redirect(url_for('usuarios.perfil'))
+
+    return render_template('usuarios/perfil.html', usuario=user)
+
+
+def generate_code(length=6):
+    import random
+    return ''.join(str(random.randint(0, 9)) for _ in range(length))
