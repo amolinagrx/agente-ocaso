@@ -167,8 +167,42 @@
         </div>
     </div>
 
-    <!-- API Keys -->
-    <div class="card mt-3" id="api-keys">
+    <!-- SMTP Config -->
+    <div class="card mt-3">
+        <div class="card-header"><i class="bi bi-envelope me-2"></i>Servidor SMTP (correos)</div>
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="seccion" value="smtp">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <label class="form-label small">Servidor SMTP</label>
+                        <input type="text" name="smtp_host" class="form-control form-control-sm" value="{{ config.get('smtp_host', '') }}" placeholder="smtp.gmail.com">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Puerto</label>
+                        <input type="number" name="smtp_port" class="form-control form-control-sm" value="{{ config.get('smtp_port', '587') }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small">Usuario</label>
+                        <input type="text" name="smtp_user" class="form-control form-control-sm" value="{{ config.get('smtp_user', '') }}" placeholder="usuario@gmail.com">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Contrasena</label>
+                        <input type="password" name="smtp_pass" class="form-control form-control-sm" value="{{ config.get('smtp_pass', '') }}" placeholder="App password">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small">Remitente</label>
+                        <input type="text" name="smtp_from" class="form-control form-control-sm" value="{{ config.get('smtp_from', config.get('smtp_user', '')) }}" placeholder="Ocaso Armilla <armilla@ocaso.es>">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm mt-2" style="background:var(--ocaso-blue)">Guardar SMTP</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- API Keys -->
+<div class="card mt-3" id="api-keys">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-key me-2"></i>API Keys para integraciones</span>
             <form method="POST" action="{{ url_for('ajustes.nueva_api_key') }}" class="d-flex gap-2">
