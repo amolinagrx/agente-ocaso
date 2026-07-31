@@ -33,7 +33,7 @@ def send_email(to, subject, body_html):
     from_addr = _get_config_val('smtp_from', user)
 
     if not host or not user:
-        print('SMTP no configurado')
+        print('SMTP: no configurado')
         return False
 
     try:
@@ -48,15 +48,55 @@ def send_email(to, subject, body_html):
             server = smtplib.SMTP_SSL(host, port_int, timeout=10)
         else:
             server = smtplib.SMTP(host, port_int, timeout=10)
-            server.starttls()
+            server.ehlo()
+            if server.has_extn('STARTTLS'):
+                server.starttls()
+                server.ehlo()
 
         server.login(user, password)
         server.sendmail(from_addr, [to], msg.as_string())
         server.quit()
         return True
-    except Exception as e:
-        print(f'Error enviando email: {e}')
+    except smtplib.SMTPAuthenticationError:
+        print('SMTP: error de autenticacion')
         return False
+    except smtplib.SMTPConnectError:
+        print(f'SMTP: no se pudo conectar a {host}:{port}')
+        return False
+    except Exception as e:
+        print(f'SMTP error: {e}')
+        return False
+
+
+def test_smtp_connection():
+    """Test SMTP connection and return (ok, message)."""
+    host = _get_config_val('smtp_host')
+    port = _get_config_val('smtp_port', '587')
+    user = _get_config_val('smtp_user')
+    password = _get_config_val('smtp_pass')
+
+    if not host or not user:
+        return False, 'SMTP no configurado. Ve a Ajustes > Servidor SMTP.'
+
+    try:
+        port_int = int(port) if port else 587
+        if port_int == 465:
+            server = smtplib.SMTP_SSL(host, port_int, timeout=10)
+        else:
+            server = smtplib.SMTP(host, port_int, timeout=10)
+            server.ehlo()
+            if server.has_extn('STARTTLS'):
+                server.starttls()
+                server.ehlo()
+        server.login(user, password)
+        server.quit()
+        return True, f'Conexion exitosa a {host}:{port}'
+    except smtplib.SMTPAuthenticationError:
+        return False, 'Error de autenticacion. Verifica usuario y contraseña (usa App Password en Gmail).'
+    except smtplib.SMTPConnectError:
+        return False, f'No se pudo conectar a {host}:{port}. Verifica servidor y puerto.'
+    except Exception as e:
+        return False, f'Error: {str(e)[:200]}'
 
 
 def send_new_user_email(email_to, username, password):

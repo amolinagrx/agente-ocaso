@@ -43,17 +43,19 @@ def index():
             flash('Configuracion SMTP guardada', 'success')
 
         elif seccion == 'smtp_test':
-            from utils.email import send_email
+            from utils.email import test_smtp_connection
             test_to = request.form.get('smtp_test_email', '').strip()
             if not test_to:
                 flash('Introduce un email de prueba', 'warning')
             else:
-                ok = send_email(test_to, 'Ocaso Gestion - Test SMTP',
-                                '<h3>Test SMTP</h3><p>Si ves esto, el servidor SMTP funciona correctamente.</p>')
+                ok, msg = test_smtp_connection()
                 if ok:
-                    flash(f'Email de prueba enviado a {test_to}. Revisa tu bandeja.', 'success')
+                    from utils.email import send_email
+                    send_email(test_to, 'Ocaso Gestion - Test SMTP',
+                               '<h3>Test SMTP</h3><p>Si ves esto, el servidor SMTP funciona.</p>')
+                    flash(f'Conexion OK. Email enviado a {test_to}', 'success')
                 else:
-                    flash('Error al enviar. Revisa los datos SMTP.', 'danger')
+                    flash(f'Error: {msg}', 'danger')
 
         return redirect(url_for('ajustes.index'))
 
