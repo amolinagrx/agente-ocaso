@@ -73,6 +73,9 @@
                     <a href="{{ url_for('usuarios.editar', id=u.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </a>
+                    <form method="POST" action="{{ url_for('usuarios.reenviar_credenciales', id=u.id) }}" class="d-inline" title="Reenviar credenciales">
+                        <button class="btn btn-sm btn-outline-info"><i class="bi bi-envelope"></i></button>
+                    </form>
                     <a href="{{ url_for('usuarios.setup_2fa', id=u.id) }}" class="btn btn-sm btn-outline-secondary" title="Configurar 2FA">
                         <i class="bi bi-shield-lock"></i>
                     </a>

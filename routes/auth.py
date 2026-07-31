@@ -55,6 +55,11 @@ def login():
                 flash('Usuario desactivado. Contacta con el administrador.', 'danger')
                 return render_template('login.html')
 
+            if user.password_temporal:
+                session['pending_user_id'] = user.id
+                session['must_change_password'] = True
+                return redirect(url_for('auth.cambiar_password'))
+
             if user.totp_enabled:
                 if _check_remember_cookie(user.id):
                     resp = make_response(redirect(url_for('dashboard.index')))
@@ -148,6 +153,37 @@ def recuperar_cambiar():
 
     flash(f'Contrasena de {user.username} cambiada correctamente', 'success')
     return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/cambiar-password', methods=['GET', 'POST'])
+def cambiar_password():
+    user_id = session.get('pending_user_id')
+    if not user_id or not session.get('must_change_password'):
+        return redirect(url_for('auth.login'))
+
+    user = User.query.get(user_id)
+    if not user:
+        session.clear()
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        new_pass = request.form.get('password', '')
+        confirm = request.form.get('confirm', '')
+        if len(new_pass) < 4:
+            flash('La contrasena debe tener al menos 4 caracteres', 'danger')
+        elif new_pass != confirm:
+            flash('Las contrasenas no coinciden', 'danger')
+        else:
+            user.set_password(new_pass)
+            user.password_temporal = False
+            db.session.commit()
+            session.pop('must_change_password', None)
+            session.pop('pending_user_id', None)
+            login_user(user)
+            flash('Contrasena cambiada correctamente', 'success')
+            return redirect(url_for('dashboard.index'))
+
+    return render_template('cambiar_password.html', username=user.username)
 
 
 @auth_bp.route('/verify-2fa', methods=['GET', 'POST'])

@@ -101,6 +101,7 @@ class User(UserMixin, db.Model):
     permisos = db.Column(db.Text, default='{}')
     totp_secret = db.Column(db.String(64))
     totp_enabled = db.Column(db.Boolean, default=False)
+    password_temporal = db.Column(db.Boolean, default=False)
     email = db.Column(db.String(120))
     email_verified = db.Column(db.Boolean, default=False)
     email_verification_code = db.Column(db.String(10))

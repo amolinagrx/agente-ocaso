@@ -3,7 +3,8 @@ import pyotp
 import qrcode
 import base64
 import io
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+import secrets
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from flask_login import login_required, current_user
 from models import db, User
 
@@ -212,6 +213,34 @@ def disable_2fa(id):
     db.session.commit()
     flash(f'2FA desactivado para {user.username}', 'success')
     return redirect(url_for('usuarios.index') if current_user.is_admin else url_for('usuarios.perfil'))
+
+
+@usuarios_bp.route('/<int:id>/reenviar_credenciales', methods=['POST'])
+@login_required
+def reenviar_credenciales(id):
+    if not current_user.is_admin:
+        return requiere_admin()
+    user = User.query.get_or_404(id)
+    password = secrets.token_urlsafe(6)[:8]
+    user.set_password(password)
+    user.password_temporal = True
+    db.session.commit()
+
+    if user.email:
+        try:
+            from utils.email import send_email
+            ok = send_email(user.email, 'Credenciales Ocaso Gestion',
+                f'<h3>Credenciales</h3><p>Usuario: {user.username}</p><p>Contrasena temporal: <b>{password}</b></p><p>Deberas cambiarla al iniciar sesion.</p>')
+            if ok:
+                flash(f'Credenciales enviadas a {user.email}', 'success')
+            else:
+                flash(f'Credenciales: {password} (SMTP no configurado)', 'warning')
+        except Exception:
+            flash(f'Credenciales: {password}', 'warning')
+    else:
+        flash(f'Credenciales: {password} (sin email)', 'warning')
+
+    return redirect(url_for('usuarios.index'))
 
 
 @usuarios_bp.route('/perfil', methods=['GET', 'POST'])
