@@ -299,6 +299,16 @@ def perfil():
     return render_template('usuarios/perfil.html', usuario=user)
 
 
+@usuarios_bp.route('/cancelar-verificacion', methods=['POST'])
+@login_required
+def cancelar_verificacion():
+    session.pop('pending_email', None)
+    current_user.email_verification_code = None
+    db.session.commit()
+    flash('Verificacion cancelada', 'info')
+    return redirect(url_for('usuarios.perfil'))
+
+
 def generate_code(length=6):
     import random
     return ''.join(str(random.randint(0, 9)) for _ in range(length))

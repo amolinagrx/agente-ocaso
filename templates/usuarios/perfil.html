@@ -44,6 +44,9 @@
                         <button class="btn btn-primary" style="background:var(--ocaso-blue)">Verificar</button>
                     </div>
                 </form>
+                <form method="POST" action="{{ url_for('usuarios.cancelar_verificacion') }}" class="d-inline">
+                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle me-1"></i> Cancelar</button>
+                </form>
                 {% else %}
                 <form method="POST">
                     <input type="hidden" name="accion" value="cambiar_email">
