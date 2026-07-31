@@ -23,6 +23,7 @@ MODULOS = [
     ('agenda', 'Agenda'),
     ('leads', 'Leads'),
     ('utilidades', 'Utilidades'),
+    ('cartera', 'Cartera'),
     ('asistente', 'Asistente IA'),
     ('ajustes', 'Ajustes'),
     ('usuarios', 'Gestion de Usuarios'),

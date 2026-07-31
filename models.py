@@ -378,13 +378,29 @@ class Lead(db.Model):
     poblacion = db.Column(db.String(100))
     provincia = db.Column(db.String(100))
     ramo_interes = db.Column(db.String(100))
-    origen = db.Column(db.String(50), default='web')  # web, telefono, presencial, recomendacion, otro
-    estado = db.Column(db.String(30), default='nuevo')  # nuevo, contactado, presupuesto, ganado, perdido
+    origen = db.Column(db.String(50), default='web')
+    estado = db.Column(db.String(30), default='nuevo')
     notas = db.Column(db.Text)
     cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Cartera(db.Model):
+    __tablename__ = 'cartera'
+    id = db.Column(db.Integer, primary_key=True)
+    mes = db.Column(db.Integer, nullable=False)
+    anio = db.Column(db.Integer, nullable=False)
+    nombre_archivo = db.Column(db.String(300))
+    ruta_archivo = db.Column(db.String(500))
+    contenido_texto = db.Column(db.Text)
+    num_polizas = db.Column(db.Integer)
+    num_asegurados = db.Column(db.Integer)
+    prima_total = db.Column(db.Float)
+    analisis_ia = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class ApiKey(db.Model):

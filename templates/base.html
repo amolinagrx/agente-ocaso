@@ -73,6 +73,11 @@
                 <i class="bi bi-whatsapp me-2"></i> <span class="nav-label">WhatsApp</span>
             </a>
             {% endif %}
+            {% if current_user.tiene_permiso('cartera') %}
+            <a href="{{ url_for('cartera.index') }}" class="list-group-item list-group-item-action" data-nav="cartera">
+                <i class="bi bi-graph-up-arrow me-2"></i> <span class="nav-label">Cartera</span>
+            </a>
+            {% endif %}
             {% if current_user.tiene_permiso('utilidades') %}
             <a href="{{ url_for('utilidades.index') }}" class="list-group-item list-group-item-action" data-nav="utilidades">
                 <i class="bi bi-tools me-2"></i> <span class="nav-label">Utilidades</span>

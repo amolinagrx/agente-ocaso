@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Cartera - Ocaso{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-graph-up-arrow me-2" style="color:var(--ocaso-blue)"></i>Control de Cartera</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-upload me-2"></i>Subir cartera mensual</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('cartera.subir') }}" enctype="multipart/form-data">
+                    <div class="row g-2">
+                        <div class="col-5">
+                            <label class="form-label small">Mes</label>
+                            <select name="mes" class="form-select form-select-sm" required>
+                                <option value="">--</option>
+                                {% for m in range(1,13) %}
+                                <option value="{{ m }}" {% if m == today.month %}selected{% endif %}>{{ meses[m] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label small">Año</label>
+                            <select name="anio" class="form-select form-select-sm" required>
+                                {% for y in range(2024, 2031) %}
+                                <option value="{{ y }}" {% if y == today.year %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">
+                                <i class="bi bi-cloud-upload"></i> Subir
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <input type="file" name="archivo" class="form-control form-control-sm" accept=".pdf,.xlsx,.xls,.csv" required>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi bi-graph-up me-2"></i>Evolucion</div>
+            <div class="card-body">
+                <canvas id="carteraChart" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History table -->
+<div class="card">
+    <div class="card-header"><i class="bi bi-clock-history me-2"></i>Historial</div>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Periodo</th><th>Archivo</th><th>Polizas</th><th>Asegurados</th>
+                    <th>Prima (€)</th><th>Analisis IA</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in registros %}
+                <tr>
+                    <td><strong>{{ meses[r.mes] }} {{ r.anio }}</strong></td>
+                    <td><small>{{ r.nombre_archivo }}</small></td>
+                    <td>{{ r.num_polizas or '-' }}</td>
+                    <td>{{ r.num_asegurados or '-' }}</td>
+                    <td>{% if r.prima_total %}{{ "%.0f"|format(r.prima_total) }}€{% else %}-{% endif %}</td>
+                    <td>
+                        {% if r.analisis_ia %}
+                        <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#analisis{{ r.id }}">
+                            <i class="bi bi-eye"></i> Ver
+                        </button>
+                        <div class="modal fade" id="analisis{{ r.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header"><h5>Analisis {{ meses[r.mes] }} {{ r.anio }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                    <div class="modal-body" style="white-space:pre-wrap;font-size:0.9rem">{{ r.analisis_ia }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('cartera.analizar', id=r.id) }}" class="d-inline">
+                            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-magic"></i> Analizar</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('cartera.eliminar', id=r.id) }}">
+                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar registro?')"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted py-4">Sin registros. Sube el primer archivo de cartera.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+new Chart(document.getElementById('carteraChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: [{% for l in labels %}'{{ l }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Polizas', data: [{% for p in polizas %}{{ p }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'var(--ocaso-blue)', tension: 0.3, yAxisID: 'y'
+        }, {
+            label: 'Asegurados', data: [{% for a in asegurados %}{{ a }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: '#27ae60', tension: 0.3, yAxisID: 'y'
+        }, {
+            label: 'Prima (€)', data: [{% for p in prima %}{{ p }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: '#e74c3c', tension: 0.3, yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+            y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Cantidad' } },
+            y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Euros' }, grid: { drawOnChartArea: false } }
+        }
+    }
+});
+</script>
+
+{% endblock %}
