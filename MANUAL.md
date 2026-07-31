@@ -11,7 +11,9 @@ Aplicacion web para la gestion integral de una oficina de seguros Ocaso en Armil
 5. [Polizas](#5-polizas)
 6. [Renovaciones](#6-renovaciones)
 7. [Listados](#7-listados)
-8. [Siniestros](#8-siniestros)
+8. [Cartera](#8-cartera)
+9. [Utilidades](#9-utilidades)
+10. [Siniestros](#10-siniestros)
 9. [Comunicaciones](#9-comunicaciones)
 10. [WhatsApp](#10-whatsapp)
 11. [Leads](#11-leads)
@@ -233,7 +235,46 @@ Todos los listados se pueden imprimir con el boton de impresora.
 
 ---
 
-## 8. Siniestros
+## 8. Cartera
+
+**Ruta**: `Cartera` en el menu lateral
+
+Control mensual de la cartera activa de la oficina con analisis de IA.
+
+### Subir cartera
+- Selecciona **mes** y **año** del informe
+- Sube archivo **PDF o Excel** con los datos de la cartera
+- Si ya existe un registro para ese mes, se reemplaza
+
+### Grafico de evolucion
+Tres lineas de tendencia: polizas activas, asegurados, prima total.
+
+### Analisis IA
+- Boton **Analizar** en cada registro
+- Deepseek extrae datos clave y compara con el mes anterior
+- Detecta: crecimiento/decrecimiento, fugas por ramo, recomendaciones
+- El analisis queda guardado y se puede consultar
+
+### Historial
+Tabla con todos los meses cargados: periodo, archivo, polizas, asegurados, prima y acceso al analisis.
+
+---
+
+## 9. Utilidades
+
+**Ruta**: `Utilidades` en el menu lateral
+
+Herramientas practicas para el dia a dia.
+
+### Comparativa de Polizas
+- **Sube 2 o mas PDFs** de polizas de diferentes aseguradoras
+- La IA de Deepseek extrae coberturas, capitales, franquicias y primas
+- Genera **tabla comparativa** y recomendacion de mejor relacion calidad-precio
+- **Descarga el informe en PDF** con formato corporativo Ocaso
+
+---
+
+## 10. Siniestros
 
 **Ruta**: `Siniestros` en el menu lateral
 
@@ -256,7 +297,7 @@ Formulario con: cliente, poliza asociada, numero de expediente, tipo, importe es
 
 ---
 
-## 9. Comunicaciones
+## 11. Comunicaciones
 
 **Ruta**: `Comunicaciones` en el menu lateral
 
@@ -291,7 +332,7 @@ Boton `Nueva plantilla` para crear tus propias plantillas con las variables disp
 
 ---
 
-## 10. WhatsApp
+## 12. WhatsApp
 
 **Ruta**: `WhatsApp` en el menu lateral
 
@@ -316,7 +357,7 @@ Se configura en **Ajustes > WhatsApp empresa** (con prefijo 34).
 
 ---
 
-## 11. Leads
+## 13. Leads
 
 **Ruta**: `Leads` en el menu lateral
 
@@ -342,7 +383,7 @@ Web, Telefono, Presencial, Recomendacion, Otro
 
 ---
 
-## 12. Agenda
+## 14. Agenda
 
 **Ruta**: `Agenda` en el menu lateral
 
@@ -366,7 +407,7 @@ Agenda personal por usuario. Cada usuario ve solo sus propias entradas.
 
 ---
 
-## 13. Asistente IA
+## 15. Asistente IA
 
 **Ruta**: `Asistente IA` en el menu lateral
 
@@ -390,7 +431,7 @@ Requiere API Key de Deepseek. Se configura en **Ajustes > APIs y servicios**.
 
 ---
 
-## 14. Portal de Clientes
+## 16. Portal de Clientes
 
 **URL**: `/portal`
 
@@ -435,7 +476,7 @@ Desde la **ficha del cliente** en el panel admin:
 
 ---
 
-## 15. Ajustes
+## 17. Ajustes
 
 **Ruta**: `Ajustes` en el menu lateral
 
@@ -467,7 +508,7 @@ Gestion de tokens de acceso para la API externa. Generar claves con nombre (ej: 
 
 ---
 
-## 16. Usuarios y Permisos
+## 18. Usuarios y Permisos
 
 **Ruta**: `Usuarios` en el menu lateral (solo visible para administradores)
 
@@ -500,7 +541,7 @@ El menu lateral se adapta a los permisos de cada usuario. Los modulos sin acceso
 
 ---
 
-## 17. Seguridad (2FA)
+## 19. Seguridad (2FA)
 
 ### Autenticacion en dos pasos
 Cada usuario puede activar 2FA con aplicaciones authenticator (Google Authenticator, Authy, Microsoft Authenticator).
@@ -529,7 +570,7 @@ En la pantalla de login, link **"¿Olvidaste tu contrasena?"**:
 
 ---
 
-## 18. API Externa
+## 20. API Externa
 
 La aplicacion expone una API REST para integraciones con terceros (agentes IA, Zapier, PowerBI, etc.).
 
@@ -564,7 +605,7 @@ curl -H "X-API-Key: TOKEN" http://localhost:5050/v1/clientes
 
 ---
 
-## 19. Copias de Seguridad
+## 21. Copias de Seguridad
 
 ### Exportar
 En **Ajustes > Copia de seguridad y reset > Exportar backup** se descarga un archivo `.db` con toda la base de datos.
