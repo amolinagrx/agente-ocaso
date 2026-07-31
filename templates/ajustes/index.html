@@ -64,7 +64,27 @@
 
     <!-- Google Drive -->
     <div class="card mt-3">
-        <div class="card-header"><i class="bi bi-google me-2"></i>Google Drive (documentos clientes)</div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-google me-2"></i>Google Drive (documentos clientes)</span>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#driveHelp">
+                <i class="bi bi-question-circle me-1"></i> Como configurarlo
+            </button>
+        </div>
+        <div class="collapse" id="driveHelp">
+            <div class="card-body bg-light border-bottom small">
+                <ol class="mb-0">
+                    <li class="mb-2">Ve a <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a> y crea un proyecto (o usa uno existente).</li>
+                    <li class="mb-2">En <strong>APIs y Servicios > Biblioteca</strong>, busca y habilita <strong>Google Drive API</strong>.</li>
+                    <li class="mb-2">En <strong>APIs y Servicios > Credenciales</strong>, pulsa <strong>Crear credenciales > Cuenta de servicio</strong>.</li>
+                    <li class="mb-2">Dale un nombre (ej: "ocaso-drive"), asigna el rol <strong>Editor</strong> y creala.</li>
+                    <li class="mb-2">Haz click en la cuenta creada > <strong>Claves > Agregar clave > JSON</strong>. Descarga el archivo.</li>
+                    <li class="mb-2">Sube ese archivo JSON aqui abajo en "Archivo JSON de cuenta de servicio".</li>
+                    <li class="mb-2">En Google Drive, crea una carpeta para los documentos. Copia el <strong>ID de la carpeta</strong> de la URL: <code>drive.google.com/drive/folders/<strong>1a2b3c4d...</strong></code></li>
+                    <li class="mb-2">Pega ese ID en "ID de carpeta Drive" y pulsa Guardar.</li>
+                    <li><strong>Importante:</strong> Comparte la carpeta de Drive con el email de la cuenta de servicio (aparece en el JSON como <code>client_email</code>) dandole permisos de <strong>Editor</strong>.</li>
+                </ol>
+            </div>
+        </div>
         <div class="card-body">
             <p class="text-muted small mb-3">Configura Google Drive para almacenar los documentos de clientes en la nube en vez del servidor local.</p>
             <form method="POST" enctype="multipart/form-data">
