@@ -160,6 +160,7 @@ def _migrar_schema():
             ('permisos', 'TEXT DEFAULT \'{}\''),
             ('totp_secret', 'VARCHAR(64)'),
             ('totp_enabled', 'BOOLEAN DEFAULT 0'),
+            ('password_temporal', 'BOOLEAN DEFAULT 0'),
         ]:
             if col not in user_cols:
                 cursor.execute(f'ALTER TABLE users ADD COLUMN {col} {col_type}')
@@ -174,6 +175,7 @@ def _migrar_schema():
             ('portal_activo', 'BOOLEAN DEFAULT 0'),
             ('portal_password', 'VARCHAR(256)'),
             ('portal_token', 'VARCHAR(100)'),
+            ('portal_password_temporal', 'BOOLEAN DEFAULT 1'),
         ]:
             if col not in cliente_cols:
                 cursor.execute(f'ALTER TABLE clientes ADD COLUMN {col} {col_type}')
