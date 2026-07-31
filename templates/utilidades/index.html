@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Utilidades - Ocaso{% endblock %}
+{% block content %}
+
+<h4 class="mb-4"><i class="bi bi-tools me-2" style="color:var(--ocaso-blue)"></i>Utilidades</h4>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-file-earmark-diff me-2"></i>Comparativa de Polizas</div>
+            <div class="card-body">
+                <p class="text-muted small">Sube PDFs de diferentes aseguradoras y la IA las analizara, generando un informe comparativo detallado en PDF con formato corporativo.</p>
+                <form method="POST" action="{{ url_for('utilidades.comparativa') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Selecciona las polizas a comparar (min 2)</label>
+                        <input type="file" name="polizas" class="form-control" accept=".pdf" multiple required>
+                        <div class="form-text">Sube los PDFs de las polizas que quieras comparar. La IA extraera automaticamente coberturas, capitales, primas y exclusiones.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="background:var(--ocaso-blue)">
+                        <i class="bi bi-magic me-1"></i> Analizar y comparar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-info-circle me-2"></i>¿Como funciona?</div>
+            <div class="card-body small text-muted">
+                <ol class="mb-0">
+                    <li class="mb-2">Sube 2 o mas archivos PDF de polizas de diferentes compañias.</li>
+                    <li class="mb-2">La IA de Deepseek extrae y analiza las coberturas, capitales, franquicias y primas.</li>
+                    <li class="mb-2">Genera una tabla comparativa y una recomendacion.</li>
+                    <li>Descarga el informe en PDF con formato corporativo de Ocaso.</li>
+                </ol>
+                <hr>
+                <p class="mb-0"><strong>Requisito:</strong> API Key de Deepseek configurada en <a href="{{ url_for('ajustes.index') }}">Ajustes</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

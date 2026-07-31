@@ -22,6 +22,7 @@ MODULOS = [
     ('whatsapp', 'WhatsApp'),
     ('agenda', 'Agenda'),
     ('leads', 'Leads'),
+    ('utilidades', 'Utilidades'),
     ('asistente', 'Asistente IA'),
     ('ajustes', 'Ajustes'),
     ('usuarios', 'Gestion de Usuarios'),

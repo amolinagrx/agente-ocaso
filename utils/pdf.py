@@ -146,3 +146,70 @@ def generar_pdf_presupuesto(datos):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=presupuesto_{hoy.strftime("%Y%m%d")}.pdf'
     return response
+
+def generar_pdf_comparativa(nombres, analisis, fecha):
+    if not HAS_WEASYPRINT:
+        return "WeasyPrint no instalado", 500
+
+    nombres_html = ', '.join(nombres)
+    lines = analisis.split('\n')
+    html_lines = []
+    in_table = False
+    table_rows = []
+
+    for line in lines:
+        stripped = line.strip()
+        if '|' in stripped and stripped.count('|') >= 2:
+            cells = [c.strip() for c in stripped.split('|') if c.strip()]
+            if all(c.replace('-','').replace(' ','') == '' for c in cells):
+                continue
+            if not in_table:
+                in_table = True
+                table_rows = []
+            table_rows.append(cells)
+        else:
+            if in_table and table_rows:
+                html_lines.append('<table class="ctable">')
+                for i, row in enumerate(table_rows):
+                    tag = 'th' if i == 0 else 'td'
+                    html_lines.append('<tr>' + ''.join(f'<{tag}>{c}</{tag}>' for c in row) + '</tr>')
+                html_lines.append('</table>')
+                table_rows = []
+                in_table = False
+            if stripped:
+                html_lines.append(f'<p>{stripped}</p>')
+
+    if in_table and table_rows:
+        html_lines.append('<table class="ctable">')
+        for i, row in enumerate(table_rows):
+            tag = 'th' if i == 0 else 'td'
+            html_lines.append('<tr>' + ''.join(f'<{tag}>{c}</{tag}>' for c in row) + '</tr>')
+        html_lines.append('</table>')
+
+    body = '\n'.join(html_lines)
+
+    html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
+        @page {{ margin: 2cm; size: A4; }}
+        body {{ font-family: Arial,sans-serif; color:#333; font-size:11px; line-height:1.5; }}
+        .header {{ text-align:center; border-bottom:3px solid #003396; padding-bottom:15px; margin-bottom:20px; }}
+        .header h1 {{ color:#003396; margin:0; font-size:20px; }}
+        .header p {{ margin:4px 0; font-size:11px; color:#666; }}
+        h2 {{ color:#003396; font-size:14px; border-bottom:1px solid #003396; padding-bottom:4px; margin-top:20px; }}
+        .ctable {{ width:100%; border-collapse:collapse; margin:10px 0; font-size:9px; }}
+        .ctable th {{ background:#003396; color:white; padding:5px; text-align:left; }}
+        .ctable td {{ padding:4px 5px; border:1px solid #ddd; }}
+        .ctable tr:nth-child(even) td {{ background:#f8f9fc; }}
+        p {{ margin:4px 0; }}
+    </style></head><body>
+    <div class="header"><h1>OCASO SEGUROS</h1><p>Oficina Armilla - Comparativa de Polizas</p>
+    <p>Polizas: {nombres_html}</p><p>Fecha: {fecha}</p></div>
+    <h2>Analisis Comparativo</h2>{body}
+    <div style="margin-top:30px;text-align:center;font-size:9px;color:#999;border-top:1px solid #ddd;padding-top:10px">
+    Documento generado por Ocaso Gestion. Analisis orientativo.</div>
+    </body></html>'''
+
+    pdf = HTML(string=html).write_pdf()
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=comparativa.pdf'
+    return response

@@ -72,6 +72,7 @@ def create_app():
     from routes.agenda import agenda_bp
     from routes.leads import leads_bp
     from routes.portal import portal_bp
+    from routes.utilidades import utilidades_bp
     from routes.api_externa import api_externa_bp
     from routes.api import api_bp
 
@@ -91,6 +92,7 @@ def create_app():
     app.register_blueprint(agenda_bp, url_prefix='/agenda')
     app.register_blueprint(leads_bp, url_prefix='/leads')
     app.register_blueprint(portal_bp)
+    app.register_blueprint(utilidades_bp, url_prefix='/utilidades')
     app.register_blueprint(api_externa_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
 
