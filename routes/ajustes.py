@@ -33,8 +33,19 @@ def index():
             else:
                 flash('La API Key no puede estar vacia', 'warning')
 
-        elif seccion == 'smtp':
-            _guardar_config('smtp_host', request.form.get('smtp_host', ''))
+        elif seccion == 'drive':
+            _guardar_config('drive_folder_id', request.form.get('drive_folder_id', ''))
+            creds_file = request.files.get('drive_credentials')
+            if creds_file and creds_file.filename:
+                import json
+                creds_text = creds_file.read().decode('utf-8')
+                try:
+                    json.loads(creds_text)
+                    _guardar_config('drive_credentials', creds_text)
+                except json.JSONDecodeError:
+                    flash('El archivo JSON no es valido', 'danger')
+            db.session.commit()
+            flash('Configuracion Google Drive guardada', 'success')
             _guardar_config('smtp_port', request.form.get('smtp_port', '587'))
             _guardar_config('smtp_user', request.form.get('smtp_user', ''))
             _guardar_config('smtp_pass', request.form.get('smtp_pass', ''))

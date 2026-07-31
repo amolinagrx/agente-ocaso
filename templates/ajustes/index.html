@@ -62,7 +62,37 @@
         </div>
     </div>
 
-    <!-- API Keys -->
+    <!-- Google Drive -->
+    <div class="card mt-3">
+        <div class="card-header"><i class="bi bi-google me-2"></i>Google Drive (documentos clientes)</div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">Configura Google Drive para almacenar los documentos de clientes en la nube en vez del servidor local.</p>
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="seccion" value="drive">
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <label class="form-label small">Archivo JSON de cuenta de servicio</label>
+                        <input type="file" name="drive_credentials" class="form-control form-control-sm" accept=".json">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">ID de carpeta Drive (opcional)</label>
+                        <input type="text" name="drive_folder_id" class="form-control form-control-sm" 
+                               value="{{ config.get('drive_folder_id', '') }}" placeholder="1a2b3c4d...">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm mt-2" style="background:var(--ocaso-blue)">Guardar Drive</button>
+            </form>
+            <hr class="my-2">
+            <small class="text-muted">
+                <strong>Configuracion:</strong> 1. Crea proyecto en Google Cloud Console. 
+                2. Habilita Drive API. 3. Crea cuenta de servicio. 
+                4. Descarga clave JSON. 5. Comparte carpeta Drive con el email de la cuenta de servicio.
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- API Keys -->
     <div class="col-lg-6">
         <div class="card">
             <div class="card-header"><i class="bi bi-key me-2"></i>APIs y servicios</div>

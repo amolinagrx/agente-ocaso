@@ -293,6 +293,7 @@ class DocumentoCliente(db.Model):
     nombre = db.Column(db.String(300))
     tipo = db.Column(db.String(50))
     ruta = db.Column(db.String(500))
+    drive_id = db.Column(db.String(200))
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 

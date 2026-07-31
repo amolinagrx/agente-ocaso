@@ -4,6 +4,8 @@ from models import db, Cliente, Poliza, Recibo, Siniestro, HitoSiniestro, Histor
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash
 import secrets
+import os
+import io
 
 clientes_bp = Blueprint('clientes', __name__)
 
@@ -175,13 +177,23 @@ def subir_documento(id):
                 ruta = pdf_ruta
                 filename = pdf_name
             except ImportError:
-                pass  # PIL not available, keep as image
+                pass
+
+        # Upload to Google Drive if configured
+        drive_id = None
+        if os.environ.get('GOOGLE_DRIVE_ENABLED', '') == '1':
+            try:
+                from utils.drive import upload_to_drive
+                drive_id = upload_to_drive(ruta, filename)
+            except Exception:
+                pass
 
         doc = DocumentoCliente(
             cliente_id=id,
             nombre=filename,
             tipo=request.form.get('tipo', 'otro'),
-            ruta=ruta
+            ruta=ruta,
+            drive_id=drive_id
         )
         db.session.add(doc)
         db.session.commit()
@@ -193,7 +205,9 @@ def subir_documento(id):
 @login_required
 def eliminar_documento(id, doc_id):
     doc = DocumentoCliente.query.get_or_404(doc_id)
-    import os
+    if doc.drive_id:
+        from utils.drive import delete_from_drive
+        delete_from_drive(doc.drive_id)
     if os.path.exists(doc.ruta):
         os.remove(doc.ruta)
     db.session.delete(doc)
@@ -207,6 +221,11 @@ def eliminar_documento(id, doc_id):
 def descargar_documento(id, doc_id):
     from flask import send_file
     doc = DocumentoCliente.query.get_or_404(doc_id)
+    if doc.drive_id:
+        from utils.drive import download_from_drive
+        data = download_from_drive(doc.drive_id)
+        if data:
+            return send_file(io.BytesIO(data), download_name=doc.nombre, as_attachment=True)
     return send_file(doc.ruta, download_name=doc.nombre, as_attachment=True)
 
 
@@ -215,6 +234,11 @@ def descargar_documento(id, doc_id):
 def preview_documento(id, doc_id):
     from flask import send_file
     doc = DocumentoCliente.query.get_or_404(doc_id)
+    if doc.drive_id:
+        from utils.drive import download_from_drive
+        data = download_from_drive(doc.drive_id)
+        if data:
+            return send_file(io.BytesIO(data), download_name=doc.nombre)
     return send_file(doc.ruta)
 
 
