@@ -67,6 +67,22 @@ def extract_text_from_file(filepath, filename):
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
 
+    elif ext in ('xlsx', 'xls'):
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(filepath, data_only=True)
+            text = ''
+            for sheet_name in wb.sheetnames:
+                ws = wb[sheet_name]
+                text += f'\n--- Hoja: {sheet_name} ---\n'
+                for row in ws.iter_rows(values_only=True):
+                    row_text = ' | '.join(str(c) if c is not None else '' for c in row)
+                    if row_text.strip():
+                        text += row_text + '\n'
+            return text.strip()
+        except Exception as e:
+            return f'ERROR reading XLSX: {str(e)}'
+
     return f'Unsupported file type: {ext}'
 
 
