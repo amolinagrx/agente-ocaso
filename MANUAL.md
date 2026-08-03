@@ -251,9 +251,19 @@ Tres lineas de tendencia: polizas activas, asegurados, prima total.
 
 ### Analisis IA
 - Boton **Analizar** en cada registro
-- Deepseek extrae datos clave y compara con el mes anterior
-- Detecta: crecimiento/decrecimiento, fugas por ramo, recomendaciones
-- El analisis queda guardado y se puede consultar
+- Boton **Analizar pendientes**: procesa todos los meses sin analizar
+- Boton **Reanalizar todo**: fuerza nuevo analisis de todos los meses
+- Deepseek extrae datos clave y compara con el mes anterior y año anterior
+- Detecta: crecimiento/decrecimiento, polizas perdidas, nuevas incorporaciones, tendencia
+
+### Analisis Anual
+- Boton **Analisis anual**: grafico de barras comparando años
+- Tabla resumen por año: polizas, asegurados, prima
+- IA analiza tendencias interanuales y cambio porcentual
+
+### Informe completo
+- Boton **Informe completo**: todos los analisis en una pagina con grafico de evolucion
+- **Descargar PDF**: informe corporativo con tabla resumen y analisis por mes
 
 ### Historial
 Tabla con todos los meses cargados: periodo, archivo, polizas, asegurados, prima y acceso al analisis.
