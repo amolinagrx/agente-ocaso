@@ -661,3 +661,27 @@ La base de datos persiste en el volumen `ocaso_data`. Al reconstruir el contened
 - **Repositorio**: https://github.com/amolinagrx/agente-ocaso
 - **Version**: 1.0
 - **Stack**: Python 3.11 + Flask + SQLite + Bootstrap 5 + HTMX
+
+---
+
+## Resumen de modulos (actualizado v1.1)
+
+| Modulo | Icono | Funcion principal |
+|---|---|---|
+| Dashboard | 🏠 | KPIs y graficos |
+| Recibos | 🧾 | Gestion de cobros y devoluciones |
+| Clientes | 👥 | Fichas, polizas, documentos, portal |
+| Polizas | 📄 | Panel de todas las polizas |
+| Renovaciones | 📅 | Agenda de vencimientos |
+| Listados | 📊 | Informes imprimibles |
+| Cartera | 📈 | Control mensual con IA |
+| Utilidades | 🔧 | Comparativa de polizas |
+| Siniestros | ⚠️ | Seguimiento de expedientes |
+| Comunicaciones | 💬 | Plantillas WhatsApp/Email/SMS |
+| WhatsApp | 💚 | Envio directo a clientes |
+| Leads | 👤 | Prospectos comerciales |
+| Agenda | 📝 | Notas personales |
+| Asistente IA | 🤖 | Chat con IA + documentacion |
+| Portal Clientes | 🚪 | Acceso clientes a polizas/docs |
+| Ajustes | ⚙️ | Configuracion, SMTP, Drive, API Keys |
+| Usuarios | 👥🔧 | Gestion de accesos, permisos, 2FA |
