@@ -178,9 +178,11 @@ def analizar_todo():
     if not client:
         flash('API Deepseek no configurada', 'danger')
         return redirect(url_for('cartera.index'))
-    pendientes = Cartera.query.filter(
-        (Cartera.analisis_ia == None) | (Cartera.analisis_ia == '')
-    ).order_by(Cartera.anio, Cartera.mes).all()
+    reanalizar = request.form.get('reanalizar') == '1'
+    query = Cartera.query
+    if not reanalizar:
+        query = query.filter((Cartera.analisis_ia == None) | (Cartera.analisis_ia == ''))
+    pendientes = query.order_by(Cartera.anio, Cartera.mes).all()
     if not pendientes:
         flash('Todos los meses ya estan analizados', 'info')
         return redirect(url_for('cartera.index'))

@@ -6,7 +6,11 @@
 
 <div class="d-flex gap-2 mb-3">
     <form method="POST" action="{{ url_for('cartera.analizar_todo') }}" class="d-inline">
-        <button class="btn btn-sm btn-outline-info"><i class="bi bi-magic me-1"></i> Analizar todo</button>
+        <button class="btn btn-sm btn-outline-info"><i class="bi bi-magic me-1"></i> Analizar pendientes</button>
+    </form>
+    <form method="POST" action="{{ url_for('cartera.analizar_todo') }}" class="d-inline">
+        <input type="hidden" name="reanalizar" value="1">
+        <button class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-repeat me-1"></i> Reanalizar todo</button>
     </form>
     <a href="{{ url_for('cartera.analisis_anual') }}" class="btn btn-sm btn-outline-primary">
         <i class="bi bi-calendar-check me-1"></i> Analisis anual
