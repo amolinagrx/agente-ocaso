@@ -12,13 +12,13 @@ api_externa_bp = Blueprint('api_externa', __name__)
 def require_api_key(f):
     @functools.wraps(f)
     def decorated(*args, **kwargs):
-    token = request.headers.get('X-API-Key')
-    if not token:
-        return jsonify({'error': 'API key requerida'}), 401
+        token = request.headers.get('X-API-Key')
+        if not token:
+            return jsonify({'error': 'API key requerida'}), 401
 
-    import hashlib
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-    api_key = ApiKey.query.filter_by(token=token_hash, activo=True).first()
+        import hashlib
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        api_key = ApiKey.query.filter_by(token=token_hash, activo=True).first()
         if not api_key:
             return jsonify({'error': 'API key invalida o inactiva'}), 403
 
