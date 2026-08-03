@@ -8,6 +8,9 @@
     <form method="POST" action="{{ url_for('cartera.analizar_todo') }}" class="d-inline">
         <button class="btn btn-sm btn-outline-info"><i class="bi bi-magic me-1"></i> Analizar todo</button>
     </form>
+    <a href="{{ url_for('cartera.analisis_anual') }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-calendar-check me-1"></i> Analisis anual
+    </a>
     <a href="{{ url_for('cartera.informe') }}" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-file-earmark-bar-graph me-1"></i> Informe completo
     </a>

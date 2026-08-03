@@ -228,3 +228,55 @@ def informe_pdf():
     from utils.pdf import generar_pdf_informe_cartera
     registros = Cartera.query.order_by(Cartera.anio, Cartera.mes).all()
     return generar_pdf_informe_cartera(registros, MESES)
+
+
+@cartera_bp.route('/analisis-anual')
+@login_required
+def analisis_anual():
+    """Year-over-year comparison and analysis."""
+    client = get_client()
+    if not client:
+        flash('API Deepseek no configurada', 'danger')
+        return redirect(url_for('cartera.index'))
+
+    registros = Cartera.query.order_by(Cartera.anio, Cartera.mes).all()
+    if len(registros) < 2:
+        flash('Necesitas al menos 2 meses de datos', 'warning')
+        return redirect(url_for('cartera.index'))
+
+    # Group by year
+    years = {}
+    for r in registros:
+        y = r.anio
+        if y not in years:
+            years[y] = {'polizas': 0, 'asegurados': 0, 'prima': 0, 'meses': [], 'textos': []}
+        years[y]['polizas'] = max(years[y]['polizas'], r.num_polizas or 0)
+        years[y]['asegurados'] = max(years[y]['asegurados'], r.num_asegurados or 0)
+        years[y]['prima'] = max(years[y]['prima'], r.prima_total or 0)
+        years[y]['meses'].append(r.mes)
+        years[y]['textos'].append(r.contenido_texto or '')
+
+    sorted_years = sorted(years.keys())
+
+    # Build prompt with yearly data
+    prompt = "Eres analista de seguros. Haz un ANALISIS ANUAL de la cartera de Ocaso Armilla.\n\n"
+    prompt += "Para cada año, indica: polizas, asegurados, prima.\n"
+    prompt += "Luego compara año contra año: ¿crece o decrece? ¿que cambio porcentual?\n"
+    prompt += "Identifica TENDENCIAS a largo plazo.\n"
+    prompt += "Formato: **AÑO XXXX**, **COMPARATIVA**, **TENDENCIA**, **RECOMENDACION**. Espanol, conciso."
+
+    knowledge = "DATOS ANUALES:\n"
+    for y in sorted_years:
+        d = years[y]
+        knowledge += f"\n**{y}**: {len(d['meses'])} meses. Max polizas: {d['polizas']}, Max asegurados: {d['asegurados']}, Max prima: {d['prima']:.0f}€\n"
+        knowledge += '---\n' + '\n'.join(d['textos'][:3])[:2000] + '\n'
+
+    resp = client.chat.completions.create(
+        model=DEEPSEEK_CHAT_MODEL,
+        messages=[{'role': 'system', 'content': prompt}, {'role': 'user', 'content': knowledge[:12000]}],
+        temperature=0.2, max_tokens=2500
+    )
+    analisis = resp.choices[0].message.content
+
+    return render_template('cartera/analisis_anual.html',
+                           years=sorted_years, data=years, analisis=analisis)
