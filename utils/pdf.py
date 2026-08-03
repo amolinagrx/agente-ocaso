@@ -213,3 +213,33 @@ def generar_pdf_comparativa(nombres, analisis, fecha):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=comparativa.pdf'
     return response
+
+def generar_pdf_informe_cartera(registros, meses):
+    if not HAS_WEASYPRINT: return "WeasyPrint no instalado", 500
+    
+    rows = ''
+    for r in registros:
+        analisis = (r.analisis_ia or 'Pendiente').replace('\n','<br>')
+        rows += f'<tr><td style="font-weight:bold">{meses[r.mes]} {r.anio}</td><td>{r.num_polizas or "-"}</td><td>{r.num_asegurados or "-"}</td><td>{r.prima_total or 0:.0f}€</td></tr>'
+        rows += f'<tr><td colspan="4" style="font-size:9px;padding-bottom:12px">{analisis}</td></tr>'
+
+    html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
+        @page {{ margin: 2cm; size: A4; }}
+        body {{ font-family: Arial,sans-serif; color:#333; font-size:11px; line-height:1.5; }}
+        .header {{ text-align:center; border-bottom:3px solid #003396; padding-bottom:15px; margin-bottom:20px; }}
+        .header h1 {{ color:#003396; margin:0; font-size:20px; }}
+        table {{ width:100%; border-collapse:collapse; }}
+        th {{ background:#003396; color:white; padding:5px; text-align:left; }}
+        td {{ padding:4px 5px; border-bottom:1px solid #ddd; vertical-align:top; }}
+    </style></head><body>
+    <div class="header"><h1>OCASO SEGUROS - Armilla</h1><p>Informe de Cartera</p></div>
+    <table><tr><th>Periodo</th><th>Polizas</th><th>Asegurados</th><th>Prima</th></tr>{rows}</table>
+    <div style="margin-top:30px;text-align:center;font-size:9px;color:#999;border-top:1px solid #ddd;padding-top:10px">
+    Generado por Ocaso Gestion</div>
+    </body></html>'''
+
+    pdf = HTML(string=html).write_pdf()
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=informe_cartera.pdf'
+    return response

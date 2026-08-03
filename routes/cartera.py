@@ -170,3 +170,61 @@ def eliminar(id):
     db.session.commit()
     flash('Registro de cartera eliminado', 'success')
     return redirect(url_for('cartera.index'))
+
+@cartera_bp.route('/analizar-todo', methods=['POST'])
+@login_required
+def analizar_todo():
+    client = get_client()
+    if not client:
+        flash('API Deepseek no configurada', 'danger')
+        return redirect(url_for('cartera.index'))
+    pendientes = Cartera.query.filter(
+        (Cartera.analisis_ia == None) | (Cartera.analisis_ia == '')
+    ).order_by(Cartera.anio, Cartera.mes).all()
+    if not pendientes:
+        flash('Todos los meses ya estan analizados', 'info')
+        return redirect(url_for('cartera.index'))
+    analizados = 0
+    for c in pendientes:
+        try:
+            analisis = _generar_rapido(c)
+            if analisis:
+                c.analisis_ia = analisis
+                analizados += 1
+        except Exception:
+            pass
+    db.session.commit()
+    flash(f'{analizados} meses analizados', 'success')
+    return redirect(url_for('cartera.index'))
+
+
+def _generar_rapido(cartera):
+    client = get_client()
+    if not client: return None
+    previa = Cartera.query.filter_by(mes=cartera.mes-1 if cartera.mes>1 else 12, anio=cartera.anio if cartera.mes>1 else cartera.anio-1).first()
+    prompt = "Analiza evolucion cartera seguros. 1.Compara mes anterior 2.Compara mismo mes año anterior 3.Polizas perdidas/nuevas 4.Tendencia. Espanol, conciso, formato: RESUMEN, EVOLUCION, PERDIDAS, NUEVAS, CONCLUSION."
+    knowledge = f'--- {MESES[cartera.mes]} {cartera.anio} ---\n{cartera.contenido_texto[:8000]}'
+    if previa and previa.contenido_texto: knowledge += f'\n\n--- MES ANTERIOR ---\n{previa.contenido_texto[:3000]}'
+    ly = Cartera.query.filter_by(mes=cartera.mes, anio=cartera.anio-1).first()
+    if ly and ly.contenido_texto: knowledge += f'\n\n--- AÑO ANTERIOR ---\n{ly.contenido_texto[:3000]}'
+    resp = client.chat.completions.create(model=DEEPSEEK_CHAT_MODEL, messages=[{'role':'system','content':prompt},{'role':'user','content':knowledge}], temperature=0.2, max_tokens=2000)
+    return resp.choices[0].message.content
+
+
+@cartera_bp.route('/informe')
+@login_required
+def informe():
+    registros = Cartera.query.order_by(Cartera.anio, Cartera.mes).all()
+    return render_template('cartera/informe.html', registros=registros, meses=MESES,
+        labels=[f'{MESES[r.mes][:3]} {r.anio}' for r in registros],
+        polizas_data=[r.num_polizas or 0 for r in registros],
+        prima_data=[r.prima_total or 0 for r in registros],
+        asegurados_data=[r.num_asegurados or 0 for r in registros])
+
+
+@cartera_bp.route('/informe/pdf')
+@login_required
+def informe_pdf():
+    from utils.pdf import generar_pdf_informe_cartera
+    registros = Cartera.query.order_by(Cartera.anio, Cartera.mes).all()
+    return generar_pdf_informe_cartera(registros, MESES)
