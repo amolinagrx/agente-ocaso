@@ -55,6 +55,11 @@ def subir():
         flash(f'Error al leer archivo: {texto}', 'danger')
         return redirect(url_for('cartera.index'))
 
+    if not texto or len(texto.strip()) < 50:
+        os.remove(filepath)
+        flash('No se pudo extraer texto del archivo. Asegurate de que es un PDF o XLSX valido.', 'danger')
+        return redirect(url_for('cartera.index'))
+
     # Delete previous entry for same month/year
     Cartera.query.filter_by(mes=mes, anio=anio).delete()
 
@@ -80,27 +85,58 @@ def analizar(id):
         flash('API Deepseek no configurada', 'danger')
         return redirect(url_for('cartera.index'))
 
-    # Get previous month for comparison
+    # Get ALL previous months for yearly comparison
+    todos = Cartera.query.order_by(Cartera.anio, Cartera.mes).all()
+
     mes_ant = cartera.mes - 1 if cartera.mes > 1 else 12
     anio_ant = cartera.anio if cartera.mes > 1 else cartera.anio - 1
     previa = Cartera.query.filter_by(mes=mes_ant, anio=anio_ant).first()
 
-    prompt = """Eres un analista de seguros. Analiza los datos de cartera de la oficina Ocaso en Armilla.
+    prompt = """Eres un analista de seguros experto en control de cartera. Analiza los datos de la oficina Ocaso Armilla.
 
-INSTRUCCIONES:
-1. Extrae del texto: numero de polizas activas, numero de asegurados, prima total, polizas nuevas, polizas canceladas
-2. Compara con el mes anterior si hay datos
-3. Indica si la cartera CRECE, se MANTIENE o DISMINUYE
-4. Identifica patrones: ¿que ramos crecen mas? ¿hay fugas en algun ramo?
-5. Da recomendaciones practicas
+OBJETIVO DEL ANALISIS:
+1. EVOLUCION MENSUAL: Compara este mes con el mes anterior. ¿Ha subido o bajado?
+2. EVOLUCION ANUAL: Compara con el mismo mes del año anterior si hay datos. ¿Crece o decrece la cartera interanualmente?
+3. POLIZAS PERDIDAS: Identifica que polizas o tipos de seguro han desaparecido respecto al periodo anterior.
+4. NUEVAS POLIZAS: Detecta nuevas altas que no estaban en el periodo anterior.
+5. ASEGURADOS: ¿Cuantos asegurados hay ahora vs antes? ¿Cuantos se han perdido?
+6. TENDENCIA: ¿La cartera esta en crecimiento, estable o en declive? Proyecta a 3-6 meses.
 
-Formato: usa negritas (**texto**) para datos clave. Se breve y directo."""
+FORMATO DE RESPUESTA:
+Usa este formato EXACTO con secciones claras:
+
+**RESUMEN:** (2 lineas con los datos clave: polizas totales, asegurados, prima total)
+
+**EVOLUCION MENSUAL:**
+- Polizas: X → Y (diferencia: +/-Z)
+- Asegurados: X → Y (+/-Z)  
+- Prima: X€ → Y€ (+/-Z€)
+
+**EVOLUCION ANUAL (vs mismo mes año anterior):**
+(Misma estructura si hay datos, si no indica 'Sin datos del año anterior')
+
+**POLIZAS PERDIDAS** (si las hay)
+- Lista de polizas/ramos que han desaparecido
+
+**NUEVAS INCORPORACIONES**
+- Lista de nuevas polizas/ramos detectados
+
+**CONCLUSION Y RECOMENDACION:**
+- Estado general de la cartera (CRECE / ESTABLE / DECRECE)
+- Recomendacion practica para la oficina
+
+Responde en español, se conciso y directo. Usa **negritas** para datos clave."""
 
     knowledge = f'--- {MESES[cartera.mes]} {cartera.anio} ---\n{cartera.contenido_texto[:8000]}'
 
     if previa and previa.contenido_texto:
         knowledge += f'\n\n--- MES ANTERIOR ({MESES[previa.mes]} {previa.anio}) ---\n{previa.contenido_texto[:4000]}'
-        prompt += '\n\nDATOS DEL MES ANTERIOR PARA COMPARAR incluidos arriba. Compara obligatoriamente.'
+
+    if todos:
+        # Same month last year
+        last_year = Cartera.query.filter_by(mes=cartera.mes, anio=cartera.anio - 1).first()
+        if last_year and last_year.contenido_texto:
+            knowledge += f'\n\n--- MISMO MES AÑO ANTERIOR ({MESES[last_year.mes]} {last_year.anio}) ---\n{last_year.contenido_texto[:4000]}'
 
     try:
         resp = client.chat.completions.create(
