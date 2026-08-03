@@ -272,13 +272,15 @@
             </form>
         </div>
         <div class="card-body p-2">
-            {% if request.args.get('_show_token') %}
+            {% if session.get('new_api_token') %}
             <div class="alert alert-success small mb-3">
-                <strong><i class="bi bi-check-circle me-1"></i> API Key generada. Copiala ahora:</strong>
+                <strong><i class="bi bi-check-circle me-1"></i> API Key generada:</strong>
                 <div class="input-group input-group-sm mt-2">
-                    <input type="text" class="form-control font-monospace" value="{{ request.args.get('_show_token') }}" id="newToken" readonly>
+                    <input type="text" class="form-control font-monospace" value="{{ session.get('new_api_token') }}" id="newToken" readonly>
                     <button class="btn btn-outline-secondary" onclick="copyToken('newToken')"><i class="bi bi-copy"></i></button>
                 </div>
+                <small class="text-danger">No se volvera a mostrar.</small>
+            </div>
                 <small class="text-danger">No se volvera a mostrar. Guardala en un lugar seguro.</small>
             </div>
             {% endif %}

@@ -71,8 +71,10 @@ def login():
 
             login_user(user)
             next_page = request.args.get('next')
-            if next_page and not next_page.startswith('/'):
-                next_page = None
+    if next_page and not next_page.startswith('/'):
+        next_page = None
+    if next_page and '//' in next_page:
+        next_page = None
             return redirect(next_page or url_for('dashboard.index'))
 
         flash('Usuario o contrasena incorrectos', 'danger')

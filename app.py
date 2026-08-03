@@ -30,6 +30,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = os.environ.get('OCASO_ENV') != 'development'
     data_dir = os.environ.get('DATA_DIR', '/data')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{data_dir}/ocaso.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -122,10 +123,6 @@ def _seed_user(app):
         if not user.is_admin and user.username == 'admin':
             user.is_admin = True
             user.nombre = user.nombre or 'Administrador'
-            db.session.commit()
-        # Migrate plaintext password to hash if needed
-        if user.password == 'ocaso2025':
-            user.set_password('ocaso2025')
             db.session.commit()
 
 

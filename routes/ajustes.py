@@ -107,6 +107,9 @@ def _guardar_config(clave, valor):
 @ajustes_bp.route('/exportar-backup')
 @login_required
 def exportar_backup():
+    if not current_user.is_admin:
+        flash('Solo administradores', 'danger')
+        return redirect(url_for('ajustes.index'))
     """Download the SQLite database as backup."""
     import shutil
     import tempfile
@@ -131,6 +134,9 @@ def exportar_backup():
 @ajustes_bp.route('/importar-backup', methods=['POST'])
 @login_required
 def importar_backup():
+    if not current_user.is_admin:
+        flash('Solo administradores', 'danger')
+        return redirect(url_for('ajustes.index'))
     """Restore database from uploaded backup file."""
     from flask import current_app
     import shutil
@@ -211,8 +217,9 @@ def nueva_api_key():
     key = ApiKey(user_id=current_user.id, nombre=nombre, token=token)
     db.session.add(key)
     db.session.commit()
-    flash(f'API Key generada. Copiala ahora, no se volvera a mostrar.', 'warning')
-    return redirect(url_for('ajustes.index', _anchor='api-keys', _show_token=token))
+    session['new_api_token'] = token
+    flash('API Key generada', 'warning')
+    return redirect(url_for('ajustes.index', _anchor='api-keys'))
 
 
 @ajustes_bp.route('/api-key/<int:id>/revocar', methods=['POST'])

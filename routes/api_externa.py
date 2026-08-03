@@ -12,9 +12,9 @@ api_externa_bp = Blueprint('api_externa', __name__)
 def require_api_key(f):
     @functools.wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get('X-API-Key') or request.args.get('api_key')
-        if not token:
-            return jsonify({'error': 'API key requerida'}), 401
+    token = request.headers.get('X-API-Key')
+    if not token:
+        return jsonify({'error': 'API key requerida'}), 401
 
         api_key = ApiKey.query.filter_by(token=token, activo=True).first()
         if not api_key:
