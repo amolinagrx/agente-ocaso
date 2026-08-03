@@ -172,7 +172,8 @@ def reset_all():
     codigo = request.form.get('codigo_seguridad', '')
     confirmacion = request.form.get('confirmacion', '')
 
-    if codigo != 'rudtb8vx':
+    reset_code = os.environ.get('RESET_CODE', 'rudtb8vx')
+    if codigo != reset_code:
         flash('Codigo de seguridad incorrecto', 'danger')
         return redirect(url_for('ajustes.index'))
 
@@ -214,7 +215,9 @@ def reset_all():
 def nueva_api_key():
     nombre = request.form.get('nombre', 'API Key').strip()
     token = secrets.token_hex(32)
-    key = ApiKey(user_id=current_user.id, nombre=nombre, token=token)
+    import hashlib
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    key = ApiKey(user_id=current_user.id, nombre=nombre, token=token_hash)
     db.session.add(key)
     db.session.commit()
     session['new_api_token'] = token

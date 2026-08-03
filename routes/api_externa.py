@@ -16,7 +16,9 @@ def require_api_key(f):
     if not token:
         return jsonify({'error': 'API key requerida'}), 401
 
-        api_key = ApiKey.query.filter_by(token=token, activo=True).first()
+    import hashlib
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    api_key = ApiKey.query.filter_by(token=token_hash, activo=True).first()
         if not api_key:
             return jsonify({'error': 'API key invalida o inactiva'}), 403
 

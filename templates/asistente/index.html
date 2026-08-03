@@ -42,7 +42,7 @@
                                 <strong>{% if m.rol == 'user' %}Tu{% else %}Asistente{% endif %}</strong>
                                 <span class="text-muted ms-2" style="font-size:0.7rem">{{ m.created_at.strftime('%H:%M') }}</span>
                             </div>
-                            <div class="chat-content">{{ m.contenido | replace('\n', '<br>') | safe }}</div>
+                            <div class="chat-content">{{ m.contenido | replace('\n', '<br>') }}</div>
                             {% if m.contexto_usado and m.rol == 'assistant' %}
                             <div class="small text-muted mt-1" style="font-size:0.7rem">
                                 <i class="bi bi-info-circle"></i> {{ m.contexto_usado }}

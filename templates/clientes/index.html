@@ -50,7 +50,7 @@
                         <i class="bi bi-eye"></i>
                     </a>
                     <form method="POST" action="{{ url_for('clientes.eliminar', id=c.id) }}" class="d-inline"
-                          onsubmit="return confirm('¿Borrar a {{ c.nombre }}? Se eliminaran todas sus polizas, recibos y siniestros.')">
+                          onsubmit="return confirm('¿Borrar este cliente? Se eliminaran todas sus polizas, recibos y siniestros.')">
                         <button type="submit" class="btn btn-sm btn-outline-danger">
                             <i class="bi bi-trash"></i>
                         </button>

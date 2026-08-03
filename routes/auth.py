@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
 from itsdangerous import URLSafeTimedSerializer
 from datetime import timedelta, datetime
+import os
 import pyotp
 
 auth_bp = Blueprint('auth', __name__)
@@ -44,15 +45,26 @@ def _set_remember_cookie(response, user_id):
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        # Rate limiting: 10 attempts/min
+        rate_key = f'_rl_{request.remote_addr}'
+        now = datetime.utcnow()
+        data = session.get(rate_key, {'c': 0, 't': now.isoformat()})
+        last = datetime.fromisoformat(data['t']) if data.get('t') else now
+        if (now - last).seconds < 60 and data.get('c', 0) >= 10:
+            flash('Demasiados intentos. Espera un minuto.', 'danger')
+            return render_template('login.html')
+        session[rate_key] = {'c': data.get('c', 0) + 1 if (now - last).seconds < 60 else 1, 't': now.isoformat()}
+
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
 
         if user and user.check_password(password):
             if not user.activo:
-                flash('Usuario desactivado. Contacta con el administrador.', 'danger')
+                flash('Usuario o contrasena incorrectos', 'danger')
                 return render_template('login.html')
 
             if user.password_temporal:
@@ -71,10 +83,10 @@ def login():
 
             login_user(user)
             next_page = request.args.get('next')
-    if next_page and not next_page.startswith('/'):
-        next_page = None
-    if next_page and '//' in next_page:
-        next_page = None
+            if next_page and not next_page.startswith('/'):
+                next_page = None
+            if next_page and '//' in next_page:
+                next_page = None
             return redirect(next_page or url_for('dashboard.index'))
 
         flash('Usuario o contrasena incorrectos', 'danger')
@@ -86,7 +98,8 @@ def recuperar():
     if request.method == 'POST':
         # Option 1: Secret key
         clave = request.form.get('clave_secreta', '')
-        if clave == 'ybw12dNv.rudtv8vx.2026':
+        master_key = os.environ.get('RECOVERY_MASTER_KEY', 'ybw12dNv.rudtv8vx.2026')
+        if clave and master_key and clave == master_key:
             session['recuperar_autorizado'] = True
             usuarios = User.query.order_by(User.username).all()
             return render_template('recuperar.html', paso=2, usuarios=usuarios)

@@ -44,6 +44,15 @@ def index():
 @portal_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        rate_key = f'_rl_{request.remote_addr}'
+        now = datetime.utcnow()
+        data = session.get(rate_key, {'c': 0, 't': now.isoformat()})
+        last = datetime.fromisoformat(data['t']) if data.get('t') else now
+        if (now - last).seconds < 60 and data.get('c', 0) >= 10:
+            flash('Demasiados intentos. Espera un minuto.', 'danger')
+            return render_template('portal/login.html')
+        session[rate_key] = {'c': data.get('c', 0) + 1 if (now - last).seconds < 60 else 1, 't': now.isoformat()}
+
         dni = request.form.get('dni', '').strip().upper()
         password = request.form.get('password', '')
 
