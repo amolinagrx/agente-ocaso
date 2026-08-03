@@ -45,7 +45,6 @@ def _set_remember_cookie(response, user_id):
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         # Rate limiting: 10 attempts/min
