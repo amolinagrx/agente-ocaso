@@ -207,7 +207,10 @@ def eliminar(id):
 def _generar_pdf(html, filename):
     try:
         from weasyprint import HTML
-        pdf = HTML(string=html).write_pdf()
+        import io
+        buf = io.BytesIO()
+        HTML(string=html).write_pdf(buf)
+        pdf = buf.getvalue()
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = f'inline; filename={filename}'
