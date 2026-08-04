@@ -207,25 +207,24 @@ def eliminar(id):
 def _generar_pdf(html, filename):
     try:
         from weasyprint import HTML
-        import io, tempfile, os
-        # Write to temp file (most compatible across versions)
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-        tmp.close()
-        HTML(string=html).write_pdf(tmp.name)
-        with open(tmp.name, 'rb') as f:
+        import os as _os
+        data_dir = current_app.config.get('UPLOAD_FOLDER', '/data/uploads')
+        tmp_path = _os.path.join(data_dir, f'_pdf_{filename}')
+        HTML(string=html).write_pdf(tmp_path)
+        with open(tmp_path, 'rb') as f:
             pdf = f.read()
-        os.unlink(tmp.name)
+        _os.remove(tmp_path)
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = f'inline; filename={filename}'
         return response
     except ImportError:
-        flash('WeasyPrint no instalado en el servidor', 'danger')
+        flash('WeasyPrint no instalado', 'danger')
         return redirect(url_for('cartera.index'))
     except Exception as e:
         import traceback
         traceback.print_exc()
-        flash(f'Error generando PDF: {str(e)[:150]}', 'danger')
+        flash(f'Error PDF: {str(e)[:150]}', 'danger')
         return redirect(url_for('cartera.index'))
 
 

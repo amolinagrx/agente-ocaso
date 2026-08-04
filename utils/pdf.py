@@ -9,18 +9,6 @@ except ImportError:
     HAS_WEASYPRINT = False
 
 
-def _write_pdf(html):
-    """Write PDF using WeasyPrint, compatible with old and new API."""
-    import tempfile, os
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-    tmp.close()
-    HTML(string=html).write_pdf(tmp.name)
-    with open(tmp.name, 'rb') as f:
-        data = f.read()
-    os.unlink(tmp.name)
-    return data
-
-
 def generar_pdf_renovaciones(resultados):
     if not HAS_WEASYPRINT:
         return "WeasyPrint no instalado", 500
@@ -69,7 +57,7 @@ def generar_pdf_renovaciones(resultados):
     <div class="footer">Documento generado el {hoy} - Ocaso Seguros Armilla</div>
     </body></html>'''
 
-    pdf = _write_pdf(html_content)
+    pdf = HTML(string=html_content).write_pdf()
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=renovaciones_{hoy.replace("/", "_")}.pdf'
@@ -153,7 +141,7 @@ def generar_pdf_presupuesto(datos):
     </div>
     </body></html>'''
 
-    pdf = _write_pdf(html_content)
+    pdf = HTML(string=html_content).write_pdf()
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=presupuesto_{hoy.strftime("%Y%m%d")}.pdf'
@@ -220,7 +208,7 @@ def generar_pdf_comparativa(nombres, analisis, fecha):
     Documento generado por Ocaso Gestion. Analisis orientativo.</div>
     </body></html>'''
 
-    pdf = _write_pdf(html)
+    pdf = HTML(string=html).write_pdf()
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=comparativa.pdf'
@@ -250,7 +238,7 @@ def generar_pdf_informe_cartera(registros, meses):
     Generado por Ocaso Gestion</div>
     </body></html>'''
 
-    pdf = _write_pdf(html)
+    pdf = HTML(string=html).write_pdf()
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=informe_cartera.pdf'
