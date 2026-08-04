@@ -80,13 +80,19 @@
             <div class="card-header d-flex justify-content-between">
                 <span><i class="bi bi-graph-up me-2"></i>Evolucion</span>
                 <div>
-                    <a href="{{ url_for('cartera.bajas_sospechosas') }}" class="btn btn-sm btn-outline-danger">Bajas sospechosas</a>
-                    <a href="{{ url_for('cartera.comparativa_anual') }}" class="btn btn-sm btn-outline-secondary ms-1">Comparativa anual</a>
+                    <a href="{{ url_for('cartera.informe') }}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-file-earmark-text"></i> Informe</a>
+                    <a href="{{ url_for('cartera.bajas_pdf') }}" class="btn btn-sm btn-outline-danger me-1"><i class="bi bi-file-pdf"></i> Bajas PDF</a>
+                    <a href="{{ url_for('cartera.comparativa_anual_pdf') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-pdf"></i> Comparativa PDF</a>
                 </div>
             </div>
             <div class="card-body"><canvas id="carteraChart" height="160"></canvas></div>
         </div>
     </div>
+</div>
+
+<div class="d-flex gap-2 mb-3">
+    <a href="{{ url_for('cartera.bajas_sospechosas') }}" class="btn btn-sm btn-outline-danger">Ver bajas sospechosas</a>
+    <a href="{{ url_for('cartera.comparativa_anual') }}" class="btn btn-sm btn-outline-secondary">Comparativa anual</a>
 </div>
 
 <!-- History -->

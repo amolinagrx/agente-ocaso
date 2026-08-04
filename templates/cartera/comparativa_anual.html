@@ -2,7 +2,12 @@
 {% block title %}Comparativa Anual{% endblock %}
 {% block content %}
 
-<h4 class="mb-3"><i class="bi bi-calendar-check me-2" style="color:var(--ocaso-blue)"></i>Comparativa Anual</h4>
+<h4 class="mb-3 no-print"><i class="bi bi-calendar-check me-2" style="color:var(--ocaso-blue)"></i>Comparativa Anual</h4>
+
+<div class="no-print d-flex gap-2 mb-3">
+    <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i> Imprimir</button>
+    <a href="{{ url_for('cartera.comparativa_anual_pdf') }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-pdf me-1"></i> Descargar PDF</a>
+</div>
 
 {% if comp_data %}
 <div class="table-responsive">
@@ -40,5 +45,15 @@
 <p class="text-muted text-center py-4">Sin datos suficientes para comparativa</p>
 {% endif %}
 
-<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary no-print"><i class="bi bi-arrow-left"></i> Volver</a>
+
+<style>
+@media print {
+    .no-print, nav, .navbar, .btn, form, #sidebar-wrapper { display: none !important; }
+    body { font-size: 11px; }
+    .table { font-size: 10px; }
+    .table th { background: #003396 !important; color: white !important; }
+    tr { page-break-inside: avoid; }
+}
+</style>
 {% endblock %}

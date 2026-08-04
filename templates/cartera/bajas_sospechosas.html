@@ -2,9 +2,14 @@
 {% block title %}Bajas Sospechosas{% endblock %}
 {% block content %}
 
-<h4 class="mb-3"><i class="bi bi-exclamation-triangle me-2" style="color:#e74c3c"></i>Bajas Sospechosas (NO renumeradas)</h4>
+<h4 class="mb-3 no-print"><i class="bi bi-exclamation-triangle me-2" style="color:#e74c3c"></i>Bajas Sospechosas (NO renumeradas)</h4>
 
-<form method="GET" class="row g-2 mb-3">
+<div class="no-print d-flex gap-2 mb-3">
+    <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i> Imprimir</button>
+    <a href="{{ url_for('cartera.bajas_pdf', mes=mes, anio=anio, producto=producto) }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-pdf me-1"></i> Descargar PDF</a>
+</div>
+
+<form method="GET" class="row g-2 mb-3 no-print">
     <div class="col-md-2">
         <select name="mes" class="form-select form-select-sm">
             <option value="">Todos los meses</option>
@@ -48,5 +53,16 @@
     </table>
 </div>
 
-<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary no-print"><i class="bi bi-arrow-left"></i> Volver</a>
+
+<style>
+@media print {
+    .no-print, nav, .navbar, .btn, form, #sidebar-wrapper, .sidebar, button { display: none !important; }
+    body { font-size: 11px; padding: 0; margin: 0; }
+    .table { font-size: 10px; width: 100%; }
+    .table th { background: #003396 !important; color: white !important; }
+    .table td, .table th { padding: 3px 5px; border: 1px solid #ddd; }
+    tr { page-break-inside: avoid; }
+}
+</style>
 {% endblock %}
