@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Bajas Sospechosas{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-exclamation-triangle me-2" style="color:#e74c3c"></i>Bajas Sospechosas (NO renumeradas)</h4>
+
+<form method="GET" class="row g-2 mb-3">
+    <div class="col-md-2">
+        <select name="mes" class="form-select form-select-sm">
+            <option value="">Todos los meses</option>
+            {% for m in range(1,13) %}<option value="{{ m }}" {% if mes==m %}selected{% endif %}>{{ meses[m] }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="anio" class="form-select form-select-sm">
+            <option value="">Todos los años</option>
+            {% for y in range(2024,2027) %}<option value="{{ y }}" {% if anio==y %}selected{% endif %}>{{ y }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="producto" class="form-control form-control-sm" placeholder="Producto..." value="{{ producto }}">
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">Filtrar</button>
+    </div>
+</form>
+
+<p class="text-muted small mb-2">{{ bajas|length }} bajas encontradas</p>
+
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead class="table-light">
+            <tr><th>Poliza</th><th>Producto</th><th>Tipo</th><th>Prima</th><th>Desaparecio</th></tr>
+        </thead>
+        <tbody>
+            {% for b in bajas %}
+            <tr>
+                <td><code>{{ b.poliza_base }}</code></td>
+                <td>{{ b.producto }}</td>
+                <td>{{ b.tipo_recibo }}</td>
+                <td><strong>{{ "%.0f"|format(b.prima_neta) }}€</strong></td>
+                <td>{{ meses[b.mes_hasta] }} {{ b.anio_hasta }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-muted text-center py-4">No hay bajas sospechosas</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+{% endblock %}

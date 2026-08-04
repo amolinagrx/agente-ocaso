@@ -413,3 +413,67 @@ class ApiKey(db.Model):
     activo = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_used = db.Column(db.DateTime)
+
+
+class CarteraFichero(db.Model):
+    __tablename__ = 'cartera_ficheros'
+    id = db.Column(db.Integer, primary_key=True)
+    mes = db.Column(db.Integer, nullable=False)
+    anio = db.Column(db.Integer, nullable=False)
+    nombre_fichero = db.Column(db.String(300))
+    ruta = db.Column(db.String(500))
+    hash_md5 = db.Column(db.String(64))
+    num_filas = db.Column(db.Integer)
+    num_polizas = db.Column(db.Integer)
+    prima_neta_total = db.Column(db.Float)
+    fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    __table_args__ = (db.UniqueConstraint('mes', 'anio', name='uq_cartera_mes_anio'),)
+
+    polizas = db.relationship('CarteraPoliza', backref='fichero', lazy='dynamic', cascade='all, delete-orphan')
+
+
+class CarteraPoliza(db.Model):
+    __tablename__ = 'cartera_polizas'
+    id = db.Column(db.Integer, primary_key=True)
+    fichero_id = db.Column(db.Integer, db.ForeignKey('cartera_ficheros.id'), nullable=False)
+    poliza_base = db.Column(db.String(20))
+    certificado = db.Column(db.String(20))
+    producto = db.Column(db.String(200))
+    tipo_recibo = db.Column(db.String(100))
+    prima_neta = db.Column(db.Float, default=0)
+    prima_comisionable = db.Column(db.Float, default=0)
+    produccion = db.Column(db.Float, default=0)
+    conservacion = db.Column(db.Float, default=0)
+    pol_corr = db.Column(db.Float, default=0)
+    aseg = db.Column(db.String(50))
+
+
+class CarteraBaja(db.Model):
+    __tablename__ = 'cartera_bajas'
+    id = db.Column(db.Integer, primary_key=True)
+    mes_desde = db.Column(db.Integer)
+    anio_desde = db.Column(db.Integer)
+    mes_hasta = db.Column(db.Integer)
+    anio_hasta = db.Column(db.Integer)
+    poliza_base = db.Column(db.String(20))
+    certificado = db.Column(db.String(20))
+    producto = db.Column(db.String(200))
+    tipo_recibo = db.Column(db.String(100))
+    prima_neta = db.Column(db.Float)
+    renumerada = db.Column(db.Boolean, default=False)
+    poliza_renumerada_a = db.Column(db.String(20))
+
+
+class CarteraAlta(db.Model):
+    __tablename__ = 'cartera_altas'
+    id = db.Column(db.Integer, primary_key=True)
+    mes_desde = db.Column(db.Integer)
+    anio_desde = db.Column(db.Integer)
+    mes_hasta = db.Column(db.Integer)
+    anio_hasta = db.Column(db.Integer)
+    poliza_base = db.Column(db.String(20))
+    certificado = db.Column(db.String(20))
+    producto = db.Column(db.String(200))
+    tipo_recibo = db.Column(db.String(100))
+    prima_neta = db.Column(db.Float)

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Comparativa Anual{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-calendar-check me-2" style="color:var(--ocaso-blue)"></i>Comparativa Anual</h4>
+
+{% if comp_data %}
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Mes</th>
+                {% for y in years %}<th>{{ y }}</th><th>Prima {{ y }}</th>{% endfor %}
+                {% if years|length >= 2 %}<th>% Dif.</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in comp_data %}
+            <tr>
+                <td><strong>{{ row.mes_nombre }}</strong></td>
+                {% for y in years %}
+                <td>{{ row[y] if row[y] is not none else '-' }}</td>
+                <td class="text-muted small">{{ "%.0f"|format(row[y|string + '_prima']) if row[y|string + '_prima'] is not none else '-' }}€</td>
+                {% endfor %}
+                {% if years|length >= 2 %}
+                <td>
+                    {% if row.diff is not none %}
+                    <span class="{% if row.diff >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if row.diff > 0 %}+{% endif %}{{ row.diff }}%
+                    </span>
+                    {% else %}-{% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-muted text-center py-4">Sin datos suficientes para comparativa</p>
+{% endif %}
+
+<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+{% endblock %}

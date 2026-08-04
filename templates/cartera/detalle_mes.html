@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Detalle {{ meses[fichero.mes] }} {{ fichero.anio }}{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-calendar-week me-2" style="color:var(--ocaso-blue)"></i>{{ meses[fichero.mes] }} {{ fichero.anio }}</h4>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4>{{ fichero.num_polizas }}</h4><small>Polizas</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4>{{ "%.0f"|format(fichero.prima_neta_total) }}€</h4><small>Prima neta</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4 class="text-success">{{ altas|length }}</h4><small>Altas</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h4 class="text-danger">{{ bajas_sospechosas|length }}</h4><small>Bajas sospechosas</small></div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><strong>Por producto</strong></div>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Producto</th><th>Polizas</th><th>Prima</th></tr></thead>
+                <tbody>{% for prod, data in by_producto.items() %}<tr><td>{{ prod }}</td><td>{{ data.count }}</td><td>{{ "%.0f"|format(data.prima) }}€</td></tr>{% endfor %}</tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><strong>Altas ({{ altas|length }})</strong></div>
+            <div style="max-height:300px;overflow-y:auto">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Poliza</th><th>Producto</th><th>Prima</th></tr></thead>
+                    <tbody>{% for a in altas[:50] %}<tr><td><code>{{ a.poliza_base }}</code></td><td>{{ a.producto }}</td><td>{{ "%.0f"|format(a.prima_neta) }}€</td></tr>{% endfor %}</tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><strong>Bajas NO renumeradas (sospechosas) - {{ bajas_sospechosas|length }}</strong></div>
+    <table class="table table-sm mb-0">
+        <thead><tr><th>Poliza</th><th>Producto</th><th>Tipo</th><th>Prima</th></tr></thead>
+        <tbody>{% for b in bajas_sospechosas %}<tr><td><code>{{ b.poliza_base }}</code></td><td>{{ b.producto }}</td><td>{{ b.tipo_recibo }}</td><td>{{ "%.0f"|format(b.prima_neta) }}€</td></tr>{% endfor %}</tbody>
+    </table>
+</div>
+
+{% if bajas_renumeradas %}
+<div class="card mt-3">
+    <div class="card-header"><strong>Bajas renumeradas ({{ bajas_renumeradas|length }})</strong></div>
+    <table class="table table-sm mb-0">
+        <thead><tr><th>Poliza origen</th><th>Renumerada a</th><th>Producto</th><th>Prima</th></tr></thead>
+        <tbody>{% for b in bajas_renumeradas %}<tr><td><code>{{ b.poliza_base }}</code></td><td><code>{{ b.poliza_renumerada_a }}</code></td><td>{{ b.producto }}</td><td>{{ "%.0f"|format(b.prima_neta) }}€</td></tr>{% endfor %}</tbody>
+    </table>
+</div>
+{% endif %}
+
+<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary mt-3"><i class="bi bi-arrow-left"></i> Volver</a>
+
+{% endblock %}
