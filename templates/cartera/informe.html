@@ -5,9 +5,9 @@
 <h4 class="mb-3"><i class="bi bi-file-earmark-bar-graph me-2" style="color:var(--ocaso-blue)"></i>Informe Ejecutivo de Cartera</h4>
 
 <div class="d-flex gap-2 mb-3">
-    <a href="{{ url_for('cartera.informe_pdf') }}" class="btn btn-sm btn-danger" style="background:var(--ocaso-blue)">
-        <i class="bi bi-file-pdf me-1"></i> Descargar PDF
-    </a>
+    <button class="btn btn-sm btn-danger" style="background:var(--ocaso-blue)" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i> Imprimir / PDF
+    </button>
     <a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Volver
     </a>
@@ -77,4 +77,16 @@
 {% else %}
 <p class="text-muted text-center py-4">Sin datos para generar informe</p>
 {% endif %}
+
+<style>
+@media print {
+    nav, .navbar, .btn, #sidebar-wrapper, .sidebar, button, .no-print { display: none !important; }
+    body { font-size: 11px; padding: 0; margin: 0; }
+    .card { border: none; box-shadow: none; page-break-inside: avoid; }
+    .card-header { background: none !important; border-bottom: 1px solid #003396; }
+    .table { font-size: 10px; }
+    .table th { background: #003396 !important; color: white !important; }
+    tr { page-break-inside: avoid; }
+}
+</style>
 {% endblock %}

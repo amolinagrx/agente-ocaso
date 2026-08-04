@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, date
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, jsonify, make_response
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import login_required, current_user
 from models import db, CarteraFichero, CarteraPoliza, CarteraBaja, CarteraAlta
 from cartera.parser import parse_cartera_xlsx
@@ -202,116 +202,20 @@ def eliminar(id):
     return redirect(url_for('cartera.index'))
 
 
-# ========== PDF generation helper ==========
-
-def _generar_pdf(html, filename):
-    try:
-        from weasyprint import HTML
-        import os as _os
-        data_dir = current_app.config.get('UPLOAD_FOLDER', '/data/uploads')
-        tmp_path = _os.path.join(data_dir, f'_pdf_{filename}')
-        HTML(string=html).write_pdf(tmp_path)
-        with open(tmp_path, 'rb') as f:
-            pdf = f.read()
-        _os.remove(tmp_path)
-        response = make_response(pdf)
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'inline; filename={filename}'
-        return response
-    except ImportError:
-        flash('WeasyPrint no instalado', 'danger')
-        return redirect(url_for('cartera.index'))
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        flash(f'Error PDF: {str(e)[:150]}', 'danger')
-        return redirect(url_for('cartera.index'))
-
-
-# ========== PDF routes ==========
+# ========== PDF routes (redirect to HTML views with print CSS) ==========
 
 @cartera_bp.route('/bajas-sospechosas/pdf')
 @login_required
 def bajas_pdf():
-    mes = request.args.get('mes', type=int)
-    anio = request.args.get('anio', type=int)
-    producto = request.args.get('producto', '')
-
-    query = CarteraBaja.query.filter_by(renumerada=False)
-    if mes: query = query.filter_by(mes_hasta=mes)
-    if anio: query = query.filter_by(anio_hasta=anio)
-    if producto: query = query.filter(CarteraBaja.producto.ilike(f'%{producto}%'))
-    bajas = query.order_by(CarteraBaja.prima_neta.desc()).all()
-
-    # Build filter description
-    filtros = []
-    if mes: filtros.append(MESES[mes])
-    if anio: filtros.append(str(anio))
-    if producto: filtros.append(producto)
-    filtro_titulo = ' - '.join(filtros) if filtros else 'Todos'
-
-    rows = ''
-    for b in bajas:
-        rows += f'<tr><td>{b.poliza_base}</td><td>{b.producto}</td><td>{b.tipo_recibo}</td><td>{b.prima_neta:.0f}€</td><td>{MESES[b.mes_hasta]} {b.anio_hasta}</td></tr>'
-
-    html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
-        @page {{ margin: 1.5cm; size: A4 landscape; }}
-        body {{ font-family: Arial, sans-serif; font-size: 10px; }}
-        .header {{ text-align:center; border-bottom:2px solid #003396; padding-bottom:8px; margin-bottom:12px; }}
-        .header h2 {{ color:#003396; margin:0; font-size:16px; }}
-        table {{ width:100%; border-collapse:collapse; }}
-        th {{ background:#003396; color:white; padding:4px; text-align:left; font-size:9px; }}
-        td {{ padding:3px 4px; border-bottom:1px solid #ddd; }}
-        tr {{ page-break-inside:avoid; }}
-    </style></head><body>
-    <div class="header"><h2>OCASO SEGUROS - Armilla</h2><p>Bajas Sospechosas (no renumeradas) | {filtro_titulo}</p></div>
-    <table><tr><th>Poliza</th><th>Producto</th><th>Tipo</th><th>Prima</th><th>Desaparecio</th></tr>{rows}</table>
-    </body></html>'''
-    return _generar_pdf(html, f'bajas_{anio or "todo"}.pdf')
+    """Redirect to HTML view - PDF via browser print."""
+    return redirect(url_for('cartera.bajas_sospechosas', mes=request.args.get('mes'),
+                           anio=request.args.get('anio'), producto=request.args.get('producto')))
 
 
 @cartera_bp.route('/comparativa-anual/pdf')
 @login_required
 def comparativa_anual_pdf():
-    fichas = CarteraFichero.query.order_by(CarteraFichero.anio, CarteraFichero.mes).all()
-    by_year_month = {}
-    for f in fichas:
-        by_year_month[(f.anio, f.mes)] = f
-    years = sorted(set(f.anio for f in fichas))
-    months_avail = sorted(set(f.mes for f in fichas))
-
-    rows = ''
-    for m in months_avail:
-        row = ''
-        for y in years:
-            f = by_year_month.get((y, m))
-            row += f'<td>{f.num_polizas if f else "-"}</td><td>{f.prima_neta_total:.0f}€</td>' if f else '<td>-</td><td>-</td>'
-        diff = ''
-        if len(years) >= 2:
-            f1 = by_year_month.get((years[-1], m))
-            f2 = by_year_month.get((years[-2], m))
-            if f1 and f2 and f2.num_polizas:
-                pct = round((f1.num_polizas - f2.num_polizas) / f2.num_polizas * 100, 1)
-                color = '#27ae60' if pct >= 0 else '#e74c3c'
-                diff = f'<td style="color:{color}">{pct:+.1f}%</td>'
-        rows += f'<tr><td><b>{MESES[m]}</b></td>{row}{diff}</tr>'
-
-    header_cols = ''.join(f'<th colspan="2">{y}</th>' for y in years)
-
-    html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
-        @page {{ margin: 1.5cm; size: A4 landscape; }}
-        body {{ font-family: Arial, sans-serif; font-size: 10px; }}
-        .header {{ text-align:center; border-bottom:2px solid #003396; padding-bottom:8px; margin-bottom:12px; }}
-        .header h2 {{ color:#003396; margin:0; font-size:16px; }}
-        table {{ width:100%; border-collapse:collapse; }}
-        th {{ background:#003396; color:white; padding:4px; text-align:left; font-size:9px; }}
-        td {{ padding:3px 4px; border-bottom:1px solid #ddd; }}
-        tr {{ page-break-inside:avoid; }}
-    </style></head><body>
-    <div class="header"><h2>OCASO SEGUROS - Armilla</h2><p>Comparativa Anual de Cartera</p></div>
-    <table><tr><th>Mes</th>{header_cols}{'<th>% Dif.</th>' if len(years)>=2 else ''}</tr>{rows}</table>
-    </body></html>'''
-    return _generar_pdf(html, 'comparativa_anual.pdf')
+    return redirect(url_for('cartera.comparativa_anual'))
 
 
 # ========== Informe Ejecutivo ==========
@@ -333,67 +237,8 @@ def informe():
 @cartera_bp.route('/informe/pdf')
 @login_required
 def informe_pdf():
-    fichas = CarteraFichero.query.order_by(CarteraFichero.anio, CarteraFichero.mes).all()
-    if not fichas:
-        return redirect(url_for('cartera.index'))
-
-    kpis = _calcular_kpis(fichas)
-    resumen = _generar_resumen_ia(fichas)
-
-    # Build monthly table
-    tabla_rows = ''
-    for f in fichas:
-        tabla_rows += f'<tr><td>{MESES[f.mes]} {f.anio}</td><td>{f.num_polizas}</td><td>{f.prima_neta_total:.0f}€</td></tr>'
-
-    bajas_total = CarteraBaja.query.filter_by(renumerada=False).count()
-    total_meses = len(fichas)
-
-    first = fichas[0]
-    last = fichas[-1]
-    periodo = f'{MESES[first.mes]} {first.anio} - {MESES[last.mes]} {last.anio}'
-
-    html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
-        @page {{ margin: 2cm; size: A4; }}
-        body {{ font-family: Arial, sans-serif; font-size: 11px; line-height:1.5; color:#333; }}
-        .portada {{ text-align:center; padding:60px 0; page-break-after:always; }}
-        .portada h1 {{ color:#003396; font-size:28px; margin-bottom:10px; }}
-        .portada .kpi {{ display:inline-block; width:45%; margin:10px; padding:15px; border:2px solid #003396; border-radius:8px; }}
-        .portada .kpi h3 {{ margin:0; font-size:24px; color:#003396; }}
-        .header {{ text-align:center; border-bottom:2px solid #003396; padding-bottom:8px; margin-bottom:15px; }}
-        .header h2 {{ color:#003396; margin:0; }}
-        table {{ width:100%; border-collapse:collapse; margin:10px 0; }}
-        th {{ background:#003396; color:white; padding:5px; text-align:left; }}
-        td {{ padding:4px 5px; border-bottom:1px solid #ddd; }}
-        tr {{ page-break-inside:avoid; }}
-        h3 {{ color:#003396; border-bottom:1px solid #003396; padding-bottom:3px; margin-top:20px; }}
-        .footer {{ margin-top:20px; text-align:center; font-size:8px; color:#999; border-top:1px solid #ddd; padding-top:10px; }}
-    </style></head><body>
-    <div class="portada">
-        <h1>OCASO SEGUROS - Armilla</h1>
-        <h2 style="color:#003396">Informe Ejecutivo de Cartera</h2>
-        <p>Periodo: {periodo} | Generado: {date.today().strftime('%d/%m/%Y')}</p>
-        <div class="kpi"><h3>{kpis['polizas_last']}</h3><small>Polizas ({MESES[last.mes]})</small></div>
-        <div class="kpi"><h3>{kpis['prima_last']:.0f}€</h3><small>Prima ({MESES[last.mes]})</small></div>
-        <div class="kpi"><h3>{total_meses}</h3><small>Meses analizados</small></div>
-        <div class="kpi"><h3>{bajas_total}</h3><small>Bajas sin renumerar</small></div>
-    </div>
-
-    <h3>Resumen Ejecutivo</h3>
-    <p>{resumen['summary']}</p>
-    <p><strong>Variacion:</strong> Polizas: {kpis['var_polizas_anual']:+.1f}% | Prima: {kpis['var_prima_anual']:+.1f}%</p>
-
-    <h3>Metodologia</h3>
-    <p>Analisis realizado sobre ficheros Excel mensuales de Ocaso. Se normalizan numeros de poliza (sin ceros a la izquierda, base 7 digitos + certificado). Se excluyen comisiones de agente de zona. Las polizas que desaparecen y reaparecen con mismo producto y prima (&lt;0,02€ tolerancia) se consideran renumeradas, no bajas reales. Las bajas NO renumeradas son las que requieren atencion.</p>
-
-    <h3>Evolucion Mensual</h3>
-    <table><tr><th>Periodo</th><th>Polizas</th><th>Prima Neta</th></tr>{tabla_rows}</table>
-
-    <h3>Conclusiones</h3>
-    <p>{resumen['conclusion']}</p>
-
-    <div class="footer">Informe generado por Ocaso Gestion - Oficina Armilla (Granada)</div>
-    </body></html>'''
-    return _generar_pdf(html, f'informe_cartera_{date.today().strftime("%Y%m%d")}.pdf')
+    """Redirect to HTML informe - PDF via browser print."""
+    return redirect(url_for('cartera.informe'))
 
 
 # ========== Helper functions ==========
