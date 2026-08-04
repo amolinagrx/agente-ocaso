@@ -215,6 +215,10 @@ def _generar_pdf(html, filename):
     except ImportError:
         flash('WeasyPrint no instalado', 'danger')
         return redirect(url_for('cartera.index'))
+    except Exception as e:
+        flash(f'Error generando PDF. Verifica logs.', 'danger')
+        print(f'PDF error: {e}')
+        return redirect(url_for('cartera.index'))
 
 
 # ========== PDF routes ==========
@@ -274,7 +278,7 @@ def comparativa_anual_pdf():
         row = ''
         for y in years:
             f = by_year_month.get((y, m))
-            row += f'<td>{f.num_polizas if f else "-"}</td><td>{f.prima_neta_total:.0f}€ if f else "-"</td>'
+            row += f'<td>{f.num_polizas if f else "-"}</td><td>{f.prima_neta_total:.0f}€</td>' if f else '<td>-</td><td>-</td>'
         diff = ''
         if len(years) >= 2:
             f1 = by_year_month.get((years[-1], m))
