@@ -10,10 +10,15 @@ except ImportError:
 
 
 def _write_pdf(html):
-    """Write PDF using WeasyPrint, compatible with both old and new API."""
-    buf = io.BytesIO()
-    HTML(string=html).write_pdf(buf)
-    return buf.getvalue()
+    """Write PDF using WeasyPrint, compatible with old and new API."""
+    import tempfile, os
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    tmp.close()
+    HTML(string=html).write_pdf(tmp.name)
+    with open(tmp.name, 'rb') as f:
+        data = f.read()
+    os.unlink(tmp.name)
+    return data
 
 
 def generar_pdf_renovaciones(resultados):
