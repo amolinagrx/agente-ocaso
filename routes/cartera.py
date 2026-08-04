@@ -213,11 +213,12 @@ def _generar_pdf(html, filename):
         response.headers['Content-Disposition'] = f'inline; filename={filename}'
         return response
     except ImportError:
-        flash('WeasyPrint no instalado', 'danger')
+        flash('WeasyPrint no instalado en el servidor', 'danger')
         return redirect(url_for('cartera.index'))
     except Exception as e:
-        flash(f'Error generando PDF. Verifica logs.', 'danger')
-        print(f'PDF error: {e}')
+        import traceback
+        traceback.print_exc()
+        flash(f'Error generando PDF: {str(e)[:150]}', 'danger')
         return redirect(url_for('cartera.index'))
 
 
@@ -248,8 +249,8 @@ def bajas_pdf():
         rows += f'<tr><td>{b.poliza_base}</td><td>{b.producto}</td><td>{b.tipo_recibo}</td><td>{b.prima_neta:.0f}€</td><td>{MESES[b.mes_hasta]} {b.anio_hasta}</td></tr>'
 
     html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
-        @page {{ margin: 1.5cm; size: A4 landscape; @bottom-center {{ content: "Pagina " counter(page) " de " counter(pages); font-size:8px; }} }}
-        body {{ font-family: Arial; font-size: 10px; }}
+        @page {{ margin: 1.5cm; size: A4 landscape; }}
+        body {{ font-family: Arial, sans-serif; font-size: 10px; }}
         .header {{ text-align:center; border-bottom:2px solid #003396; padding-bottom:8px; margin-bottom:12px; }}
         .header h2 {{ color:#003396; margin:0; font-size:16px; }}
         table {{ width:100%; border-collapse:collapse; }}
@@ -292,8 +293,8 @@ def comparativa_anual_pdf():
     header_cols = ''.join(f'<th colspan="2">{y}</th>' for y in years)
 
     html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
-        @page {{ margin: 1.5cm; size: A4 landscape; @bottom-center {{ content: "Pagina " counter(page); font-size:8px; }} }}
-        body {{ font-family: Arial; font-size: 10px; }}
+        @page {{ margin: 1.5cm; size: A4 landscape; }}
+        body {{ font-family: Arial, sans-serif; font-size: 10px; }}
         .header {{ text-align:center; border-bottom:2px solid #003396; padding-bottom:8px; margin-bottom:12px; }}
         .header h2 {{ color:#003396; margin:0; font-size:16px; }}
         table {{ width:100%; border-collapse:collapse; }}
@@ -346,8 +347,8 @@ def informe_pdf():
     periodo = f'{MESES[first.mes]} {first.anio} - {MESES[last.mes]} {last.anio}'
 
     html = f'''<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
-        @page {{ margin: 2cm; size: A4; @bottom-center {{ content: "Pagina " counter(page) " de " counter(pages); font-size:8px; }} }}
-        body {{ font-family: Arial; font-size: 11px; line-height:1.5; color:#333; }}
+        @page {{ margin: 2cm; size: A4; }}
+        body {{ font-family: Arial, sans-serif; font-size: 11px; line-height:1.5; color:#333; }}
         .portada {{ text-align:center; padding:60px 0; page-break-after:always; }}
         .portada h1 {{ color:#003396; font-size:28px; margin-bottom:10px; }}
         .portada .kpi {{ display:inline-block; width:45%; margin:10px; padding:15px; border:2px solid #003396; border-radius:8px; }}
