@@ -233,58 +233,6 @@
                 link.addEventListener('click', closeSidebar);
             });
 
-            // Search
-            var searchTimeout;
-            window.buscarClientes = function(q) {
-                clearTimeout(searchTimeout);
-                if (q.length < 2) { resultados.style.display = 'none'; return; }
-                searchTimeout = setTimeout(function() {
-                    fetch('/api/buscar?q=' + encodeURIComponent(q))
-                        .then(r => r.json())
-                        .then(function(data) {
-                            if (data && data.length > 0) {
-                                resultados.innerHTML = '';
-                                data.forEach(function(item) {
-                        var a = document.createElement('a');
-                        a.href = item.url;
-                        a.className = 'd-block px-3 py-2 border-bottom text-decoration-none text-reset search-result-item';
-                        var row1 = document.createElement('div');
-                        row1.className = 'd-flex justify-content-between align-items-center';
-                        var strong = document.createElement('strong');
-                        strong.textContent = item.nombre || item.numero;
-                        row1.appendChild(strong);
-                        var small = document.createElement('small');
-                        small.className = 'text-muted text-capitalize';
-                        small.textContent = item.type;
-                        row1.appendChild(small);
-                        a.appendChild(row1);
-                        var row2 = document.createElement('small');
-                        row2.className = 'text-muted';
-                        row2.textContent = (item.dni ? 'DNI: ' + item.dni + ' ' : '') +
-                            (item.telefono ? 'Tel: ' + item.telefono + ' ' : '') +
-                            (item.polizas_activas !== undefined ? item.polizas_activas + ' polizas' : '');
-                        if (item.alerta) {
-                            var badge = document.createElement('span');
-                            badge.className = 'badge bg-danger ms-1';
-                            badge.textContent = '!';
-                            row2.appendChild(badge);
-                        }
-                        a.appendChild(row2);
-                        resultados.appendChild(a);
-                    });
-                    resultados.style.display = 'block';
-                } else {
-                    resultados.innerHTML = '<div class=\"px-3 py-2 text-muted small\">Sin resultados</div>';
-                    resultados.style.display = 'block';
-                }
-            });
-
-            document.addEventListener('click', function(e) {
-                if (!buscador.contains(e.target) && !resultados.contains(e.target)) {
-                    resultados.style.display = 'none';
-                }
-            });
-
             // Active nav
             var path = window.location.pathname;
             document.querySelectorAll('[data-nav]').forEach(function(el) {
@@ -315,6 +263,45 @@
         <option value="{{ r }}">
         {% endfor %}
     </datalist>
+    <script>
+    var _searchTimer;
+    document.getElementById('buscadorUniversal').addEventListener('input', function() {
+        var q = this.value.trim();
+        var res = document.getElementById('resultadosBusqueda');
+        clearTimeout(_searchTimer);
+        if (q.length < 2) { res.style.display = 'none'; return; }
+        _searchTimer = setTimeout(function() {
+            fetch('/api/buscar?q=' + encodeURIComponent(q))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    res.innerHTML = '';
+                    if (data && data.length > 0) {
+                        data.forEach(function(item) {
+                            var a = document.createElement('a');
+                            a.href = item.url;
+                            a.className = 'd-block px-3 py-2 border-bottom text-decoration-none text-reset search-result-item';
+                            a.innerHTML = '<div class=\"d-flex justify-content-between align-items-center\"><strong>' +
+                                (item.nombre || item.numero) + '</strong><small class=\"text-muted text-capitalize\">' +
+                                item.type + '</small></div><small class=\"text-muted\">' +
+                                (item.dni ? 'DNI: ' + item.dni + ' ' : '') +
+                                (item.telefono ? 'Tel: ' + item.telefono + ' ' : '') +
+                                (item.polizas_activas !== undefined ? item.polizas_activas + ' polizas' : '') +
+                                (item.alerta ? ' <span class=\"badge bg-danger\">!</span>' : '') + '</small>';
+                            res.appendChild(a);
+                        });
+                    } else {
+                        res.innerHTML = '<div class=\"px-3 py-2 text-muted small\">Sin resultados</div>';
+                    }
+                    res.style.display = 'block';
+                });
+        }, 300);
+    });
+    document.addEventListener('click', function(e) {
+        var b = document.getElementById('buscadorUniversal');
+        var r = document.getElementById('resultadosBusqueda');
+        if (!b.contains(e.target) && !r.contains(e.target)) r.style.display = 'none';
+    });
+    </script>
     {% else %}
     {% block auth_content %}{% endblock %}
     {% endif %}
