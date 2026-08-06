@@ -112,12 +112,17 @@ def logout():
 @cliente_required
 def dashboard():
     cliente = get_cliente()
-    polizas_activas = Poliza.query.filter_by(cliente_id=cliente.id, activa=True).count()
-    siniestros_abiertos = Siniestro.query.filter(
-        Siniestro.cliente_id == cliente.id,
-        ~Siniestro.estado.in_(['cerrado', 'resuelto'])
-    ).count()
-    documentos_count = DocumentoCliente.query.filter_by(cliente_id=cliente.id).count()
+    try:
+        polizas_activas = Poliza.query.filter_by(cliente_id=cliente.id, activa=True).count()
+        siniestros_abiertos = Siniestro.query.filter(
+            Siniestro.cliente_id == cliente.id,
+            Siniestro.estado.notin_(['cerrado', 'resuelto'])
+        ).count()
+        documentos_count = DocumentoCliente.query.filter_by(cliente_id=cliente.id).count()
+    except Exception:
+        polizas_activas = 0
+        siniestros_abiertos = 0
+        documentos_count = 0
 
     return render_template('portal/dashboard.html',
                            cliente=cliente,
@@ -130,7 +135,11 @@ def dashboard():
 @cliente_required
 def polizas():
     cliente = get_cliente()
-    polizas = Poliza.query.filter_by(cliente_id=cliente.id).order_by(Poliza.activa.desc(), Poliza.fecha_efecto.desc()).all()
+    try:
+        polizas = Poliza.query.filter_by(cliente_id=cliente.id).order_by(
+            Poliza.activa.desc(), Poliza.fecha_efecto.desc()).all()
+    except Exception:
+        polizas = []
     return render_template('portal/polizas.html', cliente=cliente, polizas=polizas)
 
 
@@ -138,7 +147,11 @@ def polizas():
 @cliente_required
 def siniestros():
     cliente = get_cliente()
-    siniestros = Siniestro.query.filter_by(cliente_id=cliente.id).order_by(Siniestro.fecha_apertura.desc()).all()
+    try:
+        siniestros = Siniestro.query.filter_by(cliente_id=cliente.id).order_by(
+            Siniestro.fecha_apertura.desc()).all()
+    except Exception:
+        siniestros = []
     return render_template('portal/siniestros.html', cliente=cliente, siniestros=siniestros)
 
 
@@ -146,5 +159,9 @@ def siniestros():
 @cliente_required
 def documentos():
     cliente = get_cliente()
-    docs = DocumentoCliente.query.filter_by(cliente_id=cliente.id).order_by(DocumentoCliente.uploaded_at.desc()).all()
+    try:
+        docs = DocumentoCliente.query.filter_by(cliente_id=cliente.id).order_by(
+            DocumentoCliente.uploaded_at.desc()).all()
+    except Exception:
+        docs = []
     return render_template('portal/documentos.html', cliente=cliente, documentos=docs)
