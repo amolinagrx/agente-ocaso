@@ -138,10 +138,7 @@
                        class="form-control"
                        placeholder="Buscar cliente, DNI, poliza..."
                        autocomplete="off"
-                       hx-get="{{ url_for('api.buscar') }}"
-                       hx-trigger="keyup changed delay:300ms"
-                       hx-target="#resultadosBusqueda"
-                       hx-indicator="#searchSpinner">
+                       oninput="buscarClientes(this.value)">
                 <span id="searchSpinner" class="htmx-indicator position-absolute end-0 top-50 translate-middle-y me-2">
                     <span class="spinner-border spinner-border-sm text-muted"></span>
                 </span>
@@ -237,11 +234,17 @@
             });
 
             // Search
-            buscador.addEventListener('htmx:afterRequest', function(evt) {
-                const data = JSON.parse(evt.detail.xhr.responseText);
-                if (data && data.length > 0) {
-                    resultados.innerHTML = '';
-                    data.forEach(function(item) {
+            var searchTimeout;
+            window.buscarClientes = function(q) {
+                clearTimeout(searchTimeout);
+                if (q.length < 2) { resultados.style.display = 'none'; return; }
+                searchTimeout = setTimeout(function() {
+                    fetch('/api/buscar?q=' + encodeURIComponent(q))
+                        .then(r => r.json())
+                        .then(function(data) {
+                            if (data && data.length > 0) {
+                                resultados.innerHTML = '';
+                                data.forEach(function(item) {
                         var a = document.createElement('a');
                         a.href = item.url;
                         a.className = 'd-block px-3 py-2 border-bottom text-decoration-none text-reset search-result-item';
@@ -271,7 +274,7 @@
                     });
                     resultados.style.display = 'block';
                 } else {
-                    resultados.innerHTML = '<div class="px-3 py-2 text-muted small">Sin resultados</div>';
+                    resultados.innerHTML = '<div class=\"px-3 py-2 text-muted small\">Sin resultados</div>';
                     resultados.style.display = 'block';
                 }
             });
