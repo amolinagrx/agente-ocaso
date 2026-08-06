@@ -1,39 +1,39 @@
 :root {
-    --ocaso-blue: #003396;
-    --ocaso-blue-dark: #002266;
-    --ocaso-blue-light: #0045cc;
-    --ocaso-blue-050: #edf4ff;
-    --ocaso-blue-100: #d6e4ff;
-    --ocaso-blue-200: #97c3f2;
-    --ocaso-gold: #fbbe21;
-    --ocaso-gold-hover: #e5a500;
-    --ocaso-yellow-050: #fffaeb;
+    --ocaso-blue: #1a5276;
+    --ocaso-blue-dark: #154360;
+    --ocaso-blue-light: #2980b9;
+    --ocaso-blue-050: #eaf0f6;
+    --ocaso-blue-100: #d4e0ec;
+    --ocaso-blue-200: #97b9d8;
+    --ocaso-gold: #f39c12;
+    --ocaso-gold-hover: #e67e22;
     --ocaso-white: #ffffff;
-    --ocaso-gray-50: #f5f7fa;
+    --ocaso-bg: #f0f2f5;
+    --ocaso-gray-50: #f8f9fa;
     --ocaso-gray-100: #ecf0f4;
     --ocaso-gray-200: #dbe0eb;
     --ocaso-gray-300: #c3ccdc;
     --ocaso-gray-400: #aab5c9;
-    --ocaso-gray-500: #8e9ab0;
+    --ocaso-gray-500: #7f8c9a;
     --ocaso-gray-600: #636f82;
-    --ocaso-gray-900: #23272d;
-    --ocaso-green: #00a66a;
-    --ocaso-red: #e0002b;
-    --ocaso-red-light: #fde6ea;
+    --ocaso-gray-900: #2c3e50;
+    --ocaso-green: #27ae60;
+    --ocaso-red: #e74c3c;
+    --ocaso-red-light: #fdecea;
     --sidebar-width: 250px;
 }
 
 /* ========== BASE ========== */
 body {
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: var(--ocaso-gray-50);
+    background-color: var(--ocaso-bg);
     color: var(--ocaso-gray-900);
     overflow-x: hidden;
 }
 
 [data-bs-theme="dark"] body {
-    background-color: #0d1b2a;
-    color: #e0e6ed;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
 }
 
 
@@ -575,7 +575,7 @@ body {
     z-index: 1030;
     overflow-y: auto;
     overflow-x: hidden;
-    background: linear-gradient(180deg, var(--ocaso-blue) 0%, #002a7a 100%) !important;
+    background: linear-gradient(180deg, var(--ocaso-blue) 0%, var(--ocaso-blue-dark) 100%) !important;
     color: white !important;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
