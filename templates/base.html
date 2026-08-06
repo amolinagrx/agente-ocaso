@@ -109,17 +109,17 @@
             </a>
             {% endif %}
         </div>
-        <div class="mt-auto p-3 border-top position-absolute bottom-0 w-100">
+        <div class="sidebar-footer">
             <div class="d-flex justify-content-between align-items-center">
-        <small class="text-muted">{{ current_user.username }}</small>
-        <div>
-            <a href="{{ url_for('usuarios.perfil') }}" class="btn btn-sm btn-outline-secondary me-1" title="Mi perfil">
-                <i class="bi bi-person-circle"></i>
-            </a>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-box-arrow-right"></i>
-            </a>
-        </div>
+                <small class="text-muted">{{ current_user.username }}</small>
+                <div>
+                    <a href="{{ url_for('usuarios.perfil') }}" class="btn btn-sm btn-outline-secondary me-1" title="Mi perfil" style="border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.7)">
+                        <i class="bi bi-person-circle"></i>
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-secondary" style="border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.7)">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
