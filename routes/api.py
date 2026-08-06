@@ -17,7 +17,8 @@ def buscar():
             Cliente.nombre.ilike(f'%{q}%'),
             Cliente.dni.ilike(f'%{q}%'),
             Cliente.telefono.ilike(f'%{q}%'),
-            Cliente.email.ilike(f'%{q}%')
+            Cliente.email.ilike(f'%{q}%'),
+            Cliente.poblacion.ilike(f'%{q}%'),
         )
     ).limit(15).all()
 
