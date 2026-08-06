@@ -27,6 +27,15 @@
             <h5 class="mb-0 fw-bold">OCASO</h5>
             <small class="text-muted">Armilla</small>
         </div>
+        <div class="d-flex justify-content-center align-items-center gap-2 py-2 border-bottom">
+            <small style="color:rgba(255,255,255,0.7)">{{ current_user.username }}</small>
+            <a href="{{ url_for('usuarios.perfil') }}" class="btn btn-sm" title="Mi perfil" style="color:rgba(255,255,255,0.6);padding:0 4px">
+                <i class="bi bi-person-circle"></i>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-sm" title="Salir" style="color:rgba(255,255,255,0.6);padding:0 4px">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
         <div class="list-group list-group-flush mt-2">
             {% if current_user.tiene_permiso('dashboard') %}
             <a href="{{ url_for('dashboard.index') }}" class="list-group-item list-group-item-action" data-nav="dashboard">
@@ -108,19 +117,6 @@
                 <i class="bi bi-people-gear me-2"></i> <span class="nav-label">Usuarios</span>
             </a>
             {% endif %}
-        </div>
-        <div class="sidebar-footer">
-            <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">{{ current_user.username }}</small>
-                <div>
-                    <a href="{{ url_for('usuarios.perfil') }}" class="btn btn-sm btn-outline-secondary me-1" title="Mi perfil" style="border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.7)">
-                        <i class="bi bi-person-circle"></i>
-                    </a>
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-secondary" style="border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.7)">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
 

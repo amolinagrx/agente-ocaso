@@ -608,14 +608,6 @@ body {
     display: none;
 }
 
-/* Sidebar footer always at bottom */
-#sidebar-wrapper .sidebar-footer {
-    flex-shrink: 0;
-    background: rgba(0,0,0,0.2);
-    padding: 10px 16px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-}
-
 #sidebar-wrapper.collapsed {
     transform: translateX(-100%);
 }
