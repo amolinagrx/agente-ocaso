@@ -5,7 +5,7 @@ from flask import make_response
 try:
     from weasyprint import HTML
     HAS_WEASYPRINT = True
-except ImportError:
+except (ImportError, OSError):
     HAS_WEASYPRINT = False
 
 
