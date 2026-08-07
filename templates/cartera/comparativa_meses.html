@@ -29,6 +29,24 @@
 <div class="text-muted text-center py-4">{% if mes1 and mes2 %}Sin datos para alguno de los meses seleccionados{% else %}Selecciona dos meses para comparar{% endif %}</div>
 {% endif %}
 
+{% endif %}
+
+{% if comp and comp.bajas_list %}
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between"><strong>Polizas que ya NO aparecen</strong><span class="badge bg-danger">{{ comp.bajas_list|length }}</span></div>
+    <div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Poliza</th><th>Producto</th><th>Tipo</th><th>Prima</th></tr></thead>
+    <tbody>{% for b in comp.bajas_list %}<tr><td><code>{{ b.poliza_base }}</code></td><td>{{ b.producto }}</td><td>{{ b.tipo_recibo }}</td><td>{{ "%.0f"|format(b.prima_neta) }}€</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endif %}
+
+{% if comp and comp.altas_list %}
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between"><strong>Nuevas polizas</strong><span class="badge bg-success">{{ comp.altas_list|length }}</span></div>
+    <div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Poliza</th><th>Producto</th><th>Prima</th></tr></thead>
+    <tbody>{% for a in comp.altas_list %}<tr><td><code>{{ a.poliza_base }}</code></td><td>{{ a.producto }}</td><td>{{ "%.0f"|format(a.prima_neta) }}€</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endif %}
+
 <a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary mt-3"><i class="bi bi-arrow-left"></i> Volver</a>
 
 {% endblock %}

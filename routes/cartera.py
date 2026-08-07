@@ -328,12 +328,14 @@ def comparativa_meses():
         p2 = CarteraPoliza.query.filter_by(fichero_id=f2.id).count()
         altas = CarteraAlta.query.filter_by(mes_hasta=mes2, anio_hasta=anio2).count()
         bajas = CarteraBaja.query.filter_by(mes_hasta=mes2, anio_hasta=anio2, renumerada=False).count()
+        bajas_list = CarteraBaja.query.filter_by(mes_hasta=mes2, anio_hasta=anio2, renumerada=False).order_by(CarteraBaja.prima_neta.desc()).all()
+        altas_list = CarteraAlta.query.filter_by(mes_hasta=mes2, anio_hasta=anio2).order_by(CarteraAlta.prima_neta.desc()).all()
         comp = {
             'f1': f1, 'f2': f2, 'p1': p1, 'p2': p2,
             'diff': p2 - p1, 'pct': round((p2 - p1) / p1 * 100, 1) if p1 else 0,
             'prima1': f1.prima_neta_total or 0, 'prima2': f2.prima_neta_total or 0,
             'diff_prima': (f2.prima_neta_total or 0) - (f1.prima_neta_total or 0),
-            'altas': altas, 'bajas': bajas,
+            'altas': altas, 'bajas': bajas, 'bajas_list': bajas_list, 'altas_list': altas_list,
         }
 
     return render_template('cartera/comparativa_meses.html',
