@@ -29,8 +29,6 @@
 <div class="text-muted text-center py-4">{% if mes1 and mes2 %}Sin datos para alguno de los meses seleccionados{% else %}Selecciona dos meses para comparar{% endif %}</div>
 {% endif %}
 
-{% endif %}
-
 {% if comp and comp.bajas_list %}
 <div class="card mt-3">
     <div class="card-header d-flex justify-content-between"><strong>Polizas que ya NO aparecen</strong><span class="badge bg-danger">{{ comp.bajas_list|length }}</span></div>
