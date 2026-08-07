@@ -31,17 +31,38 @@
 
 {% if comp and comp.bajas_list %}
 <div class="card mt-3">
-    <div class="card-header d-flex justify-content-between"><strong>Polizas que ya NO aparecen</strong><span class="badge bg-danger">{{ comp.bajas_list|length }}</span></div>
-    <div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Poliza</th><th>Producto</th><th>Tipo</th><th>Prima</th></tr></thead>
-    <tbody>{% for b in comp.bajas_list %}<tr><td><code>{{ b.poliza_base }}</code></td><td>{{ b.producto }}</td><td>{{ b.tipo_recibo }}</td><td>{{ "%.0f"|format(b.prima_neta) }}€</td></tr>{% endfor %}</tbody></table></div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Polizas que ya NO aparecen</strong>
+        <div>
+            <span class="badge bg-danger me-2">{{ comp.bajas_list|length }}</span>
+            <a href="{{ url_for('cartera.bajas_sospechosas', mes=mes2, anio=anio2) }}" class="btn btn-sm btn-outline-danger me-1"><i class="bi bi-file-pdf"></i> PDF</a>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#bajasList">Ver</button>
+        </div>
+    </div>
+    <div class="collapse" id="bajasList">
+        <div class="table-responsive" style="max-height:400px;overflow-y:auto">
+            <table class="table table-sm mb-0"><thead><tr><th>Poliza</th><th>Producto</th><th>Tipo</th><th>Prima</th></tr></thead>
+            <tbody>{% for b in comp.bajas_list %}<tr><td><code>{{ b.poliza_base }}</code></td><td>{{ b.producto }}</td><td>{{ b.tipo_recibo }}</td><td>{{ "%.0f"|format(b.prima_neta) }}€</td></tr>{% endfor %}</tbody></table>
+        </div>
+    </div>
 </div>
 {% endif %}
 
 {% if comp and comp.altas_list %}
 <div class="card mt-3">
-    <div class="card-header d-flex justify-content-between"><strong>Nuevas polizas</strong><span class="badge bg-success">{{ comp.altas_list|length }}</span></div>
-    <div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Poliza</th><th>Producto</th><th>Prima</th></tr></thead>
-    <tbody>{% for a in comp.altas_list %}<tr><td><code>{{ a.poliza_base }}</code></td><td>{{ a.producto }}</td><td>{{ "%.0f"|format(a.prima_neta) }}€</td></tr>{% endfor %}</tbody></table></div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Nuevas polizas</strong>
+        <div>
+            <span class="badge bg-success me-2">{{ comp.altas_list|length }}</span>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#altasList">Ver</button>
+        </div>
+    </div>
+    <div class="collapse" id="altasList">
+        <div class="table-responsive" style="max-height:400px;overflow-y:auto">
+            <table class="table table-sm mb-0"><thead><tr><th>Poliza</th><th>Producto</th><th>Prima</th></tr></thead>
+            <tbody>{% for a in comp.altas_list %}<tr><td><code>{{ a.poliza_base }}</code></td><td>{{ a.producto }}</td><td>{{ "%.0f"|format(a.prima_neta) }}€</td></tr>{% endfor %}</tbody></table>
+        </div>
+    </div>
 </div>
 {% endif %}
 
