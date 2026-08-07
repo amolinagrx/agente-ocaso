@@ -81,6 +81,16 @@ def gestionar(id):
     return redirect(request.referrer or url_for('recibos.index'))
 
 
+@recibos_bp.route('/eliminar/<int:id>', methods=['POST'])
+@login_required
+def eliminar(id):
+    recibo = Recibo.query.get_or_404(id)
+    db.session.delete(recibo)
+    db.session.commit()
+    flash('Recibo eliminado', 'success')
+    return redirect(request.referrer or url_for('recibos.index'))
+
+
 @recibos_bp.route('/editar/<int:id>', methods=['POST'])
 @login_required
 def editar(id):
