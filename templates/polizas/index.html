@@ -84,6 +84,7 @@
                 <th><a href="?sort=ramo&order={% if sort=='ramo' and order=='asc' %}desc{% else %}asc{% endif %}{% if ramo %}&ramo={{ramo}}{% endif %}" class="text-decoration-none text-reset">Ramo</a></th>
                 <th class="hide-mobile">Compania</th>
                 <th><a href="?sort=prima&order={% if sort=='prima' and order=='asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none text-reset">Prima</a></th>
+                <th class="hide-mobile">Frecuencia</th>
                 <th class="hide-mobile">Capital</th>
                 <th class="hide-mobile">F. Efecto</th>
                 <th class="hide-mobile">Nº Cuenta</th>
@@ -109,6 +110,7 @@
                 </td>
                 <td class="hide-mobile">{{ p.compania }}</td>
                 <td><strong>{{ "%.0f"|format(p.prima_anual) }}€</strong></td>
+                <td class="hide-mobile"><span class="badge bg-light text-dark">{{ p.frecuencia_pago or 'anual' }}</span></td>
                 <td class="hide-mobile">{{ "%.0f"|format(p.capital_asegurado) }}€</td>
                 <td class="hide-mobile">{{ p.fecha_efecto.strftime('%d/%m/%Y') if p.fecha_efecto else '-' }}</td>
                 <td class="hide-mobile"><code class="small">{{ p.numero_cuenta or '-' }}</code></td>
@@ -129,7 +131,7 @@
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="10" class="text-center text-muted py-4">Sin polizas con estos filtros</td></tr>
+            <tr><td colspan="11" class="text-center text-muted py-4">Sin polizas con estos filtros</td></tr>
             {% endfor %}
         </tbody>
     </table>

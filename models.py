@@ -184,6 +184,7 @@ class Poliza(db.Model):
     numero_cuenta = db.Column(db.String(34))
     unidades = db.Column(db.Integer, default=1)
     detalles = db.Column(db.Text)
+    frecuencia_pago = db.Column(db.String(20), default='anual')
 
     # Vehicle-specific fields
     marca = db.Column(db.String(50))

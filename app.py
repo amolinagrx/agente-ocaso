@@ -190,6 +190,7 @@ def _migrar_schema():
             ('fecha_baja', 'DATE'),
             ('unidades', 'INTEGER DEFAULT 1'),
             ('detalles', 'TEXT'),
+            ('frecuencia_pago', 'VARCHAR(20) DEFAULT \'anual\''),
         ]
 
         for col, col_type in migrations:

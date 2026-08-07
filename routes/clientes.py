@@ -126,7 +126,8 @@ def nueva_poliza(id):
             contenido=float(request.form.get('contenido', 0) or 0),
             numero_cuenta=request.form.get('numero_cuenta', ''),
             unidades=request.form.get('unidades', 1, type=int) or 1,
-            detalles=request.form.get('detalles', '')
+            detalles=request.form.get('detalles', ''),
+            frecuencia_pago=request.form.get('frecuencia_pago', 'anual')
         )
         db.session.add(poliza)
         db.session.commit()
@@ -257,6 +258,7 @@ def editar_poliza(id, poliza_id):
     poliza.numero_cuenta = request.form.get('numero_cuenta', poliza.numero_cuenta)
     poliza.unidades = request.form.get('unidades', 1, type=int) or 1
     poliza.detalles = request.form.get('detalles', poliza.detalles)
+    poliza.frecuencia_pago = request.form.get('frecuencia_pago', poliza.frecuencia_pago)
     poliza.activa = request.form.get('activa', 'true') == 'true'
 
     if poliza.ramo == 'auto':
