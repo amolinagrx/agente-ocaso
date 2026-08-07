@@ -301,3 +301,41 @@ def _generar_resumen_ia(fichas):
             'summary': f'Analisis de {len(fichas)} meses. Ultimo: {last.num_polizas} polizas, {last.prima_neta_total:.0f}€. Variacion anual polizas: {kpis["var_polizas_anual"]:+.1f}%.',
             'conclusion': f'Revisar {bajas_total} bajas no renumeradas.'
         }
+
+
+@cartera_bp.route('/comparativa-meses', methods=['GET', 'POST'])
+@login_required
+def comparativa_meses():
+    mes1 = request.args.get('mes1', type=int) or (date.today().month - 1 if date.today().month > 1 else 12)
+    anio1 = request.args.get('anio1', type=int) or (date.today().year - 1 if (date.today().month - 1 if date.today().month > 1 else 12) > date.today().month else date.today().year)
+    if request.args.get('mes1'):
+        mes1 = request.args.get('mes1', type=int)
+        anio1 = request.args.get('anio1', type=int)
+        mes2 = request.args.get('mes2', type=int)
+        anio2 = request.args.get('anio2', type=int)
+    else:
+        mes1 = date.today().month
+        anio1 = date.today().year - 1
+        mes2 = date.today().month
+        anio2 = date.today().year
+
+    f1 = CarteraFichero.query.filter_by(mes=mes1, anio=anio1).first()
+    f2 = CarteraFichero.query.filter_by(mes=mes2, anio=anio2).first()
+
+    comp = None
+    if f1 and f2:
+        p1 = CarteraPoliza.query.filter_by(fichero_id=f1.id).count()
+        p2 = CarteraPoliza.query.filter_by(fichero_id=f2.id).count()
+        altas = CarteraAlta.query.filter_by(mes_hasta=mes2, anio_hasta=anio2).count()
+        bajas = CarteraBaja.query.filter_by(mes_hasta=mes2, anio_hasta=anio2, renumerada=False).count()
+        comp = {
+            'f1': f1, 'f2': f2, 'p1': p1, 'p2': p2,
+            'diff': p2 - p1, 'pct': round((p2 - p1) / p1 * 100, 1) if p1 else 0,
+            'prima1': f1.prima_neta_total or 0, 'prima2': f2.prima_neta_total or 0,
+            'diff_prima': (f2.prima_neta_total or 0) - (f1.prima_neta_total or 0),
+            'altas': altas, 'bajas': bajas,
+        }
+
+    return render_template('cartera/comparativa_meses.html',
+                           mes1=mes1, anio1=anio1, mes2=mes2, anio2=anio2,
+                           meses=MESES, comp=comp)

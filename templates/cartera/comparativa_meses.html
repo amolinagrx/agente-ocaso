@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Comparativa Meses - Cartera{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-arrow-left-right me-2" style="color:var(--ocaso-blue)"></i>Comparativa entre meses</h4>
+
+<form method="GET" class="row g-2 mb-4 align-items-end">
+    <div class="col-md-2"><label class="form-label small">Mes 1</label><select name="mes1" class="form-select form-select-sm">{% for m in range(1,13) %}<option value="{{ m }}" {% if mes1==m %}selected{% endif %}>{{ meses[m] }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label small">Año 1</label><select name="anio1" class="form-select form-select-sm">{% for y in range(2024,2027) %}<option value="{{ y }}" {% if anio1==y %}selected{% endif %}>{{ y }}</option>{% endfor %}</select></div>
+    <div class="col-md-1 text-center pt-4"><i class="bi bi-arrow-right fs-4"></i></div>
+    <div class="col-md-2"><label class="form-label small">Mes 2</label><select name="mes2" class="form-select form-select-sm">{% for m in range(1,13) %}<option value="{{ m }}" {% if mes2==m %}selected{% endif %}>{{ meses[m] }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><label class="form-label small">Año 2</label><select name="anio2" class="form-select form-select-sm">{% for y in range(2024,2027) %}<option value="{{ y }}" {% if anio2==y %}selected{% endif %}>{{ y }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><button class="btn btn-sm btn-primary w-100" style="background:var(--ocaso-blue)">Comparar</button></div>
+</form>
+
+{% if comp %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="card text-center border-primary"><div class="card-body py-2"><h3 class="text-primary mb-0">{{ comp.p1 }}</h3><small>{{ meses[mes1] }} {{ anio1 }}</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center border-success"><div class="card-body py-2"><h3 class="text-success mb-0">{{ comp.p2 }}</h3><small>{{ meses[mes2] }} {{ anio2 }}</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h3 class="mb-0 {% if comp.diff >= 0 %}text-success{% else %}text-danger{% endif %}">{{ '%+d'|format(comp.diff) }}</h3><small>Diferencia ({{ '%+.1f'|format(comp.pct) }}%)</small></div></div></div>
+    <div class="col-6 col-md-3"><div class="card text-center"><div class="card-body py-2"><h3 class="mb-0 {% if comp.diff_prima >= 0 %}text-success{% else %}text-danger{% endif %}">{{ '%+.0f'|format(comp.diff_prima) }}€</h3><small>Dif. prima</small></div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6"><div class="card"><div class="card-header">Datos {{ meses[mes1] }} {{ anio1 }}</div><div class="card-body"><p><strong>Polizas:</strong> {{ comp.p1 }}</p><p><strong>Prima:</strong> {{ "%.0f"|format(comp.prima1) }}€</p></div></div></div>
+    <div class="col-md-6"><div class="card"><div class="card-header">Datos {{ meses[mes2] }} {{ anio2 }}</div><div class="card-body"><p><strong>Polizas:</strong> {{ comp.p2 }}</p><p><strong>Prima:</strong> {{ "%.0f"|format(comp.prima2) }}€</p><p><strong>Altas:</strong> {{ comp.altas }} | <strong>Bajas:</strong> {{ comp.bajas }}</p></div></div></div>
+</div>
+{% else %}
+<div class="text-muted text-center py-4">{% if mes1 and mes2 %}Sin datos para alguno de los meses seleccionados{% else %}Selecciona dos meses para comparar{% endif %}</div>
+{% endif %}
+
+<a href="{{ url_for('cartera.index') }}" class="btn btn-sm btn-outline-secondary mt-3"><i class="bi bi-arrow-left"></i> Volver</a>
+
+{% endblock %}
