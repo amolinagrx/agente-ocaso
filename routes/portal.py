@@ -3,7 +3,7 @@ import functools
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Cliente, Poliza, Siniestro, DocumentoCliente
+from models import db, Cliente, Poliza, Siniestro, DocumentoCliente, Recibo
 
 portal_bp = Blueprint('portal', __name__, url_prefix='/portal')
 
@@ -119,16 +119,19 @@ def dashboard():
             Siniestro.estado.notin_(['cerrado', 'resuelto'])
         ).count()
         documentos_count = DocumentoCliente.query.filter_by(cliente_id=cliente.id).count()
+        recibos_count = Recibo.query.filter_by(cliente_id=cliente.id, deleted_at=None).count()
     except Exception:
         polizas_activas = 0
         siniestros_abiertos = 0
         documentos_count = 0
+        recibos_count = 0
 
     return render_template('portal/dashboard.html',
                            cliente=cliente,
                            polizas_activas=polizas_activas,
                            siniestros_abiertos=siniestros_abiertos,
-                           documentos_count=documentos_count)
+                           documentos_count=documentos_count,
+                           recibos_count=recibos_count)
 
 
 @portal_bp.route('/polizas')
@@ -153,6 +156,18 @@ def siniestros():
     except Exception:
         siniestros = []
     return render_template('portal/siniestros.html', cliente=cliente, siniestros=siniestros)
+
+
+@portal_bp.route('/recibos')
+@cliente_required
+def recibos():
+    cliente = get_cliente()
+    try:
+        recibos = Recibo.query.filter_by(cliente_id=cliente.id, deleted_at=None).order_by(
+            Recibo.fecha_emision.desc()).limit(100).all()
+    except Exception:
+        recibos = []
+    return render_template('portal/recibos.html', cliente=cliente, recibos=recibos)
 
 
 @portal_bp.route('/documentos')

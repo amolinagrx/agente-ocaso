@@ -1,0 +1,39 @@
+{% extends "portal/base.html" %}
+{% block title %}Mis Recibos{% endblock %}
+{% block content %}
+<h4 class="mb-3"><i class="bi bi-receipt me-2" style="color:var(--portal-blue)"></i>Mis Recibos</h4>
+
+{% if recibos %}
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead class="table-light">
+            <tr><th>Fecha</th><th>Concepto</th><th>Poliza</th><th>Importe</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+            {% for r in recibos %}
+            <tr>
+                <td>{{ r.fecha_emision.strftime('%d/%m/%Y') if r.fecha_emision else '-' }}</td>
+                <td>{{ r.concepto or '-' }}</td>
+                <td><code>{{ r.numero_poliza or '-' }}</code></td>
+                <td><strong>{{ "%.2f"|format(r.importe) }}€</strong></td>
+                <td>
+                    {% if r.estado == 'cobrado' %}
+                    <span class="badge bg-success">Cobrado</span>
+                    {% elif r.estado == 'devuelto' %}
+                    <span class="badge bg-danger">Devuelto</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+    <p>No tienes recibos registrados.</p>
+</div>
+{% endif %}
+{% endblock %}

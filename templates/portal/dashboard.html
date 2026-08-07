@@ -4,7 +4,7 @@
 <h4 class="mb-3">Bienvenido, {{ cliente.nombre.split()[0] }}</h4>
 
 <div class="row g-3">
-    <div class="col-md-4">
+    <div class="col-6 col-md-3">
         <a href="/portal/polizas" class="text-decoration-none">
             <div class="portal-card card text-center p-4 h-100">
                 <i class="bi bi-file-earmark-text fs-1" style="color:var(--portal-blue)"></i>
@@ -13,16 +13,25 @@
             </div>
         </a>
     </div>
-    <div class="col-md-4">
+    <div class="col-6 col-md-3">
+        <a href="/portal/recibos" class="text-decoration-none">
+            <div class="portal-card card text-center p-4 h-100">
+                <i class="bi bi-receipt fs-1" style="color:#27ae60"></i>
+                <h2 class="mt-2 mb-0">{{ recibos_count }}</h2>
+                <small class="text-muted">Recibos</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
         <a href="/portal/siniestros" class="text-decoration-none">
             <div class="portal-card card text-center p-4 h-100">
                 <i class="bi bi-exclamation-triangle fs-1" style="color:#e74c3c"></i>
                 <h2 class="mt-2 mb-0">{{ siniestros_abiertos }}</h2>
-                <small class="text-muted">Siniestros abiertos</small>
+                <small class="text-muted">Siniestros</small>
             </div>
         </a>
     </div>
-    <div class="col-md-4">
+    <div class="col-6 col-md-3">
         <a href="/portal/documentos" class="text-decoration-none">
             <div class="portal-card card text-center p-4 h-100">
                 <i class="bi bi-folder fs-1" style="color:#f39c12"></i>
