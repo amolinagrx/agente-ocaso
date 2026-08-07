@@ -130,8 +130,13 @@ def nueva_poliza(id):
             frecuencia_pago=request.form.get('frecuencia_pago', 'anual')
         )
         db.session.add(poliza)
+        db.session.flush()
+
+        # Auto-generate receipts based on payment frequency
+        _generar_recibos_automaticos(poliza)
+
         db.session.commit()
-        flash('Póliza creada correctamente', 'success')
+        flash('Poliza creada correctamente con sus recibos', 'success')
         return redirect(url_for('clientes.ficha', id=id))
     return render_template('clientes/poliza_nueva.html', cliente=cliente)
 
@@ -456,6 +461,49 @@ def reenviar_password(id):
         flash(f'Nueva contrasena generada.', 'warning')
 
     return redirect(url_for('clientes.ficha', id=id))
+
+
+def _generar_recibos_automaticos(poliza):
+    """Auto-generate receipts for a year based on payment frequency."""
+    from dateutil.relativedelta import relativedelta
+    frecuencias = {
+        'anual': 1,
+        'semestral': 2,
+        'trimestral': 4,
+        'bimestral': 6,
+        'mensual': 12,
+        '0/30/60': 3,
+    }
+    num_recibos = frecuencias.get(poliza.frecuencia_pago or 'anual', 1)
+    if not poliza.fecha_efecto:
+        return
+
+    importe = round(poliza.prima_anual / num_recibos, 2)
+    fecha_base = poliza.fecha_efecto
+
+    for i in range(num_recibos):
+        if poliza.frecuencia_pago == '0/30/60':
+            meses_offset = i
+        elif poliza.frecuencia_pago == 'anual':
+            meses_offset = 0
+        else:
+            meses_offset = i * (12 // num_recibos)
+
+        fecha_emision = fecha_base + relativedelta(months=meses_offset)
+        fecha_cargo = fecha_emision + relativedelta(days=5)
+
+        recibo = Recibo(
+            cliente_id=poliza.cliente_id,
+            poliza_id=poliza.id,
+            numero_poliza=poliza.numero_poliza,
+            concepto=f'Prima {poliza.ramo.title()} - {fecha_emision.strftime("%b %Y")} ({i+1}/{num_recibos})',
+            importe=importe,
+            fecha_emision=fecha_emision,
+            fecha_cargo=fecha_cargo,
+            estado='pendiente',
+            compania=poliza.compania,
+        )
+        db.session.add(recibo)
 
 
 def _parse_date(val):
