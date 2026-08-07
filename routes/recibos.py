@@ -81,6 +81,23 @@ def gestionar(id):
     return redirect(request.referrer or url_for('recibos.index'))
 
 
+@recibos_bp.route('/editar/<int:id>', methods=['POST'])
+@login_required
+def editar(id):
+    recibo = Recibo.query.get_or_404(id)
+    recibo.concepto = request.form.get('concepto', recibo.concepto)
+    recibo.importe = float(request.form.get('importe', recibo.importe))
+    recibo.fecha_emision = _parse_date(request.form.get('fecha_emision')) or recibo.fecha_emision
+    recibo.fecha_cargo = _parse_date(request.form.get('fecha_cargo')) or recibo.fecha_cargo
+    recibo.estado = request.form.get('estado', recibo.estado)
+    recibo.numero_poliza = request.form.get('numero_poliza', recibo.numero_poliza)
+    recibo.compania = request.form.get('compania', recibo.compania)
+    recibo.notas = request.form.get('notas', recibo.notas)
+    db.session.commit()
+    flash('Recibo actualizado', 'success')
+    return redirect(request.referrer or url_for('recibos.index'))
+
+
 @recibos_bp.route('/cambiar-estado/<int:id>', methods=['POST'])
 @login_required
 def cambiar_estado(id):

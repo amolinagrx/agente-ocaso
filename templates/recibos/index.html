@@ -114,6 +114,10 @@
                 <td class="text-end">
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#editReciboModal{{ r.id }}" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#gestionModal{{ r.id }}" title="Gestionar">
                             <i class="bi bi-gear"></i>
                         </button>
@@ -142,6 +146,30 @@
                                     </form>
                                 </li>
                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- Edit Modal -->
+                    <div class="modal fade" id="editReciboModal{{ r.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <form method="POST" action="{{ url_for('recibos.editar', id=r.id) }}">
+                                <div class="modal-content">
+                                    <div class="modal-header"><h5>Editar recibo #{{ r.id }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                    <div class="modal-body">
+                                        <div class="row g-2">
+                                            <div class="col-12"><label class="form-label small">Concepto</label><input type="text" name="concepto" class="form-control form-control-sm" value="{{ r.concepto or '' }}"></div>
+                                            <div class="col-md-4"><label class="form-label small">Importe (€)</label><input type="number" name="importe" class="form-control form-control-sm" step="0.01" value="{{ r.importe }}"></div>
+                                            <div class="col-md-4"><label class="form-label small">F. Emision</label><input type="date" name="fecha_emision" class="form-control form-control-sm" value="{{ r.fecha_emision }}"></div>
+                                            <div class="col-md-4"><label class="form-label small">F. Cargo</label><input type="date" name="fecha_cargo" class="form-control form-control-sm" value="{{ r.fecha_cargo }}"></div>
+                                            <div class="col-md-4"><label class="form-label small">Estado</label><select name="estado" class="form-select form-select-sm"><option value="cobrado" {% if r.estado=='cobrado' %}selected{% endif %}>Cobrado</option><option value="devuelto" {% if r.estado=='devuelto' %}selected{% endif %}>Devuelto</option><option value="pendiente" {% if r.estado=='pendiente' %}selected{% endif %}>Pendiente</option></select></div>
+                                            <div class="col-md-4"><label class="form-label small">Nº Poliza</label><input type="text" name="numero_poliza" class="form-control form-control-sm" value="{{ r.numero_poliza or '' }}"></div>
+                                            <div class="col-md-4"><label class="form-label small">Compania</label><input type="text" name="compania" class="form-control form-control-sm" value="{{ r.compania or 'Ocaso' }}"></div>
+                                            <div class="col-12"><label class="form-label small">Notas</label><textarea name="notas" class="form-control form-control-sm" rows="2">{{ r.notas or '' }}</textarea></div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm" style="background:var(--ocaso-blue)">Guardar</button></div>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
