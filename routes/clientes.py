@@ -63,10 +63,13 @@ def nuevo():
 def ficha(id):
     cliente = Cliente.query.get_or_404(id)
     polizas = cliente.polizas_activas
-    recibos = cliente.recibos.order_by(Recibo.fecha_emision.desc()).limit(50).all()
+    recibos = cliente.recibos.filter(Recibo.deleted_at == None).order_by(Recibo.fecha_emision.desc()).limit(50).all()
     siniestros = cliente.siniestros.order_by(Siniestro.fecha_apertura.desc()).all()
     contactos = cliente.contactos.limit(30).all()
     documentos = DocumentoCliente.query.filter_by(cliente_id=cliente.id).order_by(DocumentoCliente.uploaded_at.desc()).all()
+    # Deleted items for papelera
+    polizas_deleted = Poliza.query.filter_by(cliente_id=cliente.id).filter(Poliza.deleted_at != None).all()
+    recibos_deleted = Recibo.query.filter_by(cliente_id=cliente.id).filter(Recibo.deleted_at != None).all()
     portal_password = session.pop(f'portal_password_{id}', None)
     return render_template('clientes/ficha.html',
                            cliente=cliente,
@@ -75,7 +78,9 @@ def ficha(id):
                            siniestros=siniestros,
                            contactos=contactos,
                            documentos=documentos,
-                           portal_password=portal_password)
+                           portal_password=portal_password,
+                           polizas_deleted=polizas_deleted,
+                           recibos_deleted=recibos_deleted)
 
 
 @clientes_bp.route('/<int:id>/editar', methods=['GET', 'POST'])
