@@ -314,7 +314,7 @@ def polizas_create():
         fecha_vencimiento=_parse_date(data.get('fecha_vencimiento')) or date.today(),
         activa=data.get('activa', True),
         numero_cuenta=data.get('numero_cuenta', ''),
-        unidades=int(data.get('unidades', 1)),
+        unidades=float(data.get('unidades', 1)),
         detalles=data.get('detalles', '')
     )
     db.session.add(p)

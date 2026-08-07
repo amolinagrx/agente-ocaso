@@ -182,7 +182,7 @@ class Poliza(db.Model):
     activa = db.Column(db.Boolean, default=True)
     fecha_baja = db.Column(db.Date)
     numero_cuenta = db.Column(db.String(34))
-    unidades = db.Column(db.Integer, default=1)
+    unidades = db.Column(db.Float, default=1.0)
     detalles = db.Column(db.Text)
     frecuencia_pago = db.Column(db.String(20), default='anual')
     deleted_at = db.Column(db.DateTime)

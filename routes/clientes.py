@@ -130,7 +130,7 @@ def nueva_poliza(id):
             continente=float(request.form.get('continente', 0) or 0),
             contenido=float(request.form.get('contenido', 0) or 0),
             numero_cuenta=request.form.get('numero_cuenta', ''),
-            unidades=request.form.get('unidades', 1, type=int) or 1,
+            unidades=request.form.get('unidades', 1, type=float) or 1.0,
             detalles=request.form.get('detalles', ''),
             frecuencia_pago=request.form.get('frecuencia_pago', 'anual')
         )
@@ -266,7 +266,7 @@ def editar_poliza(id, poliza_id):
     poliza.fecha_efecto = _parse_date(request.form.get('fecha_efecto')) or poliza.fecha_efecto
     poliza.fecha_vencimiento = _parse_date(request.form.get('fecha_vencimiento')) or poliza.fecha_vencimiento
     poliza.numero_cuenta = request.form.get('numero_cuenta', poliza.numero_cuenta)
-    poliza.unidades = request.form.get('unidades', 1, type=int) or 1
+    poliza.unidades = request.form.get('unidades', 1, type=float) or 1.0
     poliza.detalles = request.form.get('detalles', poliza.detalles)
     poliza.frecuencia_pago = request.form.get('frecuencia_pago', poliza.frecuencia_pago)
     poliza.activa = request.form.get('activa', 'true') == 'true'
