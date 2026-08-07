@@ -209,6 +209,16 @@ def _migrar_schema():
             except Exception as e:
                 print(f'Migracion drive_id: {e}')
 
+        # Ensure documentos_siniestro has all columns
+        try:
+            cursor.execute("PRAGMA table_info(documentos_siniestro)")
+            ds_cols = {row[1] for row in cursor.fetchall()}
+            if 'drive_id' not in ds_cols:
+                cursor.execute("ALTER TABLE documentos_siniestro ADD COLUMN drive_id VARCHAR(200)")
+                print('Migracion: anadida columna drive_id a documentos_siniestro')
+        except Exception:
+            pass  # Table might not exist yet, db.create_all handles it
+
         conn.commit()
         conn.close()
     except Exception as e:
