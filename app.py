@@ -200,6 +200,15 @@ def _migrar_schema():
                 except Exception as e:
                     print(f'Migracion polizas.{col}: {e}')
 
+        cursor.execute("PRAGMA table_info(documentos_cliente)")
+        doc_cols = {row[1] for row in cursor.fetchall()}
+        if 'drive_id' not in doc_cols:
+            try:
+                cursor.execute("ALTER TABLE documentos_cliente ADD COLUMN drive_id VARCHAR(200)")
+                print('Migracion: anadida columna drive_id a documentos_cliente')
+            except Exception as e:
+                print(f'Migracion drive_id: {e}')
+
         conn.commit()
         conn.close()
     except Exception as e:
