@@ -112,11 +112,19 @@
                     <td>{{ "%.0f"|format(f.prima_neta_total) }}€</td>
                     <td><small>{{ f.nombre_fichero }}</small></td>
                     <td>
-                        <form method="POST" action="{{ url_for('cartera.eliminar', id=f.id) }}">
+                        <button class="btn btn-sm btn-outline-info" 
+                                hx-get="{{ url_for('cartera.resumen_mes', id=f.id) }}" 
+                                hx-target="#resumen{{ f.id }}" 
+                                hx-swap="innerHTML"
+                                onclick="this.style.display='none'">
+                            <i class="bi bi-eye"></i> Altas/Bajas
+                        </button>
+                        <form method="POST" action="{{ url_for('cartera.eliminar', id=f.id) }}" class="d-inline">
                             <button class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
                         </form>
                     </td>
                 </tr>
+                <tr id="resumen{{ f.id }}"><td colspan="5"></td></tr>
                 {% else %}
                 <tr><td colspan="5" class="text-muted text-center py-4">Sin datos. Sube el primer fichero.</td></tr>
                 {% endfor %}

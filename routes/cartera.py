@@ -341,3 +341,11 @@ def comparativa_meses():
     return render_template('cartera/comparativa_meses.html',
                            mes1=mes1, anio1=anio1, mes2=mes2, anio2=anio2,
                            meses=MESES, comp=comp)
+
+@cartera_bp.route('/resumen/<int:id>')
+@login_required
+def resumen_mes(id):
+    f = CarteraFichero.query.get_or_404(id)
+    altas = CarteraAlta.query.filter_by(mes_hasta=f.mes, anio_hasta=f.anio).order_by(CarteraAlta.prima_neta.desc()).all()
+    bajas = CarteraBaja.query.filter_by(mes_hasta=f.mes, anio_hasta=f.anio, renumerada=False).order_by(CarteraBaja.prima_neta.desc()).all()
+    return render_template('cartera/_resumen_mes.html', f=f, altas=altas, bajas=bajas, meses=MESES)

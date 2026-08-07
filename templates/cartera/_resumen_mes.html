@@ -1,0 +1,13 @@
+<div class="mt-2 p-2 bg-light rounded small">
+    {% if altas %}
+    <strong class="text-success">Altas ({{ altas|length }}):</strong>
+    <div class="table-responsive"><table class="table table-sm mb-2"><thead><tr><th>Poliza</th><th>Producto</th><th>Prima</th></tr></thead>
+    <tbody>{% for a in altas[:10] %}<tr><td><code>{{ a.poliza_base }}</code></td><td>{{ a.producto }}</td><td>{{ "%.0f"|format(a.prima_neta) }}€</td></tr>{% endfor %}</tbody></table></div>
+    {% endif %}
+    {% if bajas %}
+    <strong class="text-danger">Bajas ({{ bajas|length }}):</strong>
+    <div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Poliza</th><th>Producto</th><th>Prima</th></tr></thead>
+    <tbody>{% for b in bajas[:10] %}<tr><td><code>{{ b.poliza_base }}</code></td><td>{{ b.producto }}</td><td>{{ "%.0f"|format(b.prima_neta) }}€</td></tr>{% endfor %}</tbody></table></div>
+    {% endif %}
+    {% if not altas and not bajas %}<p class="text-muted mb-0">Sin altas ni bajas detectadas</p>{% endif %}
+</div>
