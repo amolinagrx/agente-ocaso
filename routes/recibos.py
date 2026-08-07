@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import login_required
 from models import db, Recibo, Cliente, Poliza
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import pandas as pd
 import io
 
@@ -14,7 +14,7 @@ def index():
     page = request.args.get('page', 1, type=int)
     per_page = 20
 
-    query = Recibo.query
+    query = Recibo.query.filter(Recibo.deleted_at == None)
 
     estado = request.args.get('estado')
     if estado:
@@ -85,9 +85,9 @@ def gestionar(id):
 @login_required
 def eliminar(id):
     recibo = Recibo.query.get_or_404(id)
-    db.session.delete(recibo)
+    recibo.deleted_at = datetime.utcnow()
     db.session.commit()
-    flash('Recibo eliminado', 'success')
+    flash('Recibo movido a la papelera (30 dias)', 'success')
     return redirect(request.referrer or url_for('recibos.index'))
 
 
@@ -251,3 +251,41 @@ def _actualizar_alerta_cliente(cliente_id):
     if cliente:
         cliente.alerta_devoluciones = count >= 2
         db.session.commit()
+
+
+# ========== Papelera ==========
+
+@recibos_bp.route('/papelera')
+@login_required
+def papelera():
+    limite = datetime.utcnow() - timedelta(days=30)
+
+    # Clean up expired items
+    Poliza.query.filter(Poliza.deleted_at != None, Poliza.deleted_at < limite).delete()
+    Recibo.query.filter(Recibo.deleted_at != None, Recibo.deleted_at < limite).delete()
+    db.session.commit()
+
+    polizas = Poliza.query.filter(Poliza.deleted_at != None).order_by(Poliza.deleted_at.desc()).all()
+    recibos = Recibo.query.filter(Recibo.deleted_at != None).order_by(Recibo.deleted_at.desc()).all()
+
+    return render_template('recibos/papelera.html', polizas=polizas, recibos=recibos)
+
+
+@recibos_bp.route('/papelera/restaurar-poliza/<int:id>', methods=['POST'])
+@login_required
+def restaurar_poliza(id):
+    p = Poliza.query.get_or_404(id)
+    p.deleted_at = None
+    db.session.commit()
+    flash('Poliza restaurada', 'success')
+    return redirect(url_for('recibos.papelera'))
+
+
+@recibos_bp.route('/papelera/restaurar-recibo/<int:id>', methods=['POST'])
+@login_required
+def restaurar_recibo(id):
+    r = Recibo.query.get_or_404(id)
+    r.deleted_at = None
+    db.session.commit()
+    flash('Recibo restaurado', 'success')
+    return redirect(url_for('recibos.papelera'))

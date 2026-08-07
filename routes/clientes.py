@@ -289,10 +289,12 @@ def dar_baja_poliza(id, poliza_id):
     poliza = Poliza.query.get_or_404(poliza_id)
     poliza.activa = False
     poliza.fecha_baja = date.today()
-    # Delete pending receipts
-    Recibo.query.filter_by(poliza_id=poliza_id, estado='pendiente').delete()
+    poliza.deleted_at = datetime.utcnow()
+    # Soft-delete pending receipts
+    Recibo.query.filter_by(poliza_id=poliza_id, estado='pendiente').update(
+        {'deleted_at': datetime.utcnow()}, synchronize_session=False)
     db.session.commit()
-    flash(f'Poliza {poliza.numero_poliza} dada de baja. Recibos pendientes eliminados.', 'warning')
+    flash(f'Poliza {poliza.numero_poliza} dada de baja. Recibos pendientes movidos a papelera.', 'warning')
     return redirect(url_for('clientes.ficha', id=id))
 
 

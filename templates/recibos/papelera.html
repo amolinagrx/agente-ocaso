@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Papelera - Ocaso{% endblock %}
+{% block content %}
+
+<h4 class="mb-3"><i class="bi bi-trash me-2" style="color:var(--ocaso-blue)"></i>Papelera</h4>
+<p class="text-muted small mb-3">Elementos eliminados en los ultimos 30 dias. Pasado ese plazo se borran definitivamente.</p>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPolizas">Polizas ({{ polizas|length }})</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRecibos">Recibos ({{ recibos|length }})</button></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="tabPolizas">
+        {% if polizas %}
+        <div class="table-responsive"><table class="table table-sm">
+            <thead><tr><th>Poliza</th><th>Cliente</th><th>Ramo</th><th>Prima</th><th>Eliminada</th><th></th></tr></thead>
+            <tbody>{% for p in polizas %}<tr>
+                <td><code>{{ p.numero_poliza }}</code></td>
+                <td>{{ p.cliente.nombre }}</td>
+                <td>{{ p.ramo }}</td>
+                <td>{{ "%.0f"|format(p.prima_anual) }}€</td>
+                <td>{{ p.deleted_at.strftime('%d/%m/%Y') if p.deleted_at else '-' }}</td>
+                <td><form method="POST" action="{{ url_for('recibos.restaurar_poliza', id=p.id) }}"><button class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-counterclockwise"></i> Restaurar</button></form></td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<p class="text-muted text-center py-4">No hay polizas en la papelera</p>{% endif %}
+    </div>
+
+    <div class="tab-pane fade" id="tabRecibos">
+        {% if recibos %}
+        <div class="table-responsive"><table class="table table-sm">
+            <thead><tr><th>Concepto</th><th>Cliente</th><th>Importe</th><th>Estado</th><th>Eliminado</th><th></th></tr></thead>
+            <tbody>{% for r in recibos %}<tr>
+                <td>{{ r.concepto or '-' }}</td>
+                <td>{{ r.cliente.nombre }}</td>
+                <td>{{ "%.2f"|format(r.importe) }}€</td>
+                <td><span class="badge bg-{% if r.estado=='cobrado' %}success{% elif r.estado=='devuelto' %}danger{% else %}warning text-dark{% endif %}">{{ r.estado }}</span></td>
+                <td>{{ r.deleted_at.strftime('%d/%m/%Y') if r.deleted_at else '-' }}</td>
+                <td><form method="POST" action="{{ url_for('recibos.restaurar_recibo', id=r.id) }}"><button class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-counterclockwise"></i> Restaurar</button></form></td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<p class="text-muted text-center py-4">No hay recibos en la papelera</p>{% endif %}
+    </div>
+</div>
+
+{% endblock %}

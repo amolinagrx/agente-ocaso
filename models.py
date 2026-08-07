@@ -185,6 +185,7 @@ class Poliza(db.Model):
     unidades = db.Column(db.Integer, default=1)
     detalles = db.Column(db.Text)
     frecuencia_pago = db.Column(db.String(20), default='anual')
+    deleted_at = db.Column(db.DateTime)
 
     # Vehicle-specific fields
     marca = db.Column(db.String(50))
@@ -220,6 +221,7 @@ class Recibo(db.Model):
     notas = db.Column(db.Text)
     compania = db.Column(db.String(50), default='Ocaso')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    deleted_at = db.Column(db.DateTime)
 
     poliza_rel = db.relationship('Poliza', backref='recibos')
 

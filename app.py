@@ -191,6 +191,7 @@ def _migrar_schema():
             ('unidades', 'INTEGER DEFAULT 1'),
             ('detalles', 'TEXT'),
             ('frecuencia_pago', 'VARCHAR(20) DEFAULT \'anual\''),
+            ('deleted_at', 'DATETIME'),
         ]
 
         for col, col_type in migrations:
@@ -200,6 +201,15 @@ def _migrar_schema():
                     print(f'Migracion: anadida columna {col} a polizas')
                 except Exception as e:
                     print(f'Migracion polizas.{col}: {e}')
+
+        cursor.execute("PRAGMA table_info(recibos)")
+        rec_cols = {row[1] for row in cursor.fetchall()}
+        if 'deleted_at' not in rec_cols:
+            try:
+                cursor.execute("ALTER TABLE recibos ADD COLUMN deleted_at DATETIME")
+                print('Migracion: anadida columna deleted_at a recibos')
+            except Exception as e:
+                print(f'Migracion recibos.deleted_at: {e}')
 
         cursor.execute("PRAGMA table_info(documentos_cliente)")
         doc_cols = {row[1] for row in cursor.fetchall()}
